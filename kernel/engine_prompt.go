@@ -1072,9 +1072,6 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 		sb.WriteString(nofx.FormatPriceRankingForAI(ctx.PriceRankingData, fxosLang))
 	}
 
-	sb.WriteString("---\n\n")
-	sb.WriteString("Now analyze using the Decision Process above. Keep reasoning to 3-5 sentences max. Output the decision JSON.\n")
-
 	return sb.String()
 }
 

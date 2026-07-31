@@ -2,22 +2,9 @@
 
 This directory contains the GitHub Actions workflows for the FXOS project.
 
-## 📚 Documentation Index
+## 📚 Documentation
 
-- **[README.md](./README.md)** - This file, overview of all workflows
-- **[PERMISSIONS.md](./PERMISSIONS.md)** - Detailed permission analysis and security model
-- **[TRIGGERS.md](./TRIGGERS.md)** - Comparison of event triggers (pull_request vs pull_request_target vs workflow_run)
-- **[FORK_PR_FLOW.md](./FORK_PR_FLOW.md)** - Complete analysis of what happens when a fork PR is submitted
-- **[FLOW_DIAGRAM.md](./FLOW_DIAGRAM.md)** - Visual flow diagrams and quick reference
-- **[SECRETS_SCANNING.md](./SECRETS_SCANNING.md)** - Secrets scanning solutions and TruffleHog setup
-
-## 🚀 Quick Start
-
-**Want to understand how fork PRs work?** → Read [FLOW_DIAGRAM.md](./FLOW_DIAGRAM.md)
-
-**Need security details?** → Read [PERMISSIONS.md](./PERMISSIONS.md)
-
-**Confused about triggers?** → Read [TRIGGERS.md](./TRIGGERS.md)
+This README is the only documentation file in this directory. (PERMISSIONS.md / TRIGGERS.md / FORK_PR_FLOW.md / FLOW_DIAGRAM.md / SECRETS_SCANNING.md were referenced historically but never existed in the repo — do not re-add links to them.)
 
 ## PR Check Workflows
 
@@ -130,7 +117,7 @@ This approach:
 - Comment workflow doesn't execute fork code
 - Only reads pre-generated artifact data
 
-**For detailed permission analysis, see:** [PERMISSIONS.md](./PERMISSIONS.md)
+**Security model:** the two-workflow pattern above is the whole story — the run workflow has read-only permissions, the comment workflow has write permissions but only consumes pre-generated artifacts, and neither ever executes fork code.
 
 ## Workflow Comparison
 

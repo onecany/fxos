@@ -41,10 +41,10 @@ go.sum @onecany
 /web/ @onecany 
 /web/src/ @onecany 
 *.tsx @onecany 
-*.ts @onecany  (frontend TypeScript only)
-*.jsx @onecany 
-*.css @onecany 
-*.scss @onecany 
+*.ts @onecany
+*.jsx @onecany
+*.css @onecany
+*.scss @onecany
 
 # Configuration Files | 配置文件
 *.json @onecany 
@@ -66,9 +66,9 @@ README.md @onecany
 /.github/workflows/*.yml @onecany
 
 # Docker | Docker 配置
-Dockerfile  
-docker-compose.yml  
-.dockerignore 
+Dockerfile @onecany
+docker-compose.yml @onecany
+.dockerignore @onecany
 
 # Database | 数据库
 # Database migrations and schemas
@@ -81,13 +81,13 @@ docker-compose.yml
 /scripts/ @onecany 
 *.sh @onecany 
 *.bash @onecany 
-*.py @onecany  (if Python scripts exist)
+*.py @onecany
 
 # Tests | 测试
 # Test files require review from component owners
-*_test.go @heronsbillC
-/tests/  @heronsbillC
-/web/tests/  @onecany @heronsbillC
+*_test.go @onecany
+/tests/  @onecany
+/web/tests/  @onecany
 
 # Security & Dependencies | 安全和依赖
 # Security-sensitive files require extra attention
@@ -110,7 +110,7 @@ COPYING @onecany
 # Notes | 注意事项
 # =============================================================================
 #
-# 1. All PRs will be assigned to the 5 global owners
+# 1. All PRs will be assigned to the global owner
 #  所有 PR 都会分配给这 个全局 owners
 #
 # 2. Specific paths may add additional reviewers
@@ -130,7 +130,5 @@ COPYING @onecany
 # 这里列出的用户只有在拥有 Write 或以上权限时才会被自动请求
 # - GitHub will silently skip users without proper permissions
 # GitHub 会静默跳过没有适当权限的用户
-# - See CODEOWNERS_PERMISSIONS.md for details
-# 详见 CODEOWNERS_PERMISSIONS.md
 #
 # =============================================================================

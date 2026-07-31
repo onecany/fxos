@@ -689,7 +689,15 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     const nextParams = new URLSearchParams(searchParams)
     nextParams.delete('setup')
     setSearchParams(nextParams, { replace: true })
-  }, [allExchanges, allModels, searchParams, setSearchParams, supportedModels, token, user])
+  }, [
+    allExchanges,
+    allModels,
+    searchParams,
+    setSearchParams,
+    supportedModels,
+    token,
+    user,
+  ])
 
   const refreshLaunchState = async () => {
     await Promise.all([loadConfigs(), mutateTraders()])

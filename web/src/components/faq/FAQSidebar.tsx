@@ -14,7 +14,10 @@ export function FAQSidebar({
   return (
     <nav
       className="sticky top-24 h-[calc(100vh-120px)] overflow-y-auto pr-2"
-      style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--panel-border) transparent' }}
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'var(--panel-border) transparent',
+      }}
     >
       <div className="space-y-5">
         {categories.map((category) => (

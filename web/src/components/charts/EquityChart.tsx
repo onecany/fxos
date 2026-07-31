@@ -41,7 +41,11 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
   const { user, token } = useAuth()
   const [displayMode, setDisplayMode] = useState<'dollar' | 'percent'>('dollar')
 
-  const { data: history, error, isLoading } = useSWR<EquityPoint[]>(
+  const {
+    data: history,
+    error,
+    isLoading,
+  } = useSWR<EquityPoint[]>(
     user && token && traderId ? `equity-history-${traderId}` : null,
     () => api.getEquityHistory(traderId, true),
     {
@@ -66,7 +70,10 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
     return (
       <div className={embedded ? 'p-6' : 'binance-card p-6'}>
         {!embedded && (
-          <h3 className="text-lg font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
+          <h3
+            className="text-lg font-semibold mb-6"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {t('accountEquityCurve', language)}
           </h3>
         )}
@@ -87,9 +94,15 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
             border: '1px solid rgba(214, 67, 58, 0.2)',
           }}
         >
-          <AlertTriangle className="w-6 h-6" style={{ color: 'var(--fxos-danger)' }} />
+          <AlertTriangle
+            className="w-6 h-6"
+            style={{ color: 'var(--fxos-danger)' }}
+          />
           <div>
-            <div className="font-semibold" style={{ color: 'var(--fxos-danger)' }}>
+            <div
+              className="font-semibold"
+              style={{ color: 'var(--fxos-danger)' }}
+            >
               {t('loadingError', language)}
             </div>
             <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -108,11 +121,17 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
     return (
       <div className={embedded ? 'p-6' : 'binance-card p-6'}>
         {!embedded && (
-          <h3 className="text-lg font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
+          <h3
+            className="text-lg font-semibold mb-6"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {t('accountEquityCurve', language)}
           </h3>
         )}
-        <div className="text-center py-16" style={{ color: 'var(--text-secondary)' }}>
+        <div
+          className="text-center py-16"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           <div className="mb-4 flex justify-center opacity-50">
             <BarChart3 className="w-16 h-16" />
           </div>
@@ -189,17 +208,31 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
       return (
         <div
           className="rounded p-3 shadow-xl"
-          style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)' }}
+          style={{
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--panel-border)',
+          }}
         >
-          <div className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            className="text-xs mb-1"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             Cycle #{data.cycle != null ? data.cycle : '—'}
           </div>
-          <div className="font-bold mono" style={{ color: 'var(--text-primary)' }}>
+          <div
+            className="font-bold mono"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {data.raw_equity.toFixed(2)} USDT
           </div>
           <div
             className="text-sm mono font-bold"
-            style={{ color: data.raw_pnl >= 0 ? 'var(--fxos-success)' : 'var(--fxos-danger)' }}
+            style={{
+              color:
+                data.raw_pnl >= 0
+                  ? 'var(--fxos-success)'
+                  : 'var(--fxos-danger)',
+            }}
           >
             {data.raw_pnl >= 0 ? '+' : ''}
             {data.raw_pnl.toFixed(2)} USDT ({data.raw_pnl_pct >= 0 ? '+' : ''}
@@ -212,7 +245,11 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
   }
 
   return (
-    <div className={embedded ? 'p-3 sm:p-5' : 'binance-card p-3 sm:p-5 animate-fade-in'}>
+    <div
+      className={
+        embedded ? 'p-3 sm:p-5' : 'binance-card p-3 sm:p-5 animate-fade-in'
+      }
+    >
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <div className="flex-1">
@@ -241,7 +278,9 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
               <span
                 className="text-sm sm:text-lg font-bold mono px-2 sm:px-3 py-1 rounded flex items-center gap-1"
                 style={{
-                  color: isProfit ? 'var(--fxos-success)' : 'var(--fxos-danger)',
+                  color: isProfit
+                    ? 'var(--fxos-success)'
+                    : 'var(--fxos-danger)',
                   background: isProfit
                     ? 'rgba(46, 139, 87, 0.1)'
                     : 'rgba(214, 67, 58, 0.1)',
@@ -274,7 +313,10 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
         {/* Display Mode Toggle */}
         <div
           className="flex gap-0.5 sm:gap-1 rounded p-0.5 sm:p-1 self-start sm:self-auto"
-          style={{ background: 'var(--fxos-bg-lighter)', border: '1px solid var(--panel-border)' }}
+          style={{
+            background: 'var(--fxos-bg-lighter)',
+            border: '1px solid var(--panel-border)',
+          }}
         >
           <button
             onClick={() => setDisplayMode('dollar')}
@@ -343,7 +385,10 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
                 <stop offset="95%" stopColor="#22c55e" stopOpacity={0.2} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(45, 212, 191, 0.15)" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="rgba(45, 212, 191, 0.15)"
+            />
             <XAxis
               dataKey="time"
               stroke="currentColor"
@@ -382,7 +427,11 @@ export function EquityChart({ traderId, embedded = false }: EquityChartProps) {
               dataKey="value"
               stroke="url(#colorGradient)"
               strokeWidth={3}
-              dot={chartData.length > 50 ? false : { fill: 'var(--fxos-gold)', r: 3 }}
+              dot={
+                chartData.length > 50
+                  ? false
+                  : { fill: 'var(--fxos-gold)', r: 3 }
+              }
               activeDot={{
                 r: 6,
                 fill: 'var(--fxos-gold)',

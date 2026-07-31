@@ -76,7 +76,9 @@ export function WebCryptoEnvironmentCheck({
     ? 'p-3 rounded border border-[var(--panel-border)] bg-fxos-bg-lighter space-y-3'
     : 'p-4 rounded border border-[var(--panel-border)] bg-fxos-bg-lighter space-y-4'
 
-  const descriptionColor = isCompact ? 'var(--text-secondary)' : 'var(--text-secondary)'
+  const descriptionColor = isCompact
+    ? 'var(--text-secondary)'
+    : 'var(--text-secondary)'
   const showInfo = status !== 'idle'
 
   const statusRendererMap: Record<WebCryptoCheckStatus, () => ReactNode> = {

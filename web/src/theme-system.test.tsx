@@ -69,7 +69,9 @@ describe('HeaderBar chrome', () => {
     )
 
     // Theme toggle present
-    const toggle = screen.getByRole('button', { name: /switch to light theme/i })
+    const toggle = screen.getByRole('button', {
+      name: /switch to light theme/i,
+    })
     expect(toggle).toBeTruthy()
 
     // Leaderboard must be gone from the nav

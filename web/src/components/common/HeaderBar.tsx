@@ -90,7 +90,9 @@ export default function HeaderBar({
           <span className="flex items-center justify-center w-8 h-8 rounded-md overflow-hidden shrink-0 bg-[rgba(255,255,255,0.08)] border border-[rgba(45,212,191,0.16)] shadow-[0_0_18px_rgba(45,212,191,0.08)]">
             <img src="/icons/fxos.svg" alt="FXOS Logo" className="w-8 h-8" />
           </span>
-          <span className="text-lg font-bold text-fxos-gold tracking-wide">FXOS</span>
+          <span className="text-lg font-bold text-fxos-gold tracking-wide">
+            FXOS
+          </span>
         </div>
 
         {/* Desktop Menu */}
@@ -181,7 +183,10 @@ export default function HeaderBar({
                 ))
             })()}
             {/* Dashboard context slot — terminal selector + status portals in here */}
-            <div id="dash-header-slot" className="hidden lg:flex items-center" />
+            <div
+              id="dash-header-slot"
+              className="hidden lg:flex items-center"
+            />
           </div>
 
           {/* Right Side - Social Links and User Actions */}

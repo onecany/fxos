@@ -74,10 +74,24 @@ export function ChartWithOrders({
       // Determine ms vs seconds: if > 10^12, treat as milliseconds
       if (time > 1000000000000) {
         const seconds = Math.floor(time / 1000)
-        console.log('[ChartWithOrders] ✅ Unix timestamp (ms→s):', time, '→', seconds, '(', new Date(time).toISOString(), ')')
+        console.log(
+          '[ChartWithOrders] ✅ Unix timestamp (ms→s):',
+          time,
+          '→',
+          seconds,
+          '(',
+          new Date(time).toISOString(),
+          ')'
+        )
         return seconds
       }
-      console.log('[ChartWithOrders] ✅ Unix timestamp (s):', time, '(', new Date(time * 1000).toISOString(), ')')
+      console.log(
+        '[ChartWithOrders] ✅ Unix timestamp (s):',
+        time,
+        '(',
+        new Date(time * 1000).toISOString(),
+        ')'
+      )
       return time
     }
 
@@ -88,7 +102,15 @@ export function ChartWithOrders({
     const isoTime = new Date(timeStr).getTime()
     if (!isNaN(isoTime) && isoTime > 0) {
       const timestamp = Math.floor(isoTime / 1000)
-      console.log('[ChartWithOrders] ✅ Parsed as ISO:', timeStr, '→', timestamp, '(', new Date(timestamp * 1000).toISOString(), ')')
+      console.log(
+        '[ChartWithOrders] ✅ Parsed as ISO:',
+        timeStr,
+        '→',
+        timestamp,
+        '(',
+        new Date(timestamp * 1000).toISOString(),
+        ')'
+      )
       return timestamp
     }
 
@@ -97,15 +119,25 @@ export function ChartWithOrders({
     if (match) {
       const currentYear = new Date().getFullYear()
       const [_, month, day, hour, minute] = match
-      const date = new Date(Date.UTC(
-        currentYear,
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hour),
-        parseInt(minute)
-      ))
+      const date = new Date(
+        Date.UTC(
+          currentYear,
+          parseInt(month) - 1,
+          parseInt(day),
+          parseInt(hour),
+          parseInt(minute)
+        )
+      )
       const timestamp = Math.floor(date.getTime() / 1000)
-      console.log('[ChartWithOrders] ✅ Parsed as custom format:', timeStr, '→', timestamp, '(', new Date(timestamp * 1000).toISOString(), ')')
+      console.log(
+        '[ChartWithOrders] ✅ Parsed as custom format:',
+        timeStr,
+        '→',
+        timestamp,
+        '(',
+        new Date(timestamp * 1000).toISOString(),
+        ')'
+      )
       return timestamp
     }
 
@@ -114,10 +146,15 @@ export function ChartWithOrders({
   }
 
   // Fetch kline data from our service
-  const fetchKlineData = async (symbol: string, interval: string): Promise<KlineData[]> => {
+  const fetchKlineData = async (
+    symbol: string,
+    interval: string
+  ): Promise<KlineData[]> => {
     try {
       const limit = 2000 // Fetch recent 2000 candles (more historical data)
-      const klineUrl = apiUrl(`/klines?symbol=${symbol}&interval=${interval}&limit=${limit}&exchange=${exchange}`)
+      const klineUrl = apiUrl(
+        `/klines?symbol=${symbol}&interval=${interval}&limit=${limit}&exchange=${exchange}`
+      )
 
       const result = await httpClient.request(klineUrl, { silent: true })
 
@@ -144,11 +181,16 @@ export function ChartWithOrders({
   }
 
   // Fetch order data
-  const fetchOrders = async (traderID: string, symbol: string): Promise<OrderMarker[]> => {
+  const fetchOrders = async (
+    traderID: string,
+    symbol: string
+  ): Promise<OrderMarker[]> => {
     try {
       // Fetch filled orders for this trader from backend API
       const result = await httpClient.request(
-        apiUrl(`/orders?trader_id=${traderID}&symbol=${symbol}&status=FILLED&limit=50`),
+        apiUrl(
+          `/orders?trader_id=${traderID}&symbol=${symbol}&status=FILLED&limit=50`
+        ),
         { silent: true }
       )
 
@@ -192,7 +234,9 @@ export function ChartWithOrders({
         })
       })
 
-      console.log(`[ChartWithOrders] Loaded ${markers.length} order markers for ${symbol}`)
+      console.log(
+        `[ChartWithOrders] Loaded ${markers.length} order markers for ${symbol}`
+      )
       return markers
     } catch (err) {
       console.error('Error fetching orders:', err)
@@ -212,63 +256,63 @@ export function ChartWithOrders({
     try {
       // Create chart
       const chart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: height,
-      layout: {
-        background: { color: palette.background },
-        textColor: palette.textColor,
-      },
-      grid: {
-        vertLines: { color: palette.gridColor },
-        horzLines: { color: palette.gridColor },
-      },
-      crosshair: {
-        mode: 1, // Normal crosshair
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(45, 212, 191, 0.16)',
-      },
-      timeScale: {
-        borderColor: 'rgba(45, 212, 191, 0.16)',
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      localization: {
-        timeFormatter: (time: number) => {
-          const date = new Date(time * 1000)
-          return date.toLocaleString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          })
+        width: chartContainerRef.current.clientWidth,
+        height: height,
+        layout: {
+          background: { color: palette.background },
+          textColor: palette.textColor,
         },
-      },
-    })
+        grid: {
+          vertLines: { color: palette.gridColor },
+          horzLines: { color: palette.gridColor },
+        },
+        crosshair: {
+          mode: 1, // Normal crosshair
+        },
+        rightPriceScale: {
+          borderColor: 'rgba(45, 212, 191, 0.16)',
+        },
+        timeScale: {
+          borderColor: 'rgba(45, 212, 191, 0.16)',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        localization: {
+          timeFormatter: (time: number) => {
+            const date = new Date(time * 1000)
+            return date.toLocaleString('zh-CN', {
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            })
+          },
+        },
+      })
 
-    chartRef.current = chart
+      chartRef.current = chart
 
-    // Create candlestick series (using v5 API)
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: 'var(--fxos-success)',
-      downColor: 'var(--fxos-danger)',
-      borderUpColor: 'var(--fxos-success)',
-      borderDownColor: 'var(--fxos-danger)',
-      wickUpColor: 'var(--fxos-success)',
-      wickDownColor: 'var(--fxos-danger)',
-    })
+      // Create candlestick series (using v5 API)
+      const candlestickSeries = chart.addSeries(CandlestickSeries, {
+        upColor: 'var(--fxos-success)',
+        downColor: 'var(--fxos-danger)',
+        borderUpColor: 'var(--fxos-success)',
+        borderDownColor: 'var(--fxos-danger)',
+        wickUpColor: 'var(--fxos-success)',
+        wickDownColor: 'var(--fxos-danger)',
+      })
 
-    candlestickSeriesRef.current = candlestickSeries as any
+      candlestickSeriesRef.current = candlestickSeries as any
 
-    // Responsive resize
-    const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        })
+      // Responsive resize
+      const handleResize = () => {
+        if (chartContainerRef.current && chartRef.current) {
+          chartRef.current.applyOptions({
+            width: chartContainerRef.current.clientWidth,
+          })
+        }
       }
-    }
 
       window.addEventListener('resize', handleResize)
 
@@ -335,7 +379,13 @@ export function ChartWithOrders({
         return
       }
 
-      console.log('[ChartWithOrders] Loading data for', symbol, interval, 'trader:', traderID)
+      console.log(
+        '[ChartWithOrders] Loading data for',
+        symbol,
+        interval,
+        'trader:',
+        traderID
+      )
       setLoading(true)
       setError(null)
 
@@ -343,14 +393,26 @@ export function ChartWithOrders({
         // 1. Fetch kline data
         console.log('[ChartWithOrders] Fetching kline data...')
         const klineData = await fetchKlineData(symbol, interval)
-        console.log('[ChartWithOrders] Kline data received:', klineData.length, 'candles')
+        console.log(
+          '[ChartWithOrders] Kline data received:',
+          klineData.length,
+          'candles'
+        )
         candlestickSeriesRef.current.setData(klineData)
 
         // Build kline time set for quick lookup
-        const klineTimeSet = new Set(klineData.map(k => k.time as number))
+        const klineTimeSet = new Set(klineData.map((k) => k.time as number))
         const klineMinTime = klineData.length > 0 ? klineData[0].time : 0
-        const klineMaxTime = klineData.length > 0 ? klineData[klineData.length - 1].time : 0
-        console.log('[ChartWithOrders] Kline time range:', klineMinTime, '-', klineMaxTime, 'candles:', klineData.length)
+        const klineMaxTime =
+          klineData.length > 0 ? klineData[klineData.length - 1].time : 0
+        console.log(
+          '[ChartWithOrders] Kline time range:',
+          klineMinTime,
+          '-',
+          klineMaxTime,
+          'candles:',
+          klineData.length
+        )
 
         // Calculate interval in seconds
         const getIntervalSeconds = (interval: string): number => {
@@ -359,21 +421,41 @@ export function ChartWithOrders({
           const [, num, unit] = match
           const n = parseInt(num)
           switch (unit) {
-            case 's': return n
-            case 'm': return n * 60
-            case 'h': return n * 3600
-            case 'd': return n * 86400
-            default: return 60
+            case 's':
+              return n
+            case 'm':
+              return n * 60
+            case 'h':
+              return n * 3600
+            case 'd':
+              return n * 86400
+            default:
+              return 60
           }
         }
         const intervalSeconds = getIntervalSeconds(interval)
-        console.log('[ChartWithOrders] Interval:', interval, '=', intervalSeconds, 'seconds')
+        console.log(
+          '[ChartWithOrders] Interval:',
+          interval,
+          '=',
+          intervalSeconds,
+          'seconds'
+        )
 
         // 2. Fetch order data and add markers
         if (traderID) {
-          console.log('[ChartWithOrders] Fetching orders for trader:', traderID, 'symbol:', symbol)
+          console.log(
+            '[ChartWithOrders] Fetching orders for trader:',
+            traderID,
+            'symbol:',
+            symbol
+          )
           const orders = await fetchOrders(traderID, symbol)
-          console.log('[ChartWithOrders] Received orders:', orders.length, 'orders')
+          console.log(
+            '[ChartWithOrders] Received orders:',
+            orders.length,
+            'orders'
+          )
 
           if (orders.length === 0) {
             console.log('[ChartWithOrders] No orders to display')
@@ -392,12 +474,20 @@ export function ChartWithOrders({
 
           orders.forEach((order) => {
             // Align order time to kline interval (floor)
-            const alignedTime = Math.floor(order.time / intervalSeconds) * intervalSeconds
+            const alignedTime =
+              Math.floor(order.time / intervalSeconds) * intervalSeconds
 
             // Check if aligned time exists in kline data
             if (!klineTimeSet.has(alignedTime)) {
-              console.warn('[ChartWithOrders] ⚠️ Skipping order - no matching kline:',
-                order.time, '→', alignedTime, '(', new Date(order.time * 1000).toISOString(), ')')
+              console.warn(
+                '[ChartWithOrders] ⚠️ Skipping order - no matching kline:',
+                order.time,
+                '→',
+                alignedTime,
+                '(',
+                new Date(order.time * 1000).toISOString(),
+                ')'
+              )
               return
             }
 
@@ -413,9 +503,18 @@ export function ChartWithOrders({
             })
           })
 
-          console.log('[ChartWithOrders] Valid markers (with matching klines):', markers.length, 'out of', orders.length)
+          console.log(
+            '[ChartWithOrders] Valid markers (with matching klines):',
+            markers.length,
+            'out of',
+            orders.length
+          )
 
-          console.log('[ChartWithOrders] Setting', markers.length, 'markers on chart')
+          console.log(
+            '[ChartWithOrders] Setting',
+            markers.length,
+            'markers on chart'
+          )
 
           try {
             // Using v5 API: createSeriesMarkers
@@ -424,7 +523,10 @@ export function ChartWithOrders({
               seriesMarkersRef.current.setMarkers(markers)
             } else {
               // First time creating markers
-              seriesMarkersRef.current = createSeriesMarkers(candlestickSeriesRef.current, markers)
+              seriesMarkersRef.current = createSeriesMarkers(
+                candlestickSeriesRef.current,
+                markers
+              )
             }
             console.log('[ChartWithOrders] ✅ Markers set successfully!')
           } catch (err) {
@@ -497,29 +599,57 @@ export function ChartWithOrders({
               boxShadow: 'var(--shadow-md)',
             }}
           >
-            <div style={{ marginBottom: '6px', color: 'var(--fxos-gold)', fontWeight: 'bold', fontSize: '11px' }}>
-              {new Date((tooltipData.time as number) * 1000).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+            <div
+              style={{
+                marginBottom: '6px',
+                color: 'var(--fxos-gold)',
+                fontWeight: 'bold',
+                fontSize: '11px',
+              }}
+            >
+              {new Date((tooltipData.time as number) * 1000).toLocaleString(
+                language === 'zh' ? 'zh-CN' : 'en-US',
+                {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }
+              )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 12px', fontSize: '11px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr',
+                gap: '4px 12px',
+                fontSize: '11px',
+              }}
+            >
               <span style={{ color: 'var(--text-secondary)' }}>O:</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{tooltipData.open?.toFixed(2)}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                {tooltipData.open?.toFixed(2)}
+              </span>
 
               <span style={{ color: 'var(--text-secondary)' }}>H:</span>
-              <span style={{ color: 'var(--fxos-success)', fontWeight: '500' }}>{tooltipData.high?.toFixed(2)}</span>
+              <span style={{ color: 'var(--fxos-success)', fontWeight: '500' }}>
+                {tooltipData.high?.toFixed(2)}
+              </span>
 
               <span style={{ color: 'var(--text-secondary)' }}>L:</span>
-              <span style={{ color: 'var(--fxos-danger)', fontWeight: '500' }}>{tooltipData.low?.toFixed(2)}</span>
+              <span style={{ color: 'var(--fxos-danger)', fontWeight: '500' }}>
+                {tooltipData.low?.toFixed(2)}
+              </span>
 
               <span style={{ color: 'var(--text-secondary)' }}>C:</span>
-              <span style={{
-                color: tooltipData.close >= tooltipData.open ? 'var(--fxos-success)' : 'var(--fxos-danger)',
-                fontWeight: 'bold'
-              }}>
+              <span
+                style={{
+                  color:
+                    tooltipData.close >= tooltipData.open
+                      ? 'var(--fxos-success)'
+                      : 'var(--fxos-danger)',
+                  fontWeight: 'bold',
+                }}
+              >
                 {tooltipData.close?.toFixed(2)}
               </span>
             </div>
@@ -541,13 +671,23 @@ export function ChartWithOrders({
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 p-4 text-xs" style={{ borderTop: '1px solid var(--panel-border)', color: 'var(--text-secondary)' }}>
+      <div
+        className="flex items-center gap-4 p-4 text-xs"
+        style={{
+          borderTop: '1px solid var(--panel-border)',
+          color: 'var(--text-secondary)',
+        }}
+      >
         <div className="flex items-center gap-2">
-          <span className="font-bold" style={{ color: 'var(--fxos-success)' }}>B</span>
+          <span className="font-bold" style={{ color: 'var(--fxos-success)' }}>
+            B
+          </span>
           <span>{t('chartWithOrders.buy', language)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-bold" style={{ color: 'var(--fxos-danger)' }}>S</span>
+          <span className="font-bold" style={{ color: 'var(--fxos-danger)' }}>
+            S
+          </span>
           <span>{t('chartWithOrders.sell', language)}</span>
         </div>
       </div>

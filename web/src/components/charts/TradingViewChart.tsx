@@ -82,7 +82,7 @@ function TradingViewChartComponent({
     if (defaultExchange && defaultExchange !== exchange) {
       const normalizedExchange = defaultExchange.toUpperCase()
       // console.log('[TradingViewChart] Updating exchange:', normalizedExchange)
-      if (EXCHANGES.some(e => e.id === normalizedExchange)) {
+      if (EXCHANGES.some((e) => e.id === normalizedExchange)) {
         setExchange(normalizedExchange)
       }
     }
@@ -128,13 +128,16 @@ function TradingViewChartComponent({
       height: '100%',
       symbol: getFullSymbol(),
       interval: timeInterval,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai',
+      timezone:
+        Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai',
       theme: isDark ? 'dark' : 'light',
       style: '1',
       locale: language === 'zh' ? 'zh_CN' : 'en',
       enable_publishing: false,
       backgroundColor: isDark ? 'rgba(9, 14, 26, 1)' : 'rgba(255, 255, 255, 1)',
-      gridColor: isDark ? 'rgba(45, 212, 191, 0.08)' : 'rgba(13, 148, 136, 0.10)',
+      gridColor: isDark
+        ? 'rgba(45, 212, 191, 0.08)'
+        : 'rgba(13, 148, 136, 0.10)',
       hide_top_toolbar: !showToolbar,
       hide_legend: false,
       save_image: false,
@@ -168,15 +171,12 @@ function TradingViewChartComponent({
 
   return (
     <div
-      className={`${embedded ? '' : 'binance-card'} overflow-hidden bg-fxos-bg-deeper ${embedded ? '' : 'animate-fade-in'} ${isFullscreen
-          ? 'fixed inset-0 z-50 rounded-none flex flex-col'
-          : ''
-        }`}
+      className={`${embedded ? '' : 'binance-card'} overflow-hidden bg-fxos-bg-deeper ${embedded ? '' : 'animate-fade-in'} ${
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none flex flex-col' : ''
+      }`}
     >
       {/* Header */}
-      <div
-        className="flex flex-wrap items-center gap-2 p-3 sm:p-4 border-b border-[rgba(45, 212, 191, 0.16)]"
-      >
+      <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4 border-b border-[rgba(45, 212, 191, 0.16)]">
         {!embedded && (
           <div className="flex items-center gap-2 text-fxos-text">
             <TrendingUp className="w-5 h-5 text-fxos-danger" />
@@ -187,7 +187,9 @@ function TradingViewChartComponent({
         )}
 
         {/* Controls */}
-        <div className={`flex flex-wrap items-center gap-2 ${embedded ? '' : 'ml-auto'}`}>
+        <div
+          className={`flex flex-wrap items-center gap-2 ${embedded ? '' : 'ml-auto'}`}
+        >
           {/* Exchange Selector */}
           <div className="relative">
             <button
@@ -202,9 +204,7 @@ function TradingViewChartComponent({
             </button>
 
             {showExchangeDropdown && (
-              <div
-                className="absolute top-full left-0 mt-1 py-1 rounded-lg shadow-xl z-20 min-w-[120px] bg-fxos-bg-lighter border border-[rgba(45,212,191,0.16)]"
-              >
+              <div className="absolute top-full left-0 mt-1 py-1 rounded-lg shadow-xl z-20 min-w-[120px] bg-fxos-bg-lighter border border-[rgba(45,212,191,0.16)]">
                 {EXCHANGES.map((ex) => (
                   <button
                     key={ex.id}
@@ -235,17 +235,22 @@ function TradingViewChartComponent({
             </button>
 
             {showSymbolDropdown && (
-              <div
-                className="absolute top-full left-0 mt-1 py-2 rounded-lg shadow-xl z-20 w-[280px] bg-fxos-bg-lighter border border-[rgba(45,212,191,0.16)]"
-              >
+              <div className="absolute top-full left-0 mt-1 py-2 rounded-lg shadow-xl z-20 w-[280px] bg-fxos-bg-lighter border border-[rgba(45,212,191,0.16)]">
                 {/* Custom Input */}
-                <div className="px-3 pb-2" style={{ borderBottom: '1px solid var(--panel-border)' }}>
+                <div
+                  className="px-3 pb-2"
+                  style={{ borderBottom: '1px solid var(--panel-border)' }}
+                >
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={customSymbol}
-                      onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCustomSymbolSubmit()}
+                      onChange={(e) =>
+                        setCustomSymbol(e.target.value.toUpperCase())
+                      }
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && handleCustomSymbolSubmit()
+                      }
                       placeholder={t('enterSymbol', language)}
                       className="flex-1 px-3 py-1.5 rounded text-sm bg-fxos-bg-lighter border border-[rgba(45,212,191,0.16)] text-fxos-text focus:border-fxos-gold/50 focus:outline-none"
                     />
@@ -299,12 +304,22 @@ function TradingViewChartComponent({
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className={`p-1.5 rounded transition-all border ${isFullscreen ? 'bg-fxos-danger text-fxos-bg border-fxos-danger/30' : 'border-[rgba(45,212,191,0.16)] text-fxos-text-muted hover:bg-black/5 hover:text-fxos-text'}`}
-            title={isFullscreen ? t('exitFullscreen', language) : t('fullscreen', language)}
+            title={
+              isFullscreen
+                ? t('exitFullscreen', language)
+                : t('fullscreen', language)
+            }
           >
             {isFullscreen ? (
               <X className="w-4 h-4" />
             ) : (
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
               </svg>
             )}

@@ -551,9 +551,18 @@ export const faqZhCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: '路线图(Roadmap)', href: 'https://github.com/orgs/onecany/projects/3' },
-              { label: '任务看板(Task Dashboard)', href: 'https://github.com/orgs/onecany/projects/5' },
-              { label: 'CONTRIBUTING.md', href: 'https://github.com/onecany/fxos/blob/dev/docs/CONTRIBUTING.md' },
+              {
+                label: '路线图(Roadmap)',
+                href: 'https://github.com/orgs/onecany/projects/3',
+              },
+              {
+                label: '任务看板(Task Dashboard)',
+                href: 'https://github.com/orgs/onecany/projects/5',
+              },
+              {
+                label: 'CONTRIBUTING.md',
+                href: 'https://github.com/onecany/fxos/blob/dev/docs/CONTRIBUTING.md',
+              },
             ],
           },
           {
@@ -578,8 +587,14 @@ export const faqZhCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: '带 bounty 标签的 issue', href: 'https://github.com/onecany/fxos/labels/bounty' },
-              { label: '悬赏认领模板', href: 'https://github.com/onecany/fxos/blob/dev/.github/ISSUE_TEMPLATE/bounty_claim.md' },
+              {
+                label: '带 bounty 标签的 issue',
+                href: 'https://github.com/onecany/fxos/labels/bounty',
+              },
+              {
+                label: '悬赏认领模板',
+                href: 'https://github.com/onecany/fxos/blob/dev/.github/ISSUE_TEMPLATE/bounty_claim.md',
+              },
             ],
           },
         ],
@@ -595,8 +610,14 @@ export const faqZhCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: '新建 issue', href: 'https://github.com/onecany/fxos/issues/new/choose' },
-              { label: 'SECURITY.md', href: 'https://github.com/onecany/fxos/blob/dev/docs/SECURITY.md' },
+              {
+                label: '新建 issue',
+                href: 'https://github.com/onecany/fxos/issues/new/choose',
+              },
+              {
+                label: 'SECURITY.md',
+                href: 'https://github.com/onecany/fxos/blob/dev/docs/SECURITY.md',
+              },
             ],
           },
         ],

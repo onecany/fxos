@@ -38,7 +38,10 @@ export function Header({ simple = false }: HeaderProps) {
               style={
                 language === 'zh'
                   ? { background: 'var(--fxos-gold)', color: 'var(--panel-bg)' }
-                  : { background: 'transparent', color: 'var(--text-secondary)' }
+                  : {
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                    }
               }
             >
               Chinese
@@ -49,7 +52,10 @@ export function Header({ simple = false }: HeaderProps) {
               style={
                 language === 'en'
                   ? { background: 'var(--fxos-gold)', color: 'var(--panel-bg)' }
-                  : { background: 'transparent', color: 'var(--text-secondary)' }
+                  : {
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                    }
               }
             >
               EN
@@ -60,7 +66,10 @@ export function Header({ simple = false }: HeaderProps) {
               style={
                 language === 'id'
                   ? { background: 'var(--fxos-gold)', color: 'var(--panel-bg)' }
-                  : { background: 'transparent', color: 'var(--text-secondary)' }
+                  : {
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                    }
               }
             >
               ID

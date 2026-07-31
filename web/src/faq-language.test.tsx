@@ -53,8 +53,12 @@ describe('FAQ page language switching', () => {
     expect(en.map((c) => c.id)).toEqual(id.map((c) => c.id))
     en.forEach((cat, i) => {
       expect(cat.icon).toBeTruthy()
-      expect(cat.items.map((it) => it.id)).toEqual(zh[i].items.map((it) => it.id))
-      expect(cat.items.map((it) => it.id)).toEqual(id[i].items.map((it) => it.id))
+      expect(cat.items.map((it) => it.id)).toEqual(
+        zh[i].items.map((it) => it.id)
+      )
+      expect(cat.items.map((it) => it.id)).toEqual(
+        id[i].items.map((it) => it.id)
+      )
     })
   })
 })

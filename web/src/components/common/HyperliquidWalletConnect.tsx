@@ -510,9 +510,7 @@ export function HyperliquidWalletConnect({
     setError('')
     const provider = getPreferredWalletProvider()
     if (!provider) {
-      setError(
-        t('hlNoWalletError', language)
-      )
+      setError(t('hlNoWalletError', language))
       return
     }
     setBusy(true)
@@ -542,7 +540,11 @@ export function HyperliquidWalletConnect({
         reuseSavedExchangeIfPresent(normalized),
       ])
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('hlWalletConnectionFailed', language))
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('hlWalletConnectionFailed', language)
+      )
     } finally {
       setBusy(false)
     }
@@ -565,7 +567,9 @@ export function HyperliquidWalletConnect({
       toast.success(t('hlAgentGenerated', language))
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t('hlAgentGenerateFailed', language)
+        err instanceof Error
+          ? err.message
+          : t('hlAgentGenerateFailed', language)
       )
     } finally {
       setBusy(false)
@@ -626,7 +630,11 @@ export function HyperliquidWalletConnect({
       toast.success(t('hlAgentApproved', language))
       void refreshAgentInfo()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('hlAgentApprovalFailed', language))
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('hlAgentApprovalFailed', language)
+      )
     } finally {
       setBusy(false)
     }
@@ -640,9 +648,7 @@ export function HyperliquidWalletConnect({
     // invalidated on-chain, so the new private key must be re-saved to FXOS;
     // that requires the user to be signed in.
     if (!isLoggedIn) {
-      setError(
-        t('hlRenewalRequiresSignIn', language)
-      )
+      setError(t('hlRenewalRequiresSignIn', language))
       return
     }
     if (!state.mainWallet) return
@@ -693,9 +699,7 @@ export function HyperliquidWalletConnect({
           savedExchangeId: undefined,
           reusedSavedExchange: false,
         }))
-        throw new Error(
-          t('hlNewAgentNoConfig', language)
-        )
+        throw new Error(t('hlNewAgentNoConfig', language))
       }
       const existingBuilderApproved = Boolean(
         existing.hyperliquidBuilderApproved
@@ -723,15 +727,11 @@ export function HyperliquidWalletConnect({
         savedExchangeId: existing.id,
         reusedSavedExchange: true,
       }))
-      toast.success(
-        t('hlAgentRenewed', language)
-      )
+      toast.success(t('hlAgentRenewed', language))
       await refreshAgentInfo()
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t('hlAgentRenewalFailed', language)
+        err instanceof Error ? err.message : t('hlAgentRenewalFailed', language)
       )
     } finally {
       setBusy(false)
@@ -781,14 +781,10 @@ export function HyperliquidWalletConnect({
           ? prev.savedExchangeId
           : undefined,
       }))
-      toast.success(
-        t('hlTradingAuthFinalized', language)
-      )
+      toast.success(t('hlTradingAuthFinalized', language))
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t('hlTradingAuthFailed', language)
+        err instanceof Error ? err.message : t('hlTradingAuthFailed', language)
       )
     } finally {
       setBusy(false)
@@ -798,9 +794,7 @@ export function HyperliquidWalletConnect({
   async function saveExchange() {
     setError('')
     if (!isLoggedIn) {
-      setError(
-        t('hlSignInToSave', language)
-      )
+      setError(t('hlSignInToSave', language))
       return
     }
     if (!state.mainWallet || !state.builderApproved) return
@@ -843,9 +837,7 @@ export function HyperliquidWalletConnect({
         return
       }
       if (!state.agentPrivateKey) {
-        throw new Error(
-          t('hlGenerateBeforeSave', language)
-        )
+        throw new Error(t('hlGenerateBeforeSave', language))
       }
       const result = await api.createExchangeEncrypted({
         exchange_type: 'hyperliquid',
@@ -867,9 +859,7 @@ export function HyperliquidWalletConnect({
       toast.success(t('hlAccountSaved', language))
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : t('hlAccountSaveFailed', language)
+        err instanceof Error ? err.message : t('hlAccountSaveFailed', language)
       )
     } finally {
       setBusy(false)
@@ -1013,7 +1003,9 @@ export function HyperliquidWalletConnect({
             <div className="rounded-xl border border-[var(--panel-border)] bg-fxos-bg-deeper p-3 space-y-2 text-xs">
               {state.mainWallet && (
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-fxos-text-muted">{t('hlMainWallet', language)}</span>
+                  <span className="text-fxos-text-muted">
+                    {t('hlMainWallet', language)}
+                  </span>
                   <button
                     type="button"
                     onClick={() => copy(state.mainWallet!, 'Main wallet')}
@@ -1026,7 +1018,9 @@ export function HyperliquidWalletConnect({
               )}
               {state.agentAddress && (
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-fxos-text-muted">{t('hlAgentWallet', language)}</span>
+                  <span className="text-fxos-text-muted">
+                    {t('hlAgentWallet', language)}
+                  </span>
                   <button
                     type="button"
                     onClick={() => copy(state.agentAddress!, 'Agent wallet')}
@@ -1038,16 +1032,22 @@ export function HyperliquidWalletConnect({
                 </div>
               )}
               <div className="flex items-center justify-between gap-3">
-                <span className="text-fxos-text-muted">{t('hlNetwork', language)}</span>
+                <span className="text-fxos-text-muted">
+                  {t('hlNetwork', language)}
+                </span>
                 <span className="font-mono text-fxos-text">
                   {t('hlMainnet', language)}
                 </span>
               </div>
               {state.mainWallet && (
                 <div className="flex items-center justify-between gap-3 border-t border-[var(--panel-border)] pt-2">
-                  <span className="text-fxos-text-muted">{text.agentExpiry}</span>
+                  <span className="text-fxos-text-muted">
+                    {text.agentExpiry}
+                  </span>
                   {agentInfoLoading && !agentInfo ? (
-                    <span className="font-mono text-fxos-text-muted">Loading…</span>
+                    <span className="font-mono text-fxos-text-muted">
+                      Loading…
+                    </span>
                   ) : agentInfo ? (
                     (() => {
                       const { dateStr, daysLeft } = formatAgentExpiry(
@@ -1125,7 +1125,9 @@ export function HyperliquidWalletConnect({
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded-lg bg-fxos-bg-deeper p-2">
-                      <div className="text-fxos-text-muted">{text.withdrawable}</div>
+                      <div className="text-fxos-text-muted">
+                        {text.withdrawable}
+                      </div>
                       <div className="mt-1 font-mono text-sm font-bold text-fxos-success">
                         {balanceLoading && !account
                           ? 'Loading…'
@@ -1141,13 +1143,17 @@ export function HyperliquidWalletConnect({
                       </div>
                     </div>
                     <div className="rounded-lg bg-fxos-bg-deeper p-2">
-                      <div className="text-fxos-text-muted">{text.marginUsed}</div>
+                      <div className="text-fxos-text-muted">
+                        {text.marginUsed}
+                      </div>
                       <div className="mt-1 font-mono text-sm font-bold text-fxos-text">
                         {formatUSDC(account?.totalMarginUsed)} USDC
                       </div>
                     </div>
                     <div className="rounded-lg bg-fxos-bg-deeper p-2">
-                      <div className="text-fxos-text-muted">{text.unrealizedPnl}</div>
+                      <div className="text-fxos-text-muted">
+                        {text.unrealizedPnl}
+                      </div>
                       <div
                         className={`mt-1 font-mono text-sm font-bold ${(account?.unrealizedPnl ?? 0) >= 0 ? 'text-fxos-success' : 'text-fxos-danger'}`}
                       >
@@ -1218,7 +1224,8 @@ export function HyperliquidWalletConnect({
                 rel="noopener noreferrer"
                 className="text-xs text-fxos-text-muted hover:text-fxos-gold flex items-center gap-1"
               >
-                {t('hlOpenHyperliquid', language)} <ExternalLink className="w-3 h-3" />
+                {t('hlOpenHyperliquid', language)}{' '}
+                <ExternalLink className="w-3 h-3" />
               </a>
               <button
                 type="button"

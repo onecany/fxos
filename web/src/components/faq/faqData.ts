@@ -51,9 +51,7 @@ export const faqCategoryIcons: Record<string, LucideIcon> = {
 }
 
 /** Returns the FAQ tree for a language, falling back to English. */
-export function getFaqCategories(
-  language: string
-): FAQCategory[] {
+export function getFaqCategories(language: string): FAQCategory[] {
   const tree: FAQCategoryContent[] =
     language === 'zh'
       ? faqZhCategories
@@ -581,7 +579,8 @@ export const faqCategories: FAQCategory[] = [
       },
       {
         id: 'exchange-unreachable',
-        question: 'The exchange account shows "invalid credentials" or "unavailable".',
+        question:
+          'The exchange account shows "invalid credentials" or "unavailable".',
         blocks: [
           {
             type: 'list',

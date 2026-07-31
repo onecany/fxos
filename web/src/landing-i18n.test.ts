@@ -69,13 +69,17 @@ describe('landing page translations', () => {
 
   it('switches per-language values (zh differs from en)', () => {
     expect(t('landing.ctaStart', 'zh')).not.toBe(t('landing.ctaStart', 'en'))
-    expect(t('landing.heroTitle2', 'zh')).not.toBe(t('landing.heroTitle2', 'en'))
+    expect(t('landing.heroTitle2', 'zh')).not.toBe(
+      t('landing.heroTitle2', 'en')
+    )
     expect(t('landing.initialize', 'zh')).toBe('初始化')
   })
 
   it('resolves placeholder params in log templates', () => {
     expect(t('landing.logSignal', 'en', { z: '0.921' })).toContain('0.921')
-    expect(t('landing.logRisk', 'zh', { pair: 'AAPL-USDC' })).toContain('AAPL-USDC')
+    expect(t('landing.logRisk', 'zh', { pair: 'AAPL-USDC' })).toContain(
+      'AAPL-USDC'
+    )
     expect(t('landing.logMacro', 'id', { ms: 4 })).toContain('4')
   })
 })

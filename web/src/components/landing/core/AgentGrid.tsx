@@ -71,7 +71,8 @@ export default function AgentGrid() {
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-16 gap-6">
           <div>
             <div className="flex items-center gap-2 text-fxos-gold font-mono text-xs mb-2 tracking-widest uppercase">
-              <Crosshair className="w-4 h-4" /> {t('landing.assetClassSelect', language)}
+              <Crosshair className="w-4 h-4" />{' '}
+              {t('landing.assetClassSelect', language)}
             </div>
             <h2 className="text-4xl md:text-5xl font-black text-fxos-text uppercase tracking-tighter">
               {t('landing.proTraders1', language)}{' '}
@@ -160,7 +161,8 @@ export default function AgentGrid() {
                     onClick={handleInitialize}
                     className={`w-full py-4 text-xs font-bold font-mono uppercase tracking-[0.2em] border border-[var(--panel-border)] hover:border-${preset.color === 'text-fxos-gold' ? 'fxos-gold' : 'fxos-text'} hover:bg-fxos-text/5 transition-all flex items-center justify-center gap-2 group-hover:text-fxos-text cursor-pointer text-fxos-text`}
                   >
-                    <span className={preset.color}>[</span> {t('landing.initialize', language)}{' '}
+                    <span className={preset.color}>[</span>{' '}
+                    {t('landing.initialize', language)}{' '}
                     <span className={preset.color}>]</span>
                   </button>
                 </div>

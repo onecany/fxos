@@ -9,7 +9,11 @@ interface FlowMarketsProps {
 }
 
 function baseLabel(raw: string): string {
-  return raw.toUpperCase().replace(/^XYZ:/, '').replace(/[-_]/g, '').replace(/(USDT|USDC|USD)$/, '')
+  return raw
+    .toUpperCase()
+    .replace(/^XYZ:/, '')
+    .replace(/[-_]/g, '')
+    .replace(/(USDT|USDC|USD)$/, '')
 }
 function num(s: string): number {
   const n = parseFloat(s)
@@ -39,7 +43,10 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
   const win = window.toUpperCase()
   const rows = useMemo(() => {
     if (!items || items.length === 0) return []
-    const max = items.reduce((m, it) => Math.max(m, Math.abs(num(it.netFlow))), 1)
+    const max = items.reduce(
+      (m, it) => Math.max(m, Math.abs(num(it.netFlow))),
+      1
+    )
     return items.slice(0, 10).map((it) => {
       const buy = num(it.buyNotional)
       const sell = num(it.sellNotional)
@@ -59,7 +66,11 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
   }, [items])
 
   if (rows.length === 0) {
-    return <div className="tm-sc" style={{ padding: '12px 0' }}>No net-flow data (claw402 payment required).</div>
+    return (
+      <div className="tm-sc" style={{ padding: '12px 0' }}>
+        No net-flow data (claw402 payment required).
+      </div>
+    )
   }
 
   return (
@@ -78,10 +89,16 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
         }}
       >
         <span>{language === 'zh' ? '币种' : 'SYMBOL'}</span>
-        <span style={{ textAlign: 'right' }}>{win} {language === 'zh' ? '净流入' : 'NET'}</span>
+        <span style={{ textAlign: 'right' }}>
+          {win} {language === 'zh' ? '净流入' : 'NET'}
+        </span>
         <span>{language === 'zh' ? '买/卖' : 'BUY/SELL'}</span>
-        <span style={{ textAlign: 'right' }}>{language === 'zh' ? '交易' : 'TRADES'}</span>
-        <span style={{ textAlign: 'right' }}>{language === 'zh' ? '价格' : 'PRICE'}</span>
+        <span style={{ textAlign: 'right' }}>
+          {language === 'zh' ? '交易' : 'TRADES'}
+        </span>
+        <span style={{ textAlign: 'right' }}>
+          {language === 'zh' ? '价格' : 'PRICE'}
+        </span>
       </div>
 
       {/* rows */}
@@ -98,10 +115,15 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
           }}
         >
           {/* symbol */}
-          <span style={{ fontWeight: 600, color: 'var(--tm-ink)' }}>{r.label}</span>
+          <span style={{ fontWeight: 600, color: 'var(--tm-ink)' }}>
+            {r.label}
+          </span>
 
           {/* net inflow figure (green = net buying / red = net selling) */}
-          <span className={r.net >= 0 ? 'tm-up' : 'tm-dn'} style={{ textAlign: 'right', fontWeight: 600 }}>
+          <span
+            className={r.net >= 0 ? 'tm-up' : 'tm-dn'}
+            style={{ textAlign: 'right', fontWeight: 600 }}
+          >
             {r.netStr}
           </span>
 
@@ -119,12 +141,29 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
                 background: 'var(--tm-hair)',
               }}
             >
-              <div style={{ position: 'absolute', inset: 0, width: `${Math.max(4, r.widthPct)}%`, display: 'flex' }}>
-                <div style={{ width: `${r.buyPct}%`, background: 'var(--tm-up)' }} />
-                <div style={{ width: `${100 - r.buyPct}%`, background: 'var(--tm-dn)' }} />
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: `${Math.max(4, r.widthPct)}%`,
+                  display: 'flex',
+                }}
+              >
+                <div
+                  style={{ width: `${r.buyPct}%`, background: 'var(--tm-up)' }}
+                />
+                <div
+                  style={{
+                    width: `${100 - r.buyPct}%`,
+                    background: 'var(--tm-dn)',
+                  }}
+                />
               </div>
             </div>
-            <span className="tm-sc" style={{ fontSize: 9, minWidth: 30, textAlign: 'right' }}>
+            <span
+              className="tm-sc"
+              style={{ fontSize: 9, minWidth: 30, textAlign: 'right' }}
+            >
               {r.buyPct.toFixed(0)}%
             </span>
           </div>
@@ -142,7 +181,10 @@ export function FlowMarkets({ items, window = '1h' }: FlowMarketsProps) {
       ))}
 
       {/* legend — explains every column */}
-      <div className="tm-sc" style={{ marginTop: 8, fontSize: 9, lineHeight: 1.6 }}>
+      <div
+        className="tm-sc"
+        style={{ marginTop: 8, fontSize: 9, lineHeight: 1.6 }}
+      >
         {t('netInflowLegend', language, { win })}
       </div>
     </div>

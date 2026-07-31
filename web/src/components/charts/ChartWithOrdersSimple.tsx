@@ -22,14 +22,22 @@ export function ChartWithOrdersSimple({
 
   useEffect(() => {
     const loadData = async () => {
-      console.log('[ChartSimple] Loading data for', symbol, interval, 'trader:', traderID)
+      console.log(
+        '[ChartSimple] Loading data for',
+        symbol,
+        interval,
+        'trader:',
+        traderID
+      )
       setLoading(true)
       setError(null)
 
       try {
         // Fetch kline data from our own service
         const limit = 100
-        const klineUrl = apiUrl(`/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`)
+        const klineUrl = apiUrl(
+          `/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`
+        )
 
         console.log('[ChartSimple] Fetching klines from our service:', klineUrl)
         const klineResult = await httpClient.request(klineUrl, { silent: true })
@@ -43,15 +51,26 @@ export function ChartWithOrdersSimple({
 
         // Test fetching order data
         if (traderID) {
-          const tradesUrl = apiUrl(`/trades?trader_id=${traderID}&symbol=${symbol}&limit=100`)
+          const tradesUrl = apiUrl(
+            `/trades?trader_id=${traderID}&symbol=${symbol}&limit=100`
+          )
           console.log('[ChartSimple] Fetching trades from:', tradesUrl)
-          const tradesResult = await httpClient.request(tradesUrl, { silent: true })
+          const tradesResult = await httpClient.request(tradesUrl, {
+            silent: true,
+          })
 
           if (tradesResult.success && tradesResult.data) {
-            console.log('[ChartSimple] Received trades:', tradesResult.data.length)
+            console.log(
+              '[ChartSimple] Received trades:',
+              tradesResult.data.length
+            )
             setOrderCount(tradesResult.data.length)
           } else {
-            console.warn('[ChartSimple] Failed to fetch trades:', tradesResult.message || 'Unknown error', tradesResult)
+            console.warn(
+              '[ChartSimple] Failed to fetch trades:',
+              tradesResult.message || 'Unknown error',
+              tradesResult
+            )
           }
         }
 
@@ -67,7 +86,10 @@ export function ChartWithOrdersSimple({
   }, [symbol, interval, traderID])
 
   return (
-    <div className="relative rounded-xl overflow-hidden bg-fxos-bg-deeper" style={{ minHeight: height }}>
+    <div
+      className="relative rounded-xl overflow-hidden bg-fxos-bg-deeper"
+      style={{ minHeight: height }}
+    >
       {/* Title bar */}
       <div className="flex items-center justify-between p-4 border-b border-[rgba(45,212,191,0.16)]">
         <div className="flex items-center gap-3">
@@ -77,9 +99,7 @@ export function ChartWithOrdersSimple({
           </h3>
         </div>
         {loading && (
-          <div className="text-sm text-fxos-text-muted">
-            Loading...
-          </div>
+          <div className="text-sm text-fxos-text-muted">Loading...</div>
         )}
       </div>
 
@@ -93,7 +113,9 @@ export function ChartWithOrdersSimple({
         ) : (
           <>
             <div className="p-4 rounded bg-fxos-bg-lighter border border-[rgba(45,212,191,0.12)]">
-              <div className="text-sm mb-2 text-fxos-info">Binance Kline Data</div>
+              <div className="text-sm mb-2 text-fxos-info">
+                Binance Kline Data
+              </div>
               <div className="text-2xl font-bold text-fxos-success">
                 {klineCount} klines
               </div>
@@ -101,7 +123,9 @@ export function ChartWithOrdersSimple({
 
             {traderID && (
               <div className="p-4 rounded bg-fxos-bg-lighter border border-[rgba(45,212,191,0.12)]">
-                <div className="text-sm mb-2 text-fxos-info">Historical Order Data</div>
+                <div className="text-sm mb-2 text-fxos-info">
+                  Historical Order Data
+                </div>
                 <div className="text-2xl font-bold text-fxos-danger">
                   {orderCount} orders
                 </div>

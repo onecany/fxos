@@ -384,7 +384,11 @@ export const dataApi = {
     limit = 25,
     silent?: boolean
   ): Promise<SignalRankingResponse> {
-    const params = new URLSearchParams({ chain, marketType, limit: String(limit) })
+    const params = new URLSearchParams({
+      chain,
+      marketType,
+      limit: String(limit),
+    })
     if (aiModelId) params.set('ai_model_id', aiModelId)
     const result = await httpClient.request<SignalRankingResponse>(
       `${API_BASE}/vergex/signal-ranking?${params}`,

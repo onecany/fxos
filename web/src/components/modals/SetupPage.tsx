@@ -92,7 +92,13 @@ export function SetupPage() {
 
       {/* Grid */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-x-0 bottom-0 h-[60vh] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40" style={{ transform: 'perspective(500px) rotateX(60deg) translateY(80px) scale(2)' }} />
+        <div
+          className="absolute inset-x-0 bottom-0 h-[60vh] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40"
+          style={{
+            transform:
+              'perspective(500px) rotateX(60deg) translateY(80px) scale(2)',
+          }}
+        />
       </div>
 
       {/* Glow spots */}
@@ -115,7 +121,10 @@ export function SetupPage() {
         {/* Fake content cards */}
         <div className="p-6 grid grid-cols-4 gap-4 mt-2">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 rounded-xl border border-fxos-text/15 bg-fxos-text/5" />
+            <div
+              key={i}
+              className="h-24 rounded-xl border border-fxos-text/15 bg-fxos-text/5"
+            />
           ))}
         </div>
         <div className="px-6 mt-2">
@@ -126,30 +135,35 @@ export function SetupPage() {
       {/* Blur overlay */}
       <div className="absolute inset-0 backdrop-blur-md bg-fxos-bg/60" />
 
-
       {/* Modal card */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
         <div className="w-full max-w-sm animate-[fadeInUp_0.4s_ease-out]">
-
           {/* Logo + Title */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <div className="absolute -inset-4 bg-fxos-gold/20 rounded-full blur-2xl" />
-                <img src="/icons/fxos.svg" alt="FXOS" className="w-14 h-14 relative z-10" />
+                <img
+                  src="/icons/fxos.svg"
+                  alt="FXOS"
+                  className="w-14 h-14 relative z-10"
+                />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-fxos-text mb-1.5">{l.welcome}</h1>
+            <h1 className="text-2xl font-bold text-fxos-text mb-1.5">
+              {l.welcome}
+            </h1>
             <p className="text-fxos-text-muted text-sm">{l.subtitle}</p>
           </div>
 
           {/* Card */}
           <div className="bg-fxos-bg-lighter backdrop-blur-2xl border border-[var(--panel-border)] rounded-2xl p-8 shadow-lg">
             <form onSubmit={handleSubmit} className="space-y-5">
-
               {/* Email */}
               <div>
-                <label className="block text-xs font-medium text-fxos-text-muted mb-2">{l.email}</label>
+                <label className="block text-xs font-medium text-fxos-text-muted mb-2">
+                  {l.email}
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -163,7 +177,9 @@ export function SetupPage() {
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-medium text-fxos-text-muted mb-2">{l.password}</label>
+                <label className="block text-xs font-medium text-fxos-text-muted mb-2">
+                  {l.password}
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}

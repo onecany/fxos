@@ -17,8 +17,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '../../lib/api'
-import { t, type Language } from "../../i18n/translations"
-import { useLanguage } from "../../contexts/LanguageContext"
+import { t, type Language } from '../../i18n/translations'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { buildDashboardPath, ROUTES } from '../../router/paths'
 import {
   ensureClaw402Strategy,
@@ -96,14 +96,12 @@ function BeginnerHyperliquidGuide({
     },
     {
       title: t('openHyperliquid', language),
-      detail:
-        t('useSameWallet', language),
+      detail: t('useSameWallet', language),
       icon: CircleDollarSign,
     },
     {
       title: t('authorizeFxos', language),
-      detail:
-        t('authorizeFxosDesc', language),
+      detail: t('authorizeFxosDesc', language),
       icon: KeyRound,
     },
   ]
@@ -126,7 +124,9 @@ function BeginnerHyperliquidGuide({
               : 'bg-fxos-gold/10 text-fxos-gold'
           }`}
         >
-          {hasInjectedWallet ? t('walletDetected', language) : t('walletNeeded', language)}
+          {hasInjectedWallet
+            ? t('walletDetected', language)
+            : t('walletNeeded', language)}
         </div>
       </div>
 
@@ -397,8 +397,7 @@ export function AutopilotLaunchPanel({
   }> = [
     {
       title: t('step1Fund', language),
-      detail:
-        t('step1Desc', language),
+      detail: t('step1Desc', language),
       status: feeReady ? 'ready' : 'action',
       meta: feeWalletAddress
         ? `${shortAddress(feeWalletAddress)} · ${formatUSDC(feeWalletBalance)} USDC${
@@ -417,7 +416,9 @@ export function AutopilotLaunchPanel({
           </button>
           <button
             type="button"
-            onClick={() => void copyText(feeWalletAddress, 'AI fee wallet', language)}
+            onClick={() =>
+              void copyText(feeWalletAddress, 'AI fee wallet', language)
+            }
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-fxos-gold hover:text-fxos-accent"
           >
             <Copy className="h-3.5 w-3.5" />
@@ -437,8 +438,7 @@ export function AutopilotLaunchPanel({
     },
     {
       title: t('step2Connect', language),
-      detail:
-        t('step2Desc', language),
+      detail: t('step2Desc', language),
       status: hyperliquidConnected ? 'ready' : 'action',
       meta: hyperliquidExchange?.hyperliquidWalletAddr
         ? `${shortAddress(hyperliquidExchange.hyperliquidWalletAddr)} · authorized`
@@ -456,8 +456,7 @@ export function AutopilotLaunchPanel({
     },
     {
       title: t('step3Deposit', language),
-      detail:
-        t('step3Desc', language),
+      detail: t('step3Desc', language),
       status: tradingBalanceReady
         ? 'ready'
         : hyperliquidConnected
@@ -471,8 +470,7 @@ export function AutopilotLaunchPanel({
     },
     {
       title: t('step4Title', language),
-      detail:
-        t('step4Desc', language),
+      detail: t('step4Desc', language),
       status: allReady ? 'ready' : 'blocked',
       meta: autopilotTrader?.is_running
         ? t('runningOpenDashboard', language)
@@ -627,7 +625,9 @@ export function AutopilotLaunchPanel({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="font-semibold text-fxos-text">{step.title}</h3>
+                      <h3 className="font-semibold text-fxos-text">
+                        {step.title}
+                      </h3>
                       {step.action}
                     </div>
                     <p className="mt-1 text-xs leading-5 text-fxos-text-muted">

@@ -28,7 +28,10 @@ export function ResetPasswordPage() {
     <div className="min-h-screen bg-fxos-bg">
       <Header simple />
 
-      <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 80px)' }}>
+      <div
+        className="flex items-center justify-center"
+        style={{ minHeight: 'calc(100vh - 80px)' }}
+      >
         <div className="w-full max-w-md">
           {/* Back to Login */}
           <button

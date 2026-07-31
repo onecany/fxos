@@ -98,7 +98,9 @@ export function SettingsPage() {
   // Fetch data when tabs are visited
   useEffect(() => {
     if (activeTab === 'models') {
-      refreshModelConfigs().catch(() => toast.error(t('failedToLoadAIModels', language)))
+      refreshModelConfigs().catch(() =>
+        toast.error(t('failedToLoadAIModels', language))
+      )
     }
     if (activeTab === 'exchanges') {
       refreshExchangeConfigs().catch(() =>
@@ -370,7 +372,9 @@ export function SettingsPage() {
             <div className="space-y-6">
               <div>
                 <p className="text-xs text-fxos-text-muted mb-1">Email</p>
-                <p className="text-sm text-fxos-text font-medium">{user?.email}</p>
+                <p className="text-sm text-fxos-text font-medium">
+                  {user?.email}
+                </p>
               </div>
 
               <div className="border-t border-[var(--panel-border)] pt-6">
@@ -409,7 +413,9 @@ export function SettingsPage() {
                     disabled={changingPassword || newPassword.length < 8}
                     className="w-full bg-fxos-gold hover:bg-fxos-gold-highlight active:scale-[0.98] text-fxos-bg font-semibold py-3 rounded-xl text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {changingPassword ? t('updating', language) : t('updatePassword', language)}
+                    {changingPassword
+                      ? t('updating', language)
+                      : t('updatePassword', language)}
                   </button>
                 </form>
               </div>

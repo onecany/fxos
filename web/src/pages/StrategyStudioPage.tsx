@@ -1088,7 +1088,9 @@ export function StrategyStudioPage() {
         setHasChanges(false)
       } catch (err) {
         notify.error(
-          err instanceof Error ? err.message : text(language, '加载策略失败', 'Failed to load strategies')
+          err instanceof Error
+            ? err.message
+            : text(language, '加载策略失败', 'Failed to load strategies')
         )
       } finally {
         setLoading(false)
@@ -1105,7 +1107,9 @@ export function StrategyStudioPage() {
       setSymbols(result.symbols || [])
     } catch (err) {
       setSymbolsError(
-        err instanceof Error ? err.message : text(language, '币种列表不可用', 'Symbol list unavailable')
+        err instanceof Error
+          ? err.message
+          : text(language, '币种列表不可用', 'Symbol list unavailable')
       )
     } finally {
       setSymbolsLoading(false)
@@ -1122,7 +1126,13 @@ export function StrategyStudioPage() {
       setListMode('claw402')
     } catch (err) {
       setSignalsError(
-        err instanceof Error ? err.message : text(language, 'Claw402.ai 看板不可用', 'Claw402.ai board unavailable')
+        err instanceof Error
+          ? err.message
+          : text(
+              language,
+              'Claw402.ai 看板不可用',
+              'Claw402.ai board unavailable'
+            )
       )
     } finally {
       setSignalsLoading(false)
@@ -1300,8 +1310,16 @@ export function StrategyStudioPage() {
         ),
         description: text(
           language,
-          text(language, '单一内置策略：读取 Claw402.ai 看板，获取每个币种详情，然后用原始 K 线交易。', 'The single built-in strategy: read the Claw402.ai board, fetch per-symbol details, then trade with raw candles.'),
-          text(language, '单一内置策略：读取 Claw402.ai 看板，获取每个币种详情，然后用原始 K 线交易。', 'The single built-in strategy: read the Claw402.ai board, fetch per-symbol details, then trade with raw candles.')
+          text(
+            language,
+            '单一内置策略：读取 Claw402.ai 看板，获取每个币种详情，然后用原始 K 线交易。',
+            'The single built-in strategy: read the Claw402.ai board, fetch per-symbol details, then trade with raw candles.'
+          ),
+          text(
+            language,
+            '单一内置策略：读取 Claw402.ai 看板，获取每个币种详情，然后用原始 K 线交易。',
+            'The single built-in strategy: read the Claw402.ai board, fetch per-symbol details, then trade with raw candles.'
+          )
         ),
         config: defaultConfig,
       })
@@ -1309,7 +1327,9 @@ export function StrategyStudioPage() {
       setHasChanges(false)
     } catch (err) {
       notify.error(
-        err instanceof Error ? err.message : text(language, '创建策略失败', 'Failed to create strategy')
+        err instanceof Error
+          ? err.message
+          : text(language, '创建策略失败', 'Failed to create strategy')
       )
     }
   }
@@ -1342,7 +1362,10 @@ export function StrategyStudioPage() {
           }),
         }
       )
-      if (!response.ok) throw new Error(text(language, '保存策略失败', 'Failed to save strategy'))
+      if (!response.ok)
+        throw new Error(
+          text(language, '保存策略失败', 'Failed to save strategy')
+        )
       if (activateAfter) {
         await api.activateStrategy(selectedStrategy.id)
       }
@@ -1352,15 +1375,25 @@ export function StrategyStudioPage() {
           (activateAfter
             ? text(
                 language,
-                text(language, '策略已保存并激活', 'Strategy saved and activated'),
-                text(language, '策略已保存并激活', 'Strategy saved and activated')
+                text(
+                  language,
+                  '策略已保存并激活',
+                  'Strategy saved and activated'
+                ),
+                text(
+                  language,
+                  '策略已保存并激活',
+                  'Strategy saved and activated'
+                )
               )
             : text(language, 'Strategy saved', 'Strategy saved'))
       )
       await loadStrategies(selectedStrategy.id)
     } catch (err) {
       notify.error(
-        err instanceof Error ? err.message : text(language, '保存策略失败', 'Failed to save strategy')
+        err instanceof Error
+          ? err.message
+          : text(language, '保存策略失败', 'Failed to save strategy')
       )
     } finally {
       setSaving(false)
@@ -1465,7 +1498,9 @@ export function StrategyStudioPage() {
       await loadStrategies(selectedStrategy.id)
     } catch (err) {
       notify.error(
-        err instanceof Error ? err.message : text(language, '激活策略失败', 'Failed to activate strategy')
+        err instanceof Error
+          ? err.message
+          : text(language, '激活策略失败', 'Failed to activate strategy')
       )
     }
   }
@@ -1692,8 +1727,16 @@ export function StrategyStudioPage() {
                       }}
                       placeholder={text(
                         language,
-                        text(language, '策略一句话备注', 'One-line strategy note'),
-                        text(language, '策略一句话备注', 'One-line strategy note')
+                        text(
+                          language,
+                          '策略一句话备注',
+                          'One-line strategy note'
+                        ),
+                        text(
+                          language,
+                          '策略一句话备注',
+                          'One-line strategy note'
+                        )
                       )}
                       className="mt-1 w-full bg-transparent text-sm text-fxos-text-muted outline-none placeholder:text-fxos-text-muted/50"
                     />
@@ -1784,7 +1827,11 @@ export function StrategyStudioPage() {
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       {signals.length === 0
-                        ? text(language, '加载 Claw402 看板', 'Load Claw402 board')
+                        ? text(
+                            language,
+                            '加载 Claw402 看板',
+                            'Load Claw402 board'
+                          )
                         : text(language, 'Claw402 看板', 'Claw402 board')}
                     </button>
                     <button
@@ -1928,7 +1975,11 @@ export function StrategyStudioPage() {
                     <div className="mt-2 text-xs text-fxos-text-muted">
                       {selectedSymbols.length > 0
                         ? `${selectedSymbols.length} symbols fixed; trade only these.`
-                        : text(language, '自动驾驶默认使用实时 Claw402 看板。', 'Autopilot uses the live Claw402 board by default.')}
+                        : text(
+                            language,
+                            '自动驾驶默认使用实时 Claw402 看板。',
+                            'Autopilot uses the live Claw402 board by default.'
+                          )}
                     </div>
                   </button>
                 </div>
@@ -2340,8 +2391,16 @@ export function StrategyStudioPage() {
                     }
                     placeholder={text(
                       language,
-                      text(language, '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。', 'Example: only trade clean trends; skip entries when board signals conflict with candles.'),
-                      text(language, '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。', 'Example: only trade clean trends; skip entries when board signals conflict with candles.')
+                      text(
+                        language,
+                        '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。',
+                        'Example: only trade clean trends; skip entries when board signals conflict with candles.'
+                      ),
+                      text(
+                        language,
+                        '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。',
+                        'Example: only trade clean trends; skip entries when board signals conflict with candles.'
+                      )
                     )}
                     className="h-28 w-full resize-none rounded-lg border border-[var(--panel-border)] bg-fxos-bg px-3 py-2 text-sm text-fxos-text outline-none placeholder:text-fxos-text-muted/50"
                   />

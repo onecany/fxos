@@ -204,7 +204,9 @@ export function TraderLaunchGuestPage() {
               className="group rounded-xl border border-fxos-gold/20 bg-fxos-gold/10 p-4 transition hover:bg-fxos-gold/15"
             >
               <ExternalLink className="mb-3 h-4 w-4 text-fxos-gold" />
-              <div className="font-semibold text-fxos-text">Open Hyperliquid</div>
+              <div className="font-semibold text-fxos-text">
+                Open Hyperliquid
+              </div>
               <p className="mt-2 text-sm leading-6 text-fxos-text-muted">
                 Deposit USDC there. Trading funds stay in your Hyperliquid
                 account.

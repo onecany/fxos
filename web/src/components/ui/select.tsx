@@ -17,12 +17,19 @@ interface FxosSelectProps {
   style?: React.CSSProperties
 }
 
-export function FxosSelect({ value, onChange, options, disabled, className, style }: FxosSelectProps) {
+export function FxosSelect({
+  value,
+  onChange,
+  options,
+  disabled,
+  className,
+  style,
+}: FxosSelectProps) {
   const [open, setOpen] = useState(false)
   const triggerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0, width: 0 })
-  const selected = options.find(o => String(o.value) === String(value))
+  const selected = options.find((o) => String(o.value) === String(value))
 
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
@@ -52,15 +59,11 @@ export function FxosSelect({ value, onChange, options, disabled, className, styl
   }, [open, updatePos])
 
   return (
-    <div
-      ref={triggerRef}
-      className={cn('relative', className)}
-      style={style}
-    >
+    <div ref={triggerRef} className={cn('relative', className)} style={style}>
       <div
         className={cn(
           'flex items-center justify-between gap-1.5 w-full h-full cursor-pointer',
-          disabled && 'opacity-50 cursor-not-allowed',
+          disabled && 'opacity-50 cursor-not-allowed'
         )}
         onClick={(e) => {
           e.stopPropagation()
@@ -68,35 +71,41 @@ export function FxosSelect({ value, onChange, options, disabled, className, styl
         }}
       >
         <span className="truncate">{selected?.label ?? String(value)}</span>
-        <ChevronDown className={cn('w-3 h-3 shrink-0 opacity-50 transition-transform', open && 'rotate-180')} />
+        <ChevronDown
+          className={cn(
+            'w-3 h-3 shrink-0 opacity-50 transition-transform',
+            open && 'rotate-180'
+          )}
+        />
       </div>
-      {open && createPortal(
-        <div
-          ref={dropdownRef}
-          className="fixed z-[9999] rounded border border-[var(--panel-border)] bg-fxos-bg-lighter shadow-xl shadow-[rgba(13,60,90,0.20)] max-h-60 overflow-y-auto"
-          style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
-        >
-          {options.map((opt) => (
-            <div
-              key={opt.value}
-              className={cn(
-                'px-3 py-1.5 text-sm cursor-pointer transition-colors whitespace-nowrap',
-                String(opt.value) === String(value)
-                  ? 'bg-fxos-gold/10 text-fxos-gold'
-                  : 'text-fxos-text hover:bg-fxos-bg-lighter',
-              )}
-              onClick={(e) => {
-                e.stopPropagation()
-                onChange(String(opt.value))
-                setOpen(false)
-              }}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>,
-        document.body,
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed z-[9999] rounded border border-[var(--panel-border)] bg-fxos-bg-lighter shadow-xl shadow-[rgba(13,60,90,0.20)] max-h-60 overflow-y-auto"
+            style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
+          >
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                className={cn(
+                  'px-3 py-1.5 text-sm cursor-pointer transition-colors whitespace-nowrap',
+                  String(opt.value) === String(value)
+                    ? 'bg-fxos-gold/10 text-fxos-gold'
+                    : 'text-fxos-text hover:bg-fxos-bg-lighter'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChange(String(opt.value))
+                  setOpen(false)
+                }}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }

@@ -189,9 +189,19 @@ export function BeginnerOnboardingPage() {
                         {t('dontHaveUSDC', language)}
                       </div>
                       {language === 'zh' ? (
-                        <>在 Binance、OKX 或 Coinbase 购买 USDC，然后提现到上方地址——交易所询问时选择 <b>Base 网络</b>。通常一分钟内到账。仅支持 Base 网络的 USDC。</>
+                        <>
+                          在 Binance、OKX 或 Coinbase 购买
+                          USDC，然后提现到上方地址——交易所询问时选择{' '}
+                          <b>Base 网络</b>。通常一分钟内到账。仅支持 Base 网络的
+                          USDC。
+                        </>
                       ) : (
-                        <>Buy USDC on Binance, OKX or Coinbase, then withdraw it to the address above — and pick the <b>Base network</b> when the exchange asks. It usually arrives in about a minute. Only send USDC on Base.</>
+                        <>
+                          Buy USDC on Binance, OKX or Coinbase, then withdraw it
+                          to the address above — and pick the{' '}
+                          <b>Base network</b> when the exchange asks. It usually
+                          arrives in about a minute. Only send USDC on Base.
+                        </>
                       )}
                     </div>
                   </div>
@@ -210,9 +220,7 @@ export function BeginnerOnboardingPage() {
                         </div>
                         <button
                           type="button"
-                          onClick={() =>
-                            copyText(data.address)
-                          }
+                          onClick={() => copyText(data.address)}
                           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--panel-border)] bg-fxos-text/5 text-fxos-text transition hover:border-[var(--panel-border)] hover:bg-fxos-text/10 hover:text-fxos-text sm:h-14 sm:w-14 sm:rounded-2xl"
                           aria-label={t('copyAddress', language)}
                         >
@@ -224,24 +232,16 @@ export function BeginnerOnboardingPage() {
                     <div className="pt-1">
                       <div className="mb-3 flex items-center gap-2 text-sm font-medium text-fxos-gold">
                         <Shield className="h-4 w-4" />
-                        <span>
-                          {t('privateKeyLabel', language)}
-                        </span>
+                        <span>{t('privateKeyLabel', language)}</span>
                       </div>
                       <div className="flex items-stretch gap-3">
                         <div className="min-w-0 flex-1 overflow-hidden rounded-[20px] border border-fxos-gold/20 bg-fxos-gold/10 px-4 py-3 font-mono text-[11px] leading-5 text-fxos-text sm:rounded-[24px] sm:px-5 sm:text-[13px] sm:leading-6">
-                          <div className="break-all">
-                            {data.private_key}
-                          </div>
+                          <div className="break-all">{data.private_key}</div>
                         </div>
                         <div className="flex shrink-0 flex-col justify-end">
                           <button
                             type="button"
-                            onClick={() =>
-                              copyText(
-                                data.private_key
-                              )
-                            }
+                            onClick={() => copyText(data.private_key)}
                             className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-fxos-gold/20 bg-fxos-gold/10 text-fxos-gold transition hover:bg-fxos-gold/15 sm:h-14 sm:w-14 sm:rounded-2xl"
                             aria-label={t('copyPrivateKey', language)}
                           >
@@ -251,9 +251,7 @@ export function BeginnerOnboardingPage() {
                       </div>
                     </div>
 
-                    <div
-                      className="rounded-xl border border-[var(--panel-border)] bg-fxos-bg-deeper px-4 py-3 text-[11px] leading-5 text-fxos-text-muted sm:rounded-[24px] sm:px-5 sm:py-3.5 sm:leading-6"
-                    >
+                    <div className="rounded-xl border border-[var(--panel-border)] bg-fxos-bg-deeper px-4 py-3 text-[11px] leading-5 text-fxos-text-muted sm:rounded-[24px] sm:px-5 sm:py-3.5 sm:leading-6">
                       <span className="mr-2 text-fxos-text-muted">•</span>
                       {noticeText}
                     </div>
@@ -281,7 +279,9 @@ export function BeginnerOnboardingPage() {
 
                     {data.env_saved ? (
                       <div className="pt-1 text-xs text-fxos-text-muted">
-                        {t('walletSavedToEnv', language, { path: data.env_path || '.env' })}
+                        {t('walletSavedToEnv', language, {
+                          path: data.env_path || '.env',
+                        })}
                       </div>
                     ) : null}
                   </div>

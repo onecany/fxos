@@ -130,7 +130,10 @@ export function ModelConfigModal({
                 </svg>
               </button>
             )}
-            <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h3
+              className="text-xl font-bold"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {editingModelId
                 ? t('editAIModel', language)
                 : t('addAIModel', language)}
@@ -242,7 +245,10 @@ function ModelSelectionStep({
 }) {
   return (
     <div className="space-y-4">
-      <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+      <div
+        className="text-sm font-semibold"
+        style={{ color: 'var(--text-primary)' }}
+      >
         {t('modelConfig.chooseProvider', language)}
       </div>
 
@@ -290,7 +296,10 @@ function ModelSelectionStep({
                     ↗ claw402.ai
                   </a>
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                <div
+                  className="text-xs mt-0.5"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   {t('modelConfig.payPerCall', language)}
                 </div>
               </div>
@@ -379,7 +388,10 @@ function ModelSelectionStep({
           </div>
         </>
       )}
-      <div className="text-xs text-center pt-2" style={{ color: 'var(--text-secondary)' }}>
+      <div
+        className="text-xs text-center pt-2"
+        style={{ color: 'var(--text-secondary)' }}
+      >
         {t('modelConfig.modelsConfigured', language)}
       </div>
     </div>
@@ -554,11 +566,17 @@ function Claw402ConfigForm({
           style={{ color: 'var(--text-primary)' }}
         >
           Claw402{' '}
-          <span className="text-xs font-normal" style={{ color: 'var(--fxos-gold)' }}>
+          <span
+            className="text-xs font-normal"
+            style={{ color: 'var(--fxos-gold)' }}
+          >
             ↗
           </span>
         </a>
-        <div className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+        <div
+          className="text-sm mt-1"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           {t('modelConfig.allModelsClaw', language)}
         </div>
         <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
@@ -588,7 +606,10 @@ function Claw402ConfigForm({
           <Brain className="w-4 h-4" style={{ color: 'var(--fxos-gold)' }} />
           {t('modelConfig.selectAiModel', language)}
         </label>
-        <div className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+        <div
+          className="text-xs mb-2"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           {t('modelConfig.allModelsUnified', language)}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -614,7 +635,11 @@ function Claw402ConfigForm({
                   <div className="flex items-center gap-1.5 min-w-0">
                     <div
                       className="text-xs font-semibold truncate"
-                      style={{ color: isSelected ? 'var(--fxos-gold)' : 'var(--text-primary)' }}
+                      style={{
+                        color: isSelected
+                          ? 'var(--fxos-gold)'
+                          : 'var(--text-primary)',
+                      }}
                     >
                       {m.name}
                     </div>
@@ -637,7 +662,10 @@ function Claw402ConfigForm({
                   >
                     {m.provider} · {m.desc}
                   </div>
-                  <div className="text-[10px]" style={{ color: 'var(--fxos-success)' }}>
+                  <div
+                    className="text-[10px]"
+                    style={{ color: 'var(--fxos-success)' }}
+                  >
                     ~${m.price}/call
                   </div>
                 </div>
@@ -685,10 +713,16 @@ function Claw402ConfigForm({
             border: '1px solid rgba(45, 212, 191, 0.14)',
           }}
         >
-          <div className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            className="text-xs mb-2"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {t('modelConfig.walletInfo', language)}
           </div>
-          <div className="text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            className="text-xs space-y-1"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             <div className="flex items-center gap-1.5">
               <span style={{ color: 'var(--fxos-success)' }}>•</span>
               {t('modelConfig.exportKey', language)}
@@ -701,7 +735,10 @@ function Claw402ConfigForm({
         </div>
 
         <div className="space-y-1.5">
-          <div className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+          <div
+            className="text-xs font-medium"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {t('modelConfig.walletPrivateKey', language)}
           </div>
           <div className="flex gap-2">
@@ -771,7 +808,10 @@ function Claw402ConfigForm({
                   ? 'Important: Backup your private key NOW!'
                   : 'Important: Backup your private key NOW!'}
               </div>
-              <div className="text-[11px] mb-2" style={{ color: 'var(--fxos-danger)' }}>
+              <div
+                className="text-[11px] mb-2"
+                style={{ color: 'var(--fxos-danger)' }}
+              >
                 {language === 'zh'
                   ? 'This is your wallet private key. If lost, it cannot be recovered and all assets will be permanently lost. Copy and save it securely.'
                   : 'This is your wallet private key. If lost, it cannot be recovered and all assets will be permanently lost. Copy and save it securely.'}
@@ -779,7 +819,10 @@ function Claw402ConfigForm({
               <div className="flex items-center gap-2 mb-2">
                 <code
                   className="text-[10px] font-mono break-all select-all flex-1 p-2 rounded"
-                  style={{ background: 'var(--panel-bg)', color: 'var(--fxos-danger)' }}
+                  style={{
+                    background: 'var(--panel-bg)',
+                    color: 'var(--fxos-danger)',
+                  }}
                 >
                   {newWalletKey}
                 </code>
@@ -872,7 +915,10 @@ function Claw402ConfigForm({
                   }}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    <span
+                      className="text-[11px]"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {t('modelConfig.walletAddress', language)}:
                     </span>
                     <button
@@ -913,7 +959,12 @@ function Claw402ConfigForm({
                   <div className="flex items-center gap-2 text-xs">
                     <span>💰</span>
                     <span
-                      style={{ color: balanceNum > 0 ? 'var(--fxos-success)' : 'var(--fxos-gold)' }}
+                      style={{
+                        color:
+                          balanceNum > 0
+                            ? 'var(--fxos-success)'
+                            : 'var(--fxos-gold)',
+                      }}
                     >
                       {t('modelConfig.usdcBalance', language)}: ${usdcBalance}
                     </span>
@@ -1037,7 +1088,10 @@ function Claw402ConfigForm({
                   <div
                     className="flex items-center gap-2 text-xs"
                     style={{
-                      color: claw402Status === 'ok' ? 'var(--fxos-success)' : 'var(--fxos-danger)',
+                      color:
+                        claw402Status === 'ok'
+                          ? 'var(--fxos-success)'
+                          : 'var(--fxos-danger)',
                     }}
                   >
                     <span>{claw402Status === 'ok' ? '🟢' : '🔴'}</span>
@@ -1074,7 +1128,10 @@ function Claw402ConfigForm({
               <div
                 className="flex items-center gap-2 text-xs"
                 style={{
-                  color: testResult.status === 'ok' ? 'var(--fxos-success)' : 'var(--fxos-danger)',
+                  color:
+                    testResult.status === 'ok'
+                      ? 'var(--fxos-success)'
+                      : 'var(--fxos-danger)',
                 }}
               >
                 <span>{testResult.status === 'ok' ? '✅' : '❌'}</span>
@@ -1099,21 +1156,33 @@ function Claw402ConfigForm({
         >
           {'💰 ' + t('modelConfig.howToFundUsdc', language)}
         </div>
-        <div className="text-xs space-y-1.5" style={{ color: 'var(--text-secondary)' }}>
+        <div
+          className="text-xs space-y-1.5"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           <div className="flex items-start gap-2">
-            <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
+            <span
+              className="font-bold"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               1.
             </span>
             <span>{t('modelConfig.fundStep1', language)}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
+            <span
+              className="font-bold"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               2.
             </span>
             <span>{t('modelConfig.fundStep2', language)}</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
+            <span
+              className="font-bold"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               3.
             </span>
             <span>{t('modelConfig.fundStep3', language)}</span>
@@ -1127,7 +1196,10 @@ function Claw402ConfigForm({
           type="button"
           onClick={onBack}
           className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-fxos-bg-deeper"
-          style={{ background: 'var(--fxos-bg-lighter)', color: 'var(--text-secondary)' }}
+          style={{
+            background: 'var(--fxos-bg-lighter)',
+            color: 'var(--text-secondary)',
+          }}
         >
           {editingModelId
             ? t('cancel', language)
@@ -1138,7 +1210,9 @@ function Claw402ConfigForm({
           disabled={!isKeyValid}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            background: isKeyValid ? 'var(--fxos-gold)' : 'var(--fxos-bg-lighter)',
+            background: isKeyValid
+              ? 'var(--fxos-gold)'
+              : 'var(--fxos-bg-lighter)',
             color: isKeyValid ? '#fff' : 'var(--text-secondary)',
           }}
         >
@@ -1189,13 +1263,19 @@ function StandardProviderConfigForm({
             width: 32,
             height: 32,
           }) || (
-            <span className="text-lg font-bold" style={{ color: 'var(--fxos-gold)' }}>
+            <span
+              className="text-lg font-bold"
+              style={{ color: 'var(--fxos-gold)' }}
+            >
               {selectedModel.name[0]}
             </span>
           )}
         </div>
         <div className="flex-1">
-          <div className="font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>
+          <div
+            className="font-semibold text-lg"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {getShortName(selectedModel.name)}
           </div>
           <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -1215,8 +1295,14 @@ function StandardProviderConfigForm({
               border: '1px solid rgba(45, 212, 191, 0.28)',
             }}
           >
-            <ExternalLink className="w-4 h-4" style={{ color: 'var(--fxos-gold)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--fxos-gold)' }}>
+            <ExternalLink
+              className="w-4 h-4"
+              style={{ color: 'var(--fxos-gold)' }}
+            />
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--fxos-gold)' }}
+            >
               {selectedModel.provider?.startsWith('blockrun')
                 ? t('modelConfig.getStarted', language)
                 : t('modelConfig.getApiKey', language)}
@@ -1254,7 +1340,9 @@ function StandardProviderConfigForm({
           }}
         >
           Current model key status:{' '}
-          {selectedModel.has_api_key ? 'API Key configured' : 'API Key not configured'}
+          {selectedModel.has_api_key
+            ? 'API Key configured'
+            : 'API Key not configured'}
         </div>
       )}
 
@@ -1429,11 +1517,18 @@ function StandardProviderConfigForm({
                 >
                   <span
                     className="text-xs font-semibold"
-                    style={{ color: isSelected ? 'var(--fxos-gold)' : 'var(--text-primary)' }}
+                    style={{
+                      color: isSelected
+                        ? 'var(--fxos-gold)'
+                        : 'var(--text-primary)',
+                    }}
                   >
                     {m.name}
                   </span>
-                  <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                  <span
+                    className="text-[10px]"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
                     {m.desc}
                   </span>
                 </button>
@@ -1458,7 +1553,10 @@ function StandardProviderConfigForm({
           <Brain className="w-4 h-4" />
           {t('information', language)}
         </div>
-        <div className="text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
+        <div
+          className="text-xs space-y-1"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           <div>• {t('modelConfigInfo1', language)}</div>
           <div>• {t('modelConfigInfo2', language)}</div>
           <div>• {t('modelConfigInfo3', language)}</div>
@@ -1471,7 +1569,10 @@ function StandardProviderConfigForm({
           type="button"
           onClick={onBack}
           className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-fxos-bg-deeper"
-          style={{ background: 'var(--fxos-bg-lighter)', color: 'var(--text-secondary)' }}
+          style={{
+            background: 'var(--fxos-bg-lighter)',
+            color: 'var(--text-secondary)',
+          }}
         >
           {editingModelId
             ? t('cancel', language)

@@ -14,9 +14,7 @@ export default defineConfig({
       '/api': {
         target: backendUrl,
         changeOrigin: true,
-        ...(proxyUrl
-          ? { agent: new HttpProxyAgent({ proxy: proxyUrl }) }
-          : {}),
+        ...(proxyUrl ? { agent: new HttpProxyAgent({ proxy: proxyUrl }) } : {}),
       },
     },
   },

@@ -24,11 +24,20 @@ export default function FooterSection({ language }: FooterSectionProps) {
       { name: 'Binance', href: 'https://www.binance.com/join?ref=FXOSENG' },
       { name: 'Bybit', href: 'https://partner.bybit.com/b/83856' },
       { name: 'OKX', href: 'https://www.okx.com/join/1865360' },
-      { name: 'Bitget', href: 'https://www.bitget.com/referral/register?from=referral&clacCode=c8a43172' },
+      {
+        name: 'Bitget',
+        href: 'https://www.bitget.com/referral/register?from=referral&clacCode=c8a43172',
+      },
       { name: 'Gate.io', href: 'https://www.gatenode.xyz/share/VQBGUAxY' },
       { name: 'KuCoin', href: 'https://www.kucoin.com/r/broker/CXEV7XKK' },
-      { name: 'Hyperliquid', href: 'https://app.hyperliquid.xyz/join/AITRADING' },
-      { name: 'Aster DEX', href: 'https://www.asterdex.com/en/referral/fdfc0e' },
+      {
+        name: 'Hyperliquid',
+        href: 'https://app.hyperliquid.xyz/join/AITRADING',
+      },
+      {
+        name: 'Aster DEX',
+        href: 'https://www.asterdex.com/en/referral/fdfc0e',
+      },
       { name: 'Lighter', href: 'https://app.lighter.xyz/?referral=68151432' },
     ],
   }
@@ -42,9 +51,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <img src="/icons/fxos.svg" alt="FXOS Logo" className="w-8 h-8" />
-              <span className="text-xl font-bold text-fxos-text">
-                FXOS
-              </span>
+              <span className="text-xl font-bold text-fxos-text">FXOS</span>
             </div>
             <p className="text-sm mb-6 text-fxos-text-muted">
               {t('futureStandardAI', language)}
@@ -133,7 +140,9 @@ export default function FooterSection({ language }: FooterSectionProps) {
         {/* Bottom Section */}
         <div className="pt-6 text-center text-xs border-t border-[rgba(45,212,191,0.16)] text-fxos-text-muted">
           <p className="mb-2">{t('footerTitle', language)}</p>
-          <p className="text-fxos-text-muted/80">{t('footerWarning', language)}</p>
+          <p className="text-fxos-text-muted/80">
+            {t('footerWarning', language)}
+          </p>
         </div>
       </div>
     </footer>

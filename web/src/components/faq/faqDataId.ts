@@ -213,7 +213,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
     items: [
       {
         id: 'autopilot-pipeline',
-        question: 'Bagaimana cara kerja strategi Autopilot, langkah demi langkah?',
+        question:
+          'Bagaimana cara kerja strategi Autopilot, langkah demi langkah?',
         blocks: [
           {
             type: 'p',
@@ -319,7 +320,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
       },
       {
         id: 'fee-wallet-empty-mid-run',
-        question: 'Apa yang terjadi jika dompet biaya AI habis di tengah jalan?',
+        question:
+          'Apa yang terjadi jika dompet biaya AI habis di tengah jalan?',
         blocks: [
           {
             type: 'p',
@@ -346,7 +348,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
       },
       {
         id: 'stop-and-manual',
-        question: 'Bagaimana cara menghentikan bot atau menutup posisi secara manual?',
+        question:
+          'Bagaimana cara menghentikan bot atau menutup posisi secara manual?',
         blocks: [
           {
             type: 'list',
@@ -394,7 +397,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
       },
       {
         id: 'execution-log',
-        question: 'Di mana saya bisa melihat mengapa AI melakukan (atau menolak) sesuatu?',
+        question:
+          'Di mana saya bisa melihat mengapa AI melakukan (atau menolak) sesuatu?',
         blocks: [
           {
             type: 'p',
@@ -491,7 +495,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
       },
       {
         id: 'launch-blocked',
-        question: 'Peluncuran diblokir oleh pemeriksaan yang gagal — bagaimana?',
+        question:
+          'Peluncuran diblokir oleh pemeriksaan yang gagal — bagaimana?',
         blocks: [
           {
             type: 'p',
@@ -501,7 +506,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
       },
       {
         id: 'exchange-unreachable',
-        question: 'Akun bursa menampilkan "invalid credentials" atau "unavailable".',
+        question:
+          'Akun bursa menampilkan "invalid credentials" atau "unavailable".',
         blocks: [
           {
             type: 'list',
@@ -552,9 +558,18 @@ export const faqIdCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: 'Roadmap', href: 'https://github.com/orgs/onecany/projects/3' },
-              { label: 'Task Dashboard', href: 'https://github.com/orgs/onecany/projects/5' },
-              { label: 'CONTRIBUTING.md', href: 'https://github.com/onecany/fxos/blob/dev/docs/CONTRIBUTING.md' },
+              {
+                label: 'Roadmap',
+                href: 'https://github.com/orgs/onecany/projects/3',
+              },
+              {
+                label: 'Task Dashboard',
+                href: 'https://github.com/orgs/onecany/projects/5',
+              },
+              {
+                label: 'CONTRIBUTING.md',
+                href: 'https://github.com/onecany/fxos/blob/dev/docs/CONTRIBUTING.md',
+              },
             ],
           },
           {
@@ -579,8 +594,14 @@ export const faqIdCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: 'Issues dengan label bounty', href: 'https://github.com/onecany/fxos/labels/bounty' },
-              { label: 'Templat klaim bounty', href: 'https://github.com/onecany/fxos/blob/dev/.github/ISSUE_TEMPLATE/bounty_claim.md' },
+              {
+                label: 'Issues dengan label bounty',
+                href: 'https://github.com/onecany/fxos/labels/bounty',
+              },
+              {
+                label: 'Templat klaim bounty',
+                href: 'https://github.com/onecany/fxos/blob/dev/.github/ISSUE_TEMPLATE/bounty_claim.md',
+              },
             ],
           },
         ],
@@ -596,8 +617,14 @@ export const faqIdCategories: FAQCategoryContent[] = [
           {
             type: 'links',
             links: [
-              { label: 'Issue baru', href: 'https://github.com/onecany/fxos/issues/new/choose' },
-              { label: 'SECURITY.md', href: 'https://github.com/onecany/fxos/blob/dev/docs/SECURITY.md' },
+              {
+                label: 'Issue baru',
+                href: 'https://github.com/onecany/fxos/issues/new/choose',
+              },
+              {
+                label: 'SECURITY.md',
+                href: 'https://github.com/onecany/fxos/blob/dev/docs/SECURITY.md',
+              },
             ],
           },
         ],

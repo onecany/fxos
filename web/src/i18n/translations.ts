@@ -63,7 +63,8 @@ export const translations = {
       deployDesc:
         'One command on your laptop or any server installs everything. Open the address it prints, create your account, and the guided launch takes you to your first AI trade in about five minutes — around $13 is enough to start.',
       step1: 'Register — the first account owns this instance.',
-      step2: 'Fund two small wallets: $1+ for AI fees, $12+ to trade with (guided, with QR codes).',
+      step2:
+        'Fund two small wallets: $1+ for AI fees, $12+ to trade with (guided, with QR codes).',
       step3: 'Press Start — the AI trades on its own; stop it anytime.',
       featureInstallLabel: 'One-Line Install',
       featureInstallDesc: 'Docker handles every dependency',
@@ -223,8 +224,10 @@ export const translations = {
 
     // Edge Profile
     lastNClosed: 'last {count} closed',
-    edgeConcentrates: 'edge concentrates in holds ≥ 1h ({long} vs {short} under 1h)',
-    shortHoldsOutperform: 'short holds outperform on this sample ({short} vs {long} ≥ 1h)',
+    edgeConcentrates:
+      'edge concentrates in holds ≥ 1h ({long} vs {short} under 1h)',
+    shortHoldsOutperform:
+      'short holds outperform on this sample ({short} vs {long} ≥ 1h)',
     longSide: 'long',
     shortSide: 'short',
     noClosedTrades: 'No closed trades yet.',
@@ -234,8 +237,10 @@ export const translations = {
 
     // Terminal Status
     aiFeeWalletEmpty: 'AI fee wallet is out of USDC — decisions are failing.',
-    safeMode: 'Safe mode: AI failed repeatedly, no new positions are being opened.',
-    depositHint: 'Deposit Base USDC to the Claw402 wallet, the trader recovers automatically.',
+    safeMode:
+      'Safe mode: AI failed repeatedly, no new positions are being opened.',
+    depositHint:
+      'Deposit Base USDC to the Claw402 wallet, the trader recovers automatically.',
 
     // Liquidation Map
     costLiqMap: 'Cost / Liquidation Map',
@@ -272,8 +277,8 @@ export const translations = {
 
     // Orchestration Topology
     orchestrationTopology: 'Orchestration Topology',
-    orchestrationTopologyDesc: 'Orchestration topology · net inflow → signal → execute → hold',
-
+    orchestrationTopologyDesc:
+      'Orchestration topology · net inflow → signal → execute → hold',
 
     // Scan Interval
     scanInterval: 'Scan interval',
@@ -294,10 +299,12 @@ export const translations = {
 
     // Status Messages
     aiIsLive: 'Your AI is live.',
-    aiIsLiveDesc: 'It reads the whole market before acting — the first decision usually lands within a minute or two and will appear in the Execution Log below. You can stop it anytime from the Config page.',
+    aiIsLiveDesc:
+      'It reads the whole market before acting — the first decision usually lands within a minute or two and will appear in the Execution Log below. You can stop it anytime from the Config page.',
 
     // Flow Markets Legend
-    netInflowLegend: '{win} net buying · green/red = buy/sell split · trades = count · last price = last traded price',
+    netInflowLegend:
+      '{win} net buying · green/red = buy/sell split · trades = count · last price = last traded price',
 
     // Settings Page Toast Messages
     failedToLoadExchangeBalances: 'Failed to load exchange balances',
@@ -324,23 +331,30 @@ export const translations = {
     prepareWallet: 'Prepare an EVM wallet',
     walletDetected: 'Wallet extension detected. Unlock it, then connect below.',
     openHyperliquid: 'Open Hyperliquid',
-    useSameWallet: 'Use the same wallet on Hyperliquid. Deposit USDC there as trading collateral.',
+    useSameWallet:
+      'Use the same wallet on Hyperliquid. Deposit USDC there as trading collateral.',
     authorizeFxos: 'Authorize FXOS',
     walletNeeded: 'Wallet needed',
     step1Fund: 'Step 1 · Fund the AI wallet ($1+)',
-    step1Desc: 'The AI pays a tiny fee each time it thinks. Send $1 or more of USDC on the Base network to this address — from Binance, OKX, Coinbase or any wallet. Separate from your trading money.',
+    step1Desc:
+      'The AI pays a tiny fee each time it thinks. Send $1 or more of USDC on the Base network to this address — from Binance, OKX, Coinbase or any wallet. Separate from your trading money.',
     step1Create: 'Takes 1 minute — we create the wallet for you',
     step2Connect: 'Step 2 · Connect Hyperliquid',
-    step2Desc: 'Approve FXOS once with your crypto wallet (Rabby or MetaMask). This lets the AI place trades for you — it can never withdraw your money.',
+    step2Desc:
+      'Approve FXOS once with your crypto wallet (Rabby or MetaMask). This lets the AI place trades for you — it can never withdraw your money.',
     step3Deposit: 'Step 3 · Add trading money ($12+)',
-    step3Desc: 'Deposit USDC into your Hyperliquid account (app.hyperliquid.xyz → Deposit, USDC on Arbitrum). This is what the AI trades with — start small, you can add more anytime.',
+    step3Desc:
+      'Deposit USDC into your Hyperliquid account (app.hyperliquid.xyz → Deposit, USDC on Arbitrum). This is what the AI trades with — start small, you can add more anytime.',
     finishStep2: 'Finish step 2 first',
     autopilotRunning: 'FXOS Autopilot is running',
     // Autopilot Launch Panel — extra keys
-    installRabbyDesc: 'Install Rabby or MetaMask, create or import a wallet, then return here.',
-    authorizeFxosDesc: 'Back in FXOS, approve the Agent and builder fee. FXOS stores the Agent key, not your main wallet key.',
+    installRabbyDesc:
+      'Install Rabby or MetaMask, create or import a wallet, then return here.',
+    authorizeFxosDesc:
+      'Back in FXOS, approve the Agent and builder fee. FXOS stores the Agent key, not your main wallet key.',
     newToHyperliquid: 'New to Hyperliquid?',
-    newToHyperliquidDesc: 'Start here if you do not have a trading wallet or have never used Hyperliquid before.',
+    newToHyperliquidDesc:
+      'Start here if you do not have a trading wallet or have never used Hyperliquid before.',
     installRabby: 'Install Rabby',
     openHyperliquidBtn: 'Open Hyperliquid',
     depositBtn: 'Deposit',
@@ -349,7 +363,8 @@ export const translations = {
     aFewClicks: 'A few clicks + 3 wallet signatures',
     openBtn: 'Open',
     step4Title: 'Step 4 · Press start',
-    step4Desc: 'The AI reads the market every few minutes, picks its trades, and manages them on its own. Watch every decision live on the dashboard — stop it with one click anytime.',
+    step4Desc:
+      'The AI reads the market every few minutes, picks its trades, and manages them on its own. Watch every decision live on the dashboard — stop it with one click anytime.',
     runningOpenDashboard: 'Running — open the dashboard to watch',
     readyToStart: 'Ready to start',
     everythingReady: 'Everything is ready — press the button',
@@ -361,11 +376,13 @@ export const translations = {
     startAutopilot: 'Start FXOS Autopilot',
     guidedLaunch: 'Guided Launch',
     startAutopilotTitle: 'Start FXOS Autopilot in minutes',
-    startAutopilotDesc: 'Four small steps, about $13 total. No API keys, no config files — the AI trades for you, and you can stop it anytime.',
+    startAutopilotDesc:
+      'Four small steps, about $13 total. No API keys, no config files — the AI trades for you, and you can stop it anytime.',
     refreshBtn: 'Refresh',
     hyperliquidSetup: 'Hyperliquid setup',
     tradingAuthReady: 'Trading authorization is ready',
-    fundsStayInHyperliquid: 'Funds stay in your Hyperliquid account. FXOS only stores the authorized Agent key required for automated execution.',
+    fundsStayInHyperliquid:
+      'Funds stay in your Hyperliquid account. FXOS only stores the authorized Agent key required for automated execution.',
     // Hyperliquid Wallet Connect
     hlWalletTitle: 'Hyperliquid Wallet',
     hlConnect: 'Connect Hyperliquid',
@@ -381,16 +398,20 @@ export const translations = {
     hlEquity: 'Equity',
     hlMarginUsed: 'Margin used',
     hlUnrealizedPnl: 'Unrealized PnL',
-    hlNoCustody: 'Funds stay in your Hyperliquid account; FXOS only stores the authorized agent wallet.',
+    hlNoCustody:
+      'Funds stay in your Hyperliquid account; FXOS only stores the authorized agent wallet.',
     hlAgentExpiry: 'Agent authorization expires',
     hlExpired: 'Expired',
     hlNoAuth: 'No FXOS agent authorization found',
     hlRenewAgent: 'Renew agent authorization (+180d)',
-    hlRenewHint: 'Hyperliquid forbids reusing an agent, so renewal creates a new agent approved for 180 days, then updates the stored key in FXOS (sign-in required).',
+    hlRenewHint:
+      'Hyperliquid forbids reusing an agent, so renewal creates a new agent approved for 180 days, then updates the stored key in FXOS (sign-in required).',
     hlNoWalletTitle: 'No EVM wallet detected',
-    hlNoWalletDetail: 'Install Rabby or MetaMask, create or import a wallet, then return here to connect Hyperliquid.',
+    hlNoWalletDetail:
+      'Install Rabby or MetaMask, create or import a wallet, then return here to connect Hyperliquid.',
     hlInstallMetaMask: 'Install MetaMask',
-    hlNoWalletError: 'No EVM wallet detected. Install MetaMask, Rabby, OKX or Coinbase Wallet.',
+    hlNoWalletError:
+      'No EVM wallet detected. Install MetaMask, Rabby, OKX or Coinbase Wallet.',
     hlWalletReturnedNoAccount: 'Wallet returned no account',
     hlWalletConnectionFailed: 'Wallet connection failed',
     hlAgentGenerated: 'FXOS agent wallet generated',
@@ -399,16 +420,20 @@ export const translations = {
     hlInvalidSignature: 'Wallet returned an invalid signature',
     hlAgentApproved: 'Hyperliquid agent approved',
     hlAgentApprovalFailed: 'Agent approval failed',
-    hlRenewalRequiresSignIn: 'Renewal requires signing in: Hyperliquid forbids reusing the same agent, so renewal creates a new agent and updates the stored key.',
-    hlNewAgentNoConfig: 'New agent approved, but no matching FXOS config was found. Use "Save to FXOS" to store it.',
+    hlRenewalRequiresSignIn:
+      'Renewal requires signing in: Hyperliquid forbids reusing the same agent, so renewal creates a new agent and updates the stored key.',
+    hlNewAgentNoConfig:
+      'New agent approved, but no matching FXOS config was found. Use "Save to FXOS" to store it.',
     hlAgentRenewed: 'Agent renewed (new agent, valid 180 days)',
     hlAgentRenewalFailed: 'Agent renewal failed',
     hlTradingAuthFinalized: 'Trading authorization finalized',
     hlTradingAuthFailed: 'Trading authorization failed',
-    hlSignInToSave: 'Please sign in before saving the agent wallet for trading.',
+    hlSignInToSave:
+      'Please sign in before saving the agent wallet for trading.',
     hlAccountUpdated: 'Hyperliquid account updated in FXOS',
     hlExistingAuthUpdated: 'Existing Hyperliquid account authorization updated',
-    hlGenerateBeforeSave: 'Generate and authorize a new agent wallet before saving',
+    hlGenerateBeforeSave:
+      'Generate and authorize a new agent wallet before saving',
     hlAccountSaved: 'Hyperliquid account saved to FXOS',
     hlAccountSaveFailed: 'Failed to save Hyperliquid account',
     hlMainWallet: 'Main',
@@ -418,16 +443,19 @@ export const translations = {
     hlReauthorize: 'Re-authorize trading',
     hlOpenHyperliquid: 'Open Hyperliquid',
     hlReset: 'Reset',
-    hlWalletSupport: 'Supports MetaMask, Rabby, Coinbase Wallet, Phantom, Brave, Backpack, OKX, Trust and other EVM wallets.',
+    hlWalletSupport:
+      'Supports MetaMask, Rabby, Coinbase Wallet, Phantom, Brave, Backpack, OKX, Trust and other EVM wallets.',
     // Beginner Onboarding
     beginnerGuard: 'Beginner Guard',
     walletReady: 'Your wallet is ready',
     payPerCall: 'Pay per call',
     preparingWallet: 'Preparing your Base wallet...',
     depositAddress: 'Deposit address (Base USDC)',
-    balanceLasts: '$5–$10 usually lasts a long time · balance updates by itself after you deposit',
+    balanceLasts:
+      '$5–$10 usually lasts a long time · balance updates by itself after you deposit',
     dontHaveUSDC: "Don't have USDC yet?",
-    buyUSDCDesc: 'Buy USDC on Binance, OKX or Coinbase, then withdraw it to the address above — and pick the {network} when the exchange asks. It usually arrives in about a minute. Only send USDC on Base.',
+    buyUSDCDesc:
+      'Buy USDC on Binance, OKX or Coinbase, then withdraw it to the address above — and pick the {network} when the exchange asks. It usually arrives in about a minute. Only send USDC on Base.',
     walletAddressLabel: 'Wallet address',
     privateKeyLabel: 'Private key, back it up now',
     addressCopied: 'Address copied',
@@ -439,13 +467,14 @@ export const translations = {
     walletSavedToEnv: 'Wallet details were also saved to {path}',
     failedPrepareWallet: 'Failed to prepare beginner wallet',
     refreshBalance: 'Refresh balance',
-    thisWalletPaysForModel: 'This wallet only pays for model calls. It does not fund your exchange automatically. The private key cannot be recovered, and you should only deposit Base USDC.',
+    thisWalletPaysForModel:
+      'This wallet only pays for model calls. It does not fund your exchange automatically. The private key cannot be recovered, and you should only deposit Base USDC.',
     skip: 'Skip',
 
     // TwoStageKeyModal
     obfuscationCopied: 'Obfuscation string copied to clipboard',
-    obfuscationCopyFailed: 'Copy failed, please copy the obfuscation string manually',
-
+    obfuscationCopyFailed:
+      'Copy failed, please copy the obfuscation string manually',
 
     // Equity Chart
     accountEquityCurve: 'Account Equity Curve',
@@ -1051,61 +1080,21 @@ export const translations = {
 
     // ===== GETTING STARTED =====
 
-
-
-
-
-
     // ===== INSTALLATION =====
-
-
-
-
-
 
     // ===== CONFIGURATION =====
 
-
-
-
-
-
     // ===== TRADING =====
-
-
-
-
-
-
-
 
     // ===== TECHNICAL ISSUES =====
 
-
-
-
-
-
-
-
     // ===== SECURITY =====
-
-
-
 
     // ===== FEATURES =====
 
-
-
     // ===== AI MODELS =====
 
-
-
-
     // ===== CONTRIBUTING =====
-
-
-
 
     // Web Crypto Environment Check
     environmentCheck: {
@@ -1638,7 +1627,8 @@ export const translations = {
       marketPreIpo: 'PRE-IPO',
       ctaStart: '启动自动巡航',
       ctaSee: '看看它怎么交易',
-      promise: '自托管 · 开源 · 约 13 美元即可起步 · 引导式配置,无需 API 密钥 —— 几分钟内完成首笔交易',
+      promise:
+        '自托管 · 开源 · 约 13 美元即可起步 · 引导式配置,无需 API 密钥 —— 几分钟内完成首笔交易',
       tickerGlobal: '全球市场接入',
       tickerRouting: '多资产路由已启用',
       tickerLatency: '低延迟链路:12ms',
@@ -1650,7 +1640,8 @@ export const translations = {
       assetClassSelect: '选择资产类别',
       proTraders1: '专业',
       proTraders2: '交易员',
-      agentTagline: '为美股、大宗商品、外汇和 Pre-IPO 市场创建交易员。用一句话描述你的策略。',
+      agentTagline:
+        '为美股、大宗商品、外汇和 Pre-IPO 市场创建交易员。用一句话描述你的策略。',
       classLabel: '类别',
       apyLabel: 'APY',
       winLabel: '胜率 %',
@@ -1668,7 +1659,8 @@ export const translations = {
       deployDesc:
         '在你的笔记本或任意服务器上运行一条命令即可完成全部安装。打开它打印的地址,创建账户,引导式启动会在大约五分钟内带你完成第一笔 AI 交易——约 13 美元即可起步。',
       step1: '注册——第一个账户拥有本实例。',
-      step2: '入金两个小额钱包:AI 费用 $1+,交易资金 $12+(引导式操作,带二维码)。',
+      step2:
+        '入金两个小额钱包:AI 费用 $1+,交易资金 $12+(引导式操作,带二维码)。',
       step3: '按下 Start——AI 自动交易,随时可停止。',
       featureInstallLabel: '一行安装',
       featureInstallDesc: 'Docker 处理所有依赖',
@@ -1899,10 +1891,12 @@ export const translations = {
 
     // Status Messages
     aiIsLive: 'AI 已启动。',
-    aiIsLiveDesc: 'AI 会先扫描全市场再做决策 — 首次决策通常在 1-2 分钟内出现在执行日志中。可随时在配置页面停止。',
+    aiIsLiveDesc:
+      'AI 会先扫描全市场再做决策 — 首次决策通常在 1-2 分钟内出现在执行日志中。可随时在配置页面停止。',
 
     // Flow Markets Legend
-    netInflowLegend: '{win} 净买入 · 绿色/红色 = 买卖分布 · 交易 = 笔数 · 最新价 = 最新成交价',
+    netInflowLegend:
+      '{win} 净买入 · 绿色/红色 = 买卖分布 · 交易 = 笔数 · 最新价 = 最新成交价',
 
     // Equity Chart
     accountEquityCurve: '账户净值曲线',
@@ -2460,61 +2454,21 @@ export const translations = {
 
     // ===== 入门指南 =====
 
-
-
-
-
-
     // ===== 安装部署 =====
-
-
-
-
-
 
     // ===== 配置设置 =====
 
-
-
-
-
-
     // ===== 交易相关 =====
-
-
-
-
-
-
-
 
     // ===== 技术问题 =====
 
-
-
-
-
-
-
-
     // ===== 安全相关 =====
-
-
-
 
     // ===== 功能介绍 =====
 
-
-
     // ===== AI 模型 =====
 
-
-
-
     // ===== 参与贡献 =====
-
-
-
 
     // Web Crypto Environment Check
     environmentCheck: {
@@ -2555,18 +2509,23 @@ export const translations = {
     authorizeFxos: '授权 FXOS',
     walletNeeded: '需要钱包',
     step1Fund: '第 1 步 · 为 AI 钱包充值（$1+）',
-    step1Desc: 'AI 每次思考都会支付小额费用。向此地址发送 $1 或更多 USDC（Base 网络）——来自 Binance、OKX、Coinbase 或任何钱包。与交易资金分开。',
+    step1Desc:
+      'AI 每次思考都会支付小额费用。向此地址发送 $1 或更多 USDC（Base 网络）——来自 Binance、OKX、Coinbase 或任何钱包。与交易资金分开。',
     step1Create: '只需 1 分钟——我们为你创建钱包',
     step2Connect: '第 2 步 · 连接 Hyperliquid',
-    step2Desc: '使用你的加密钱包（Rabby 或 MetaMask）授权 FXOS。这让 AI 可以为你执行交易——它永远无法提取你的资金。',
+    step2Desc:
+      '使用你的加密钱包（Rabby 或 MetaMask）授权 FXOS。这让 AI 可以为你执行交易——它永远无法提取你的资金。',
     step3Deposit: '第 3 步 · 添加交易资金（$12+）',
-    step3Desc: '将 USDC 存入你的 Hyperliquid 账户（app.hyperliquid.xyz → Deposit，USDC on Arbitrum）。这是 AI 交易使用的资金——先从小额开始，随时可以追加。',
+    step3Desc:
+      '将 USDC 存入你的 Hyperliquid 账户（app.hyperliquid.xyz → Deposit，USDC on Arbitrum）。这是 AI 交易使用的资金——先从小额开始，随时可以追加。',
     finishStep2: '请先完成第 2 步',
     autopilotRunning: 'FXOS 自动驾驶已启动',
     installRabbyDesc: '安装 Rabby 或 MetaMask，创建或导入钱包，然后返回此处。',
-    authorizeFxosDesc: '回到 FXOS，批准 Agent 和 builder 费用。FXOS 仅存储 Agent 密钥，而非你的主钱包密钥。',
+    authorizeFxosDesc:
+      '回到 FXOS，批准 Agent 和 builder 费用。FXOS 仅存储 Agent 密钥，而非你的主钱包密钥。',
     newToHyperliquid: '初次使用 Hyperliquid？',
-    newToHyperliquidDesc: '如果你没有交易钱包或从未使用过 Hyperliquid，请从这里开始。',
+    newToHyperliquidDesc:
+      '如果你没有交易钱包或从未使用过 Hyperliquid，请从这里开始。',
     installRabby: '安装 Rabby',
     openHyperliquidBtn: '打开 Hyperliquid',
     depositBtn: '充值',
@@ -2575,7 +2534,8 @@ export const translations = {
     aFewClicks: '几次点击 + 3 次钱包签名',
     openBtn: '打开',
     step4Title: '第 4 步 · 启动',
-    step4Desc: 'AI 每隔几分钟读取市场，选择交易并自主管理。在仪表板上实时查看每个决策——随时一键停止。',
+    step4Desc:
+      'AI 每隔几分钟读取市场，选择交易并自主管理。在仪表板上实时查看每个决策——随时一键停止。',
     runningOpenDashboard: '运行中 — 打开仪表板查看',
     readyToStart: '准备就绪',
     everythingReady: '一切就绪 — 按下按钮',
@@ -2587,11 +2547,13 @@ export const translations = {
     startAutopilot: '启动 FXOS 自动驾驶',
     guidedLaunch: '引导启动',
     startAutopilotTitle: '几分钟内启动 FXOS 自动驾驶',
-    startAutopilotDesc: '四个简单步骤，总共约 $13。无需 API 密钥，无需配置文件——AI 为你交易，随时可停止。',
+    startAutopilotDesc:
+      '四个简单步骤，总共约 $13。无需 API 密钥，无需配置文件——AI 为你交易，随时可停止。',
     refreshBtn: '刷新',
     hyperliquidSetup: 'Hyperliquid 设置',
     tradingAuthReady: '交易授权已就绪',
-    fundsStayInHyperliquid: '资金保留在你的 Hyperliquid 账户中。FXOS 仅存储自动执行所需的授权 Agent 密钥。',
+    fundsStayInHyperliquid:
+      '资金保留在你的 Hyperliquid 账户中。FXOS 仅存储自动执行所需的授权 Agent 密钥。',
     // Hyperliquid Wallet Connect
     hlWalletTitle: 'Hyperliquid 钱包',
     hlConnect: '连接 Hyperliquid',
@@ -2607,16 +2569,20 @@ export const translations = {
     hlEquity: '净值',
     hlMarginUsed: '已用保证金',
     hlUnrealizedPnl: '未实现盈亏',
-    hlNoCustody: '资金保留在你的 Hyperliquid 账户中；FXOS 仅存储授权的 Agent 钱包。',
+    hlNoCustody:
+      '资金保留在你的 Hyperliquid 账户中；FXOS 仅存储授权的 Agent 钱包。',
     hlAgentExpiry: 'Agent 授权过期时间',
     hlExpired: '已过期',
     hlNoAuth: '未找到 FXOS Agent 授权',
     hlRenewAgent: '续期 Agent 授权（+180天）',
-    hlRenewHint: 'Hyperliquid 禁止重复使用 Agent，续期会创建一个新的 Agent（有效期 180 天），然后更新 FXOS 中存储的密钥（需要登录）。',
+    hlRenewHint:
+      'Hyperliquid 禁止重复使用 Agent，续期会创建一个新的 Agent（有效期 180 天），然后更新 FXOS 中存储的密钥（需要登录）。',
     hlNoWalletTitle: '未检测到 EVM 钱包',
-    hlNoWalletDetail: '安装 Rabby 或 MetaMask，创建或导入钱包，然后返回此处连接 Hyperliquid。',
+    hlNoWalletDetail:
+      '安装 Rabby 或 MetaMask，创建或导入钱包，然后返回此处连接 Hyperliquid。',
     hlInstallMetaMask: '安装 MetaMask',
-    hlNoWalletError: '未检测到 EVM 钱包。请安装 MetaMask、Rabby、OKX 或 Coinbase Wallet。',
+    hlNoWalletError:
+      '未检测到 EVM 钱包。请安装 MetaMask、Rabby、OKX 或 Coinbase Wallet。',
     hlWalletReturnedNoAccount: '钱包未返回账户',
     hlWalletConnectionFailed: '钱包连接失败',
     hlAgentGenerated: 'FXOS Agent 钱包已生成',
@@ -2625,8 +2591,10 @@ export const translations = {
     hlInvalidSignature: '钱包返回了无效签名',
     hlAgentApproved: 'Hyperliquid Agent 已批准',
     hlAgentApprovalFailed: 'Agent 批准失败',
-    hlRenewalRequiresSignIn: '续期需要登录：Hyperliquid 禁止重复使用同一个 Agent，续期会创建新 Agent 并更新存储的密钥。',
-    hlNewAgentNoConfig: '新 Agent 已批准，但未找到匹配的 FXOS 配置。请使用"保存到 FXOS"来存储。',
+    hlRenewalRequiresSignIn:
+      '续期需要登录：Hyperliquid 禁止重复使用同一个 Agent，续期会创建新 Agent 并更新存储的密钥。',
+    hlNewAgentNoConfig:
+      '新 Agent 已批准，但未找到匹配的 FXOS 配置。请使用"保存到 FXOS"来存储。',
     hlAgentRenewed: 'Agent 已续期（新 Agent，有效期 180 天）',
     hlAgentRenewalFailed: 'Agent 续期失败',
     hlTradingAuthFinalized: '交易授权已完成',
@@ -2644,7 +2612,8 @@ export const translations = {
     hlReauthorize: '重新授权交易',
     hlOpenHyperliquid: '打开 Hyperliquid',
     hlReset: '重置',
-    hlWalletSupport: '支持 MetaMask、Rabby、Coinbase、Phantom、Brave、Backpack、OKX、Trust 及其他 EVM 钱包。',
+    hlWalletSupport:
+      '支持 MetaMask、Rabby、Coinbase、Phantom、Brave、Backpack、OKX、Trust 及其他 EVM 钱包。',
     // Beginner Onboarding
     beginnerGuard: '新手保护',
     walletReady: '你的钱包已就绪',
@@ -2653,7 +2622,8 @@ export const translations = {
     depositAddress: '充值地址（Base USDC）',
     balanceLasts: '$5–$10 通常可以用很久 · 充值后余额会自动更新',
     dontHaveUSDC: '还没有 USDC？',
-    buyUSDCDesc: '在 Binance、OKX 或 Coinbase 购买 USDC，然后提现到上方地址——交易所询问时选择 {network}。通常一分钟内到账。仅支持 Base 网络的 USDC。',
+    buyUSDCDesc:
+      '在 Binance、OKX 或 Coinbase 购买 USDC，然后提现到上方地址——交易所询问时选择 {network}。通常一分钟内到账。仅支持 Base 网络的 USDC。',
     walletAddressLabel: '钱包地址',
     privateKeyLabel: '私钥，请立即备份',
     addressCopied: '地址已复制',
@@ -2665,7 +2635,8 @@ export const translations = {
     walletSavedToEnv: '钱包信息已保存到 {path}',
     failedPrepareWallet: '准备新手钱包失败',
     refreshBalance: '刷新余额',
-    thisWalletPaysForModel: '此钱包仅用于支付模型调用费用。不会自动为交易所充值。私钥无法恢复，仅应存入 Base USDC。',
+    thisWalletPaysForModel:
+      '此钱包仅用于支付模型调用费用。不会自动为交易所充值。私钥无法恢复，仅应存入 Base USDC。',
     skip: '跳过',
 
     // Two-Stage Key Modal
@@ -3143,7 +3114,8 @@ export const translations = {
       marketPreIpo: 'PRE-IPO',
       ctaStart: 'MULAI AUTOPILOT',
       ctaSee: 'LIHAT CARANYA',
-      promise: 'Self-hosted & open source · sekitar $13 cukup untuk memulai · pengaturan terpandu, tanpa kunci API — trading pertama dalam hitungan menit',
+      promise:
+        'Self-hosted & open source · sekitar $13 cukup untuk memulai · pengaturan terpandu, tanpa kunci API — trading pertama dalam hitungan menit',
       tickerGlobal: 'AKSES PASAR GLOBAL',
       tickerRouting: 'ROUTING MULTI-ASET AKTIF',
       tickerLatency: 'LINK LATENSI RENDAH: 12ms',
@@ -3174,7 +3146,8 @@ export const translations = {
       deployDesc:
         'Satu perintah di laptop atau server mana pun menginstal semuanya. Buka alamat yang dicetaknya, buat akun Anda, dan peluncuran terpandu membawa Anda ke trading AI pertama dalam sekitar lima menit — sekitar $13 cukup untuk memulai.',
       step1: 'Daftar — akun pertama memiliki instance ini.',
-      step2: 'Danai dua dompet kecil: $1+ untuk biaya AI, $12+ untuk trading (terpandu, dengan kode QR).',
+      step2:
+        'Danai dua dompet kecil: $1+ untuk biaya AI, $12+ untuk trading (terpandu, dengan kode QR).',
       step3: 'Tekan Start — AI trading sendiri; hentikan kapan saja.',
       featureInstallLabel: 'Instal Satu Baris',
       featureInstallDesc: 'Docker menangani semua dependensi',
@@ -3197,7 +3170,8 @@ export const translations = {
     // Halaman FAQ
     faqPage: {
       title: 'FAQ',
-      subtitle: '{count} jawaban · dompet · peluncuran · trading · self-hosting',
+      subtitle:
+        '{count} jawaban · dompet · peluncuran · trading · self-hosting',
       searchPlaceholder: 'Cari FAQ...',
       noResults: 'Tidak ada pertanyaan yang cocok dengan “{term}”.',
       clearSearch: 'Bersihkan pencarian',

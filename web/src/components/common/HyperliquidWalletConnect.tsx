@@ -243,6 +243,10 @@ export function HyperliquidWalletConnect({
   // browser would otherwise show the red "Connect" CTA even though trading
   // authorization is complete and the bot is running.
   const [serverExchangeAddr, setServerExchangeAddr] = useState('')
+  // Balance/agent info target: the locally-connected wallet when present,
+  // otherwise the wallet the SERVER has authorized (covers a fresh browser /
+  // cleared localStorage where the FlowState is empty but trading auth exists).
+  const balanceAddr = state.mainWallet || serverExchangeAddr
   const text = useMemo(
     () => ({
       title: t('hlWalletTitle', language),
@@ -370,13 +374,13 @@ export function HyperliquidWalletConnect({
   }, [])
 
   useEffect(() => {
-    if (open && state.mainWallet) {
-      void refreshBalance(state.mainWallet)
-      void refreshAgentInfo(state.mainWallet)
+    if (open && balanceAddr) {
+      void refreshBalance(balanceAddr)
+      void refreshAgentInfo(balanceAddr)
     }
-  }, [open, state.mainWallet])
+  }, [open, balanceAddr])
 
-  async function refreshAgentInfo(address = state.mainWallet) {
+  async function refreshAgentInfo(address = balanceAddr) {
     if (!address) return
     const requestedAddress = normalizeAddress(address)
     setAgentInfoLoading(true)
@@ -410,7 +414,7 @@ export function HyperliquidWalletConnect({
     }
   }
 
-  async function refreshBalance(address = state.mainWallet) {
+  async function refreshBalance(address = balanceAddr) {
     if (!address) return
     setBalanceLoading(true)
     setBalanceError('')
@@ -576,6 +580,72 @@ export function HyperliquidWalletConnect({
     }
   }
 
+  // Hyperliquid user-signed actions (approveAgent/approveBuilderFee) are signed
+  // with signatureChainId 0x66eee = 421614 (Hyperliquid L1). Wallets enforcing
+  // EIP-3788 refuse to sign when the active network chainId differs ("Provided
+  // chainId ... must match the active chainId ..."). Before requesting a
+  // signature we check the wallet's current chain and switch it to Hyperliquid
+  // mainnet (421614) when needed. RPC is the public Hyperliquid endpoint.
+  const HYPERLIQUID_CHAIN_HEX = '0x66eee' // 421614, Hyperliquid L1 mainnet
+  const HYPERLIQUID_RPC_URL = 'https://api.hyperliquid.xyz'
+
+  async function ensureWalletChain(provider: WalletProvider): Promise<void> {
+    let current: unknown
+    try {
+      current = await provider.request({ method: 'eth_chainId' })
+    } catch {
+      return // can't read chain — let the sign attempt surface the real error
+    }
+    const currentHex =
+      typeof current === 'string' ? current.toLowerCase() : String(current)
+    if (currentHex === HYPERLIQUID_CHAIN_HEX) return
+
+    // Try a standard network switch first; if the chain is not in the wallet it
+    // may throw 4902 ("Unrecognized chain ID"), in which case add it, then retry.
+    const params = [
+      {
+        chainId: HYPERLIQUID_CHAIN_HEX,
+        chainName: 'Hyperliquid',
+        nativeCurrency: { name: 'USD', symbol: 'USD', decimals: 18 },
+        rpcUrls: [HYPERLIQUID_RPC_URL],
+        blockExplorerUrls: ['https://app.hyperliquid.xyz'],
+      },
+    ]
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: HYPERLIQUID_CHAIN_HEX }],
+      })
+      return
+    } catch (switchErr) {
+      const code = (switchErr as { code?: unknown })?.code
+      if (code === 4902) {
+        try {
+          await provider.request({ method: 'wallet_addEthereumChain', params })
+          await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: HYPERLIQUID_CHAIN_HEX }],
+          })
+          return
+        } catch {
+          // fall through to the explicit error below
+        }
+      }
+      // 4001 (user rejected the switch) or any other failure: surface a clear,
+      // actionable message instead of letting the sign request fail cryptically
+      // with "Provided chainId must match the active chainId".
+      const rejected =
+        code === 4001 ||
+        (switchErr as { message?: unknown })?.message ===
+          'User rejected the request.'
+      throw new Error(
+        rejected
+          ? t('hlChainSwitchRejected', language)
+          : t('hlChainSwitchFailed', language)
+      )
+    }
+  }
+
   async function signAndSubmit(
     action: Record<string, unknown>,
     primaryType: string,
@@ -584,11 +654,30 @@ export function HyperliquidWalletConnect({
     const provider = getPreferredWalletProvider()
     if (!provider || !state.mainWallet)
       throw new Error(t('hlWalletNotConnected', language))
+    await ensureWalletChain(provider)
     const typedData = buildTypedData(primaryType, fields, action)
-    const raw = await provider.request({
-      method: 'eth_signTypedData_v4',
-      params: [state.mainWallet, JSON.stringify(typedData)],
-    })
+    let raw: unknown
+    try {
+      raw = await provider.request({
+        method: 'eth_signTypedData_v4',
+        params: [state.mainWallet, JSON.stringify(typedData)],
+      })
+    } catch (walletErr) {
+      // Wallet RPC errors are usually structured objects ({code, message}),
+      // not Error instances — normalize so the caller can surface the real
+      // reason (user rejected, network, unsupported method) instead of a
+      // generic "approval failed".
+      if (walletErr instanceof Error) throw walletErr
+      const code = (walletErr as { code?: unknown })?.code
+      const message = (walletErr as { message?: unknown })?.message
+      const detail =
+        typeof message === 'string' && message
+          ? message
+          : typeof code === 'string' || typeof code === 'number'
+            ? `Wallet error ${String(code)}`
+            : t('hlAgentApprovalFailed', language)
+      throw new Error(detail)
+    }
     if (typeof raw !== 'string')
       throw new Error(t('hlInvalidSignature', language))
     const signature = splitSignature(raw)
@@ -1001,18 +1090,17 @@ export function HyperliquidWalletConnect({
             )}
 
             <div className="rounded-xl border border-[var(--panel-border)] bg-fxos-bg-deeper p-3 space-y-2 text-xs">
-              {state.mainWallet && (
+              {balanceAddr && (
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-fxos-text-muted">
                     {t('hlMainWallet', language)}
                   </span>
                   <button
                     type="button"
-                    onClick={() => copy(state.mainWallet!, 'Main wallet')}
+                    onClick={() => copy(balanceAddr, 'Main wallet')}
                     className="font-mono text-fxos-text hover:text-fxos-gold flex items-center gap-1"
                   >
-                    {shortAddress(state.mainWallet)}{' '}
-                    <Copy className="w-3 h-3" />
+                    {shortAddress(balanceAddr)} <Copy className="w-3 h-3" />
                   </button>
                 </div>
               )}
@@ -1039,7 +1127,7 @@ export function HyperliquidWalletConnect({
                   {t('hlMainnet', language)}
                 </span>
               </div>
-              {state.mainWallet && (
+              {balanceAddr && (
                 <div className="flex items-center justify-between gap-3 border-t border-[var(--panel-border)] pt-2">
                   <span className="text-fxos-text-muted">
                     {text.agentExpiry}
@@ -1100,7 +1188,7 @@ export function HyperliquidWalletConnect({
               </div>
             )}
 
-            {state.mainWallet && (
+            {balanceAddr && (
               <div className="rounded-xl border border-fxos-gold/20 bg-fxos-gold/5 p-3 space-y-3 text-xs">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-bold text-fxos-text">

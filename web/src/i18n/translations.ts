@@ -420,6 +420,10 @@ export const translations = {
     hlInvalidSignature: 'Wallet returned an invalid signature',
     hlAgentApproved: 'Hyperliquid agent approved',
     hlAgentApprovalFailed: 'Agent approval failed',
+    hlChainSwitchRejected:
+      'Network switch to Hyperliquid was rejected. Please switch your wallet to the Hyperliquid network and try again.',
+    hlChainSwitchFailed:
+      'Failed to switch wallet to the Hyperliquid network. Please add/switch to chain 421614 (Hyperliquid) in your wallet and try again.',
     hlRenewalRequiresSignIn:
       'Renewal requires signing in: Hyperliquid forbids reusing the same agent, so renewal creates a new agent and updates the stored key.',
     hlNewAgentNoConfig:
@@ -2634,6 +2638,10 @@ export const translations = {
     hlInvalidSignature: '钱包返回了无效签名',
     hlAgentApproved: 'Hyperliquid Agent 已批准',
     hlAgentApprovalFailed: 'Agent 批准失败',
+    hlChainSwitchRejected:
+      '已拒绝切换到 Hyperliquid 网络。请在钱包中切换到 Hyperliquid 网络后重试。',
+    hlChainSwitchFailed:
+      '切换到 Hyperliquid 网络失败。请在钱包中添加/切换到 421614(Hyperliquid)网络后重试。',
     hlRenewalRequiresSignIn:
       '续期需要登录：Hyperliquid 禁止重复使用同一个 Agent，续期会创建新 Agent 并更新存储的密钥。',
     hlNewAgentNoConfig:

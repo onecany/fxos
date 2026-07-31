@@ -1,17 +1,7 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-      - release/stable
-    tags:
-      - 'v*'
-  pull_request:
-    branches:
-      - main
-      - dev
+  # Disabled: no automatic triggers. Builds only run on manual dispatch.
   workflow_dispatch:
 
 env:

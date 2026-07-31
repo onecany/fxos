@@ -1877,9 +1877,10 @@ export function StrategyStudioPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setListMode('claw402')
-                          if (signals.length === 0) {
-                            void loadSignals()
+                          setListMode('pool')
+                          setActiveTab('signal')
+                          if (symbols.length === 0) {
+                            void loadSymbols()
                           }
                         }}
                         className={`rounded-lg border p-4 text-left transition ${

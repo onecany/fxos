@@ -128,15 +128,21 @@ jobs:
             let label = '';
             let comment = '';
 
-            if (total < 300) {
-              label = 'size: small';
-              comment = '✅ This PR is **small** and easy to review!';
+            if (total < 50) {
+              label = 'size: XS';
+              comment = '✅ This PR is **XS** and easy to review!';
+            } else if (total < 200) {
+              label = 'size: S';
+              comment = '✅ This PR is **S** sized and easy to review!';
+            } else if (total < 500) {
+              label = 'size: M';
+              comment = '⚠️ This PR is **M** sized. Consider breaking it into smaller PRs if possible.';
             } else if (total < 1000) {
-              label = 'size: medium';
-              comment = '⚠️ This PR is **medium** sized. Consider breaking it into smaller PRs if possible.';
+              label = 'size: L';
+              comment = '⚠️ This PR is **L** sized. Consider breaking it into smaller PRs if possible.';
             } else {
-              label = 'size: large';
-              comment = '🚨 This PR is **large** (>' + total + ' lines changed). Please consider breaking it into smaller, focused PRs for easier review.';
+              label = 'size: XL';
+              comment = '🚨 This PR is **XL** (' + total + ' lines changed). Please consider breaking it into smaller, focused PRs for easier review.';
             }
 
             // Only add labels/comments for non-fork PRs (fork PRs don't have write permission)
@@ -179,7 +185,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.26'
 
       - name: Cache Go modules
         uses: actions/cache@v4
@@ -226,7 +232,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Cache Node modules
         uses: actions/cache@v4

@@ -25,14 +25,6 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	lang := LangEnglish
 	singleSymbol, primarySymbol := e.singleSymbolInfo()
 
-	// Configs created in the Chinese-UI era carry legacy stored prompt sections
-	// and custom prompts written for a different contract; ignore them wholesale
-	// and fall back to the canonical built-in English sections.
-	legacyZhConfig := strings.EqualFold(strings.TrimSpace(e.config.Language), "zh")
-	if legacyZhConfig {
-		promptSections = store.PromptSectionsConfig{}
-	}
-
 	if e.usesVergexSignalPrompt() {
 		return e.buildVergexSystemPrompt(accountEquity, variant, lang, singleSymbol, primarySymbol)
 	}
@@ -43,7 +35,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	sb.WriteString("---\n\n")
 
 	// 1. Role definition (editable; falls back to a generic intro).
-	roleDefinition := englishOnlyPromptSection(promptSections.RoleDefinition)
+	roleDefinition := userPromptSection(promptSections.RoleDefinition)
 	if roleDefinition != "" {
 		sb.WriteString(roleDefinition)
 		sb.WriteString("\n\n")
@@ -94,7 +86,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	sb.WriteString("- If total margin is already near the limit, only accept trades with confidence ≥ 85.\n\n")
 
 	// 4. Trading frequency (editable)
-	tradingFrequency := englishOnlyPromptSection(promptSections.TradingFrequency)
+	tradingFrequency := userPromptSection(promptSections.TradingFrequency)
 	if tradingFrequency != "" {
 		sb.WriteString(tradingFrequency)
 		sb.WriteString("\n\n")
@@ -107,7 +99,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	}
 
 	// 5. Entry standards (editable)
-	entryStandards := englishOnlyPromptSection(promptSections.EntryStandards)
+	entryStandards := userPromptSection(promptSections.EntryStandards)
 	if entryStandards != "" {
 		sb.WriteString(entryStandards)
 		sb.WriteString("\n\nYou have the following indicator data:\n")
@@ -121,7 +113,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	}
 
 	// 6. Decision process (editable)
-	decisionProcess := englishOnlyPromptSection(promptSections.DecisionProcess)
+	decisionProcess := userPromptSection(promptSections.DecisionProcess)
 	if decisionProcess != "" {
 		sb.WriteString(decisionProcess)
 		sb.WriteString("\n\n")
@@ -202,10 +194,7 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 	//      incoherent mixed-language final prompt that confused the LLM.
 	//   2. It guarantees a stock-specific, US-equity-tuned briefing
 	//      regardless of when the strategy was first created.
-	customPrompt := englishOnlyPromptSection(e.config.CustomPrompt)
-	if legacyZhConfig {
-		customPrompt = ""
-	}
+	customPrompt := userPromptSection(e.config.CustomPrompt)
 	if singleSymbol && market.IsXyzDexAsset(primarySymbol) {
 		customPrompt = buildXYZStockCustomPrompt(primarySymbol)
 	}
@@ -294,6 +283,44 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	writeVergexHardConstraints(&sb, accountEquity, riskControl, altcoinPosValueRatio)
 	writeVergexOutputFormat(&sb, accountEquity, riskControl, altcoinPosValueRatio, singleSymbol, primarySymbol)
 
+	// User-edited prompt sections (Prompt Studio). Only sections the operator
+	// actually changed are injected — the default vergex config ships the same
+	// English Claw402 copy in PromptSections, so injecting it verbatim would
+	// duplicate the built-in sections above. Compare against the language
+	// default with punctuation/whitespace/case normalization: older stored
+	// strategies may carry near-identical default copy with a trailing '!' or
+	// different line breaks (e.g. "# ... auto-trader!" vs "# ... auto-trader"),
+	// which must not count as an operator edit.
+	sections := e.config.PromptSections
+	defaultSections := store.GetDefaultStrategyConfig(e.config.Language).PromptSections
+	normalizeForDedup := func(s string) string {
+		s = strings.ToLower(s)
+		s = strings.Map(func(r rune) rune {
+			switch {
+			case r >= 'a' && r <= 'z':
+				return r
+			case r >= '0' && r <= '9':
+				return r
+			default:
+				return ' '
+			}
+		}, s)
+		return strings.Join(strings.Fields(s), " ")
+	}
+	writeUserSection := func(title, body, defaultBody string) {
+		body = strings.TrimSpace(body)
+		if body == "" || normalizeForDedup(body) == normalizeForDedup(defaultBody) {
+			return
+		}
+		sb.WriteString("# " + title + "\n\n")
+		sb.WriteString(body)
+		sb.WriteString("\n\n")
+	}
+	writeUserSection("Role Definition", sections.RoleDefinition, defaultSections.RoleDefinition)
+	writeUserSection("Trading Frequency", sections.TradingFrequency, defaultSections.TradingFrequency)
+	writeUserSection("Entry Standards", sections.EntryStandards, defaultSections.EntryStandards)
+	writeUserSection("Decision Process", sections.DecisionProcess, defaultSections.DecisionProcess)
+
 	customPrompt := vergexCustomPromptSection(e.config.CustomPrompt)
 	if customPrompt != "" {
 		sb.WriteString("# User Preference\n\n")
@@ -308,7 +335,7 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 // path, dropping legacy directional overrides ("long only" era) that would
 // contradict the data-driven direction rule baked into this prompt.
 func vergexCustomPromptSection(section string) string {
-	trimmed := englishOnlyPromptSection(section)
+	trimmed := strings.TrimSpace(section)
 	if trimmed == "" {
 		return ""
 	}
@@ -330,15 +357,14 @@ func vergexCustomPromptSection(section string) string {
 	return trimmed
 }
 
-func englishOnlyPromptSection(section string) string {
-	trimmed := strings.TrimSpace(section)
-	if trimmed == "" {
-		return ""
-	}
-	if detectLanguage(trimmed) == LangChinese {
-		return ""
-	}
-	return trimmed
+// userPromptSection returns the user's explicitly edited prompt section
+// verbatim (trimmed). User-authored sections are deliberately NOT filtered by
+// language: an operator who writes Chinese instructions expects them to reach
+// the model. Only the built-in sections (schema, risk, output format) stay
+// English for contract stability. Legacy direction filters still apply to the
+// vergex custom-prompt path via vergexCustomPromptSection.
+func userPromptSection(section string) string {
+	return strings.TrimSpace(section)
 }
 
 func writeVergexSchemaPrompt(sb *strings.Builder) {

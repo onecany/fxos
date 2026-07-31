@@ -403,6 +403,14 @@ func writeVergexOutputFormat(sb *strings.Builder, accountEquity float64, riskCon
 		leverage = 1
 	}
 
+	sb.WriteString("## Pre-Output Checklist\n\n")
+	sb.WriteString("- [ ] Every open has stop_loss > 0, take_profit > 0, risk_usd > 0\n")
+	sb.WriteString(fmt.Sprintf("- [ ] position_size_usd ≤ max notional per position, leverage ≤ configured max\n"))
+	sb.WriteString("- [ ] No stop_loss crosses the liquidation price of any position\n")
+	sb.WriteString("- [ ] Symbols exactly match current candidates or existing positions\n")
+	sb.WriteString(fmt.Sprintf("- [ ] confidence ≥ %d and reflects evidence, not habit\n", riskControl.MinConfidence))
+	sb.WriteString("- [ ] If nothing qualifies → output [{\"symbol\": \"...\", \"action\": \"wait\"}]\n\n")
+
 	sb.WriteString("# Output Format (Strictly Follow)\n\n")
 	sb.WriteString("Use XML tags <reasoning> and <decision> to separate concise analysis from the decision JSON.\n\n")
 	sb.WriteString("Direction must be data-driven: use `open_long` for confirmed upside structures and `open_short` for confirmed downside structures; never default to long-only or short-only behavior.\n\n")
@@ -579,6 +587,44 @@ func writeCommonDiscipline(sb *strings.Builder, riskControl store.RiskControlCon
 	sb.WriteString("- Max Drawdown >20%% or consecutive losses ≥3: pause new positions for 2-3 cycles. Only manage/close existing.\n")
 	sb.WriteString("- Account equity declining (equity trend ↓): reduce position count and size; capital preservation first.\n")
 	sb.WriteString("- Account equity rising (equity trend ↑): may gradually scale up to standard sizing over 3+ winning cycles.\n\n")
+
+	// Counterparty & Market Structure — every trade is PvP. The model
+	// treats the market as a neutral information field by default, but
+	// crypto is zero-sum on every tick: someone takes the other side.
+	sb.WriteString("## Counterparty & Market Structure Awareness\n\n")
+	sb.WriteString("- Every trade has a counterparty. Ask: why would they take the other side?\n")
+	sb.WriteString("- High OI + low relative volume = crowded positioning. Reversals in crowded trades are violent — tighten stops, reduce size.\n")
+	sb.WriteString("- When funding rate is at a one-side extreme, the crowd is leaning hard one way. The highest-EV setups are often on the opposite side.\n")
+	sb.WriteString("- Thin order books on altcoins and XYZ instruments amplify slippage. Size down on low-liquidity symbols; your own entry moves the price.\n")
+	sb.WriteString("- The biggest enemy is the cycle itself: bull-market habits (full size, wide stops, \"dips always recover\") kill accounts when the regime shifts.\n\n")
+
+	// Price Driver Classification — the model sees price action but was
+	// never taught to distinguish *why* the price is moving. Different
+	// drivers demand different holding periods and risk parameters.
+	sb.WriteString("## Price Driver Classification\n\n")
+	sb.WriteString("- Liquidity-driven (volume/OI spike, no fundamental catalyst): shorter hold, tighter stops. These moves reverse fast when liquidity dries up.\n")
+	sb.WriteString("- Narrative-driven (ETF flow, regulatory news, sector rotation, earnings/economic data): medium hold. Monitor narrative decay — the story changes before the chart.\n")
+	sb.WriteString("- Structure-driven (trend continuation, breakout from accumulation/consolidation, confirmed support/resistance flip): longer hold, may scale in. Highest risk/reward.\n")
+	sb.WriteString("- If you cannot classify the driver → wait. Opening without a driver thesis is gambling, not edge.\n\n")
+
+	// OI-Price Divergence — the vergex compact schema omits the full
+	// OI interpretation from schema.go; surface it here so both paths
+	// can use existing OI data effectively.
+	sb.WriteString("## OI-Price Divergence Signals\n\n")
+	sb.WriteString("- OI ↑ + Price ↑ + Volume ↑ = strong new buying (new longs, conviction).\n")
+	sb.WriteString("- OI ↑ + Price ↓ = strong new selling (new shorts opening).\n")
+	sb.WriteString("- OI ↓ + Price ↑ = short covering (potential exhaustion, not a new trend).\n")
+	sb.WriteString("- OI ↓ + Price ↓ = long capitulation (forced selling; potential bounce once liquidation cascade ends).\n")
+	sb.WriteString("- OI flat + Price moving = low-conviction move, likely to reverse or trap range traders.\n")
+	sb.WriteString("- When OI and Price diverge (e.g. price up but OI down), the move lacks commitment — reduce confidence by 10-15 points.\n\n")
+
+	// Crypto Market Cycle Notes — halving rhythm + post-ETF structural
+	// inflows change the game. The model should know these exist even if
+	// it can't see them in raw candle data.
+	sb.WriteString("## Crypto Market Cycle Notes\n\n")
+	sb.WriteString("- BTC halving cycles (~4 years) historically dominate crypto rhythm, but post-2024 spot ETF inflows add a structural bid that may dampen cycle amplitude.\n")
+	sb.WriteString("- Sustained ETF outflows = institutional risk-off. Consecutive days of outflow are a higher-signal warning than any single day.\n")
+	sb.WriteString("- Stablecoin market-cap change (USDT/USDC supply growth or contraction) is a leading indicator of sidelined capital entering or leaving the ecosystem.\n")
 }
 
 func writeHardConstraints(sb *strings.Builder, accountEquity float64, riskControl store.RiskControlConfig, btcEthPosValueRatio, altcoinPosValueRatio float64, singleSymbol bool, primarySymbol string) {
@@ -637,6 +683,14 @@ func writeHardConstraints(sb *strings.Builder, accountEquity float64, riskContro
 
 func writeOutputFormat(sb *strings.Builder, accountEquity, btcEthPosValueRatio float64, riskControl store.RiskControlConfig, singleSymbol bool, primarySymbol string) {
 	// Output format schema MUST stay English/structural; parser depends on it.
+	sb.WriteString("## Pre-Output Checklist\n\n")
+	sb.WriteString("- [ ] Every open has stop_loss > 0, take_profit > 0, risk_usd > 0\n")
+	sb.WriteString(fmt.Sprintf("- [ ] position_size_usd ≤ max notional per position, leverage ≤ configured max\n"))
+	sb.WriteString("- [ ] No stop_loss crosses the liquidation price of any position\n")
+	sb.WriteString("- [ ] Symbols exactly match current candidates or existing positions\n")
+	sb.WriteString(fmt.Sprintf("- [ ] confidence ≥ %d and reflects evidence, not habit\n", riskControl.MinConfidence))
+	sb.WriteString("- [ ] If nothing qualifies → output [{\"symbol\": \"...\", \"action\": \"wait\"}]\n\n")
+
 	sb.WriteString("# Output Format (Strictly Follow)\n\n")
 	sb.WriteString("**Must use XML tags <reasoning> and <decision> to separate chain of thought and decision JSON, avoiding parsing errors**\n\n")
 	sb.WriteString("## Format Requirements\n\n")

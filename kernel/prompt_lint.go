@@ -24,10 +24,15 @@ func LintPrompt(prompt string) []string {
 		"## Funding Rate Crowding",
 		"## Multi-Timeframe Analysis",
 		"## Position Sizing by Market Regime",
+		"## Counterparty & Market Structure Awareness",
+		"## Price Driver Classification",
+		"## OI-Price Divergence Signals",
+		"## Crypto Market Cycle Notes",
 		"## Confidence Calibration",
 		"## Hard Risk Constraints",
 		"# Hard Constraints (Risk Control)",
 		"# Output Format (Strictly Follow)",
+		"## Pre-Output Checklist",
 		"# Role Definition",
 	}
 	for _, h := range headings {

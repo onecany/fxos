@@ -17,8 +17,15 @@ func TestBuildSystemPromptUsesVergexClaw402Prompt(t *testing.T) {
 	engine := NewStrategyEngine(&cfg)
 	prompt := engine.BuildSystemPrompt(30, "balanced")
 
-	if !strings.Contains(prompt, "FXOS Claw402 auto-trader") {
-		t.Fatalf("prompt did not use the Claw402/Vergex TradeFi role:\n%s", prompt)
+	// An operator-edited role_definition REPLACES the built-in Claw402 role
+	// instead of stacking a second conflicting identity — the model must see
+	// exactly one "you are" statement. The trading-universe boundary survives
+	// as an explicit system constraint.
+	if strings.Contains(prompt, "FXOS Claw402 auto-trader") {
+		t.Fatalf("prompt must not contain the built-in Claw402 role when role_definition is edited:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "System constraint (never override): trade only the Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board") {
+		t.Fatalf("prompt should keep the trading-universe system constraint after a custom role:\n%s", prompt)
 	}
 	if !strings.Contains(prompt, "Claw402.ai Signal Ranking") || !strings.Contains(prompt, "Signal Lab") || !strings.Contains(prompt, "Cost/Liquidation Heatmap") {
 		t.Fatalf("prompt is missing Claw402/Vergex detail data guidance:\n%s", prompt)
@@ -139,6 +146,34 @@ func TestVergexEditedSectionsStillInjected(t *testing.T) {
 	}
 }
 
+// TestVergexEditedRoleReplacesBuiltInRole locks the fix for the role
+// overlap: when the operator edits role_definition, the built-in Claw402
+// role must NOT appear anywhere (two conflicting "you are" statements
+// corrupt the model's judgment). The trading-universe boundary is a system
+// safety invariant and must survive the replacement as an explicit
+// non-overridable constraint.
+func TestVergexEditedRoleReplacesBuiltInRole(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("zh")
+	cfg.CoinSource.SourceType = "vergex_signal"
+	customRole := "# 你是只做高置信度突破的趋势交易员"
+	cfg.PromptSections.RoleDefinition = customRole
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+
+	if strings.Contains(prompt, "FXOS Claw402 auto-trader") {
+		t.Fatalf("built-in role must be replaced by edited role, not duplicated:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, customRole) {
+		t.Fatalf("edited role definition missing from prompt:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "# Role Definition\n\n"+customRole) {
+		t.Fatalf("edited role must render under the Role Definition header:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "System constraint (never override): trade only the Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board") {
+		t.Fatalf("trading-universe system constraint must survive a custom role:\n%s", prompt)
+	}
+}
+
 // TestVergexDedupToleratesLegacyDefaultCopy locks the normalization guard:
 // older strategies may store near-identical default copy with a trailing '!'
 // (e.g. "# ... auto-trader!" vs the current "# ... auto-trader"). Such copy is
@@ -192,4 +227,110 @@ func containsCJK(text string) bool {
 		}
 	}
 	return false
+}
+
+// TestBalancedVariantWritesModeBlock locks the fix for the missing balanced
+// mode: production callers pass "balanced" as the default variant, and the
+// prompt MUST include a mode description so the model knows its posture.
+func TestBalancedVariantWritesModeBlock(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("en")
+	cfg.CoinSource.SourceType = "static"
+	cfg.CoinSource.StaticCoins = []string{"BTCUSDT"}
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+	if !strings.Contains(prompt, "## Mode: Balanced") {
+		t.Fatalf("balanced variant must produce a Mode: Balanced block:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "Open only when multiple signals resonate across timeframes") {
+		t.Fatalf("balanced mode must include signal resonance guidance:\n%s", prompt)
+	}
+}
+
+// TestVergexPathHasTotalRiskBudget locks the new Total Risk Budget section
+// in the vergex prompt path: multi-position risk allocation was previously
+// only surfaced in the generic path, leaving vergex traders without explicit
+// proportional-sizing guidance.
+func TestVergexPathHasTotalRiskBudget(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("en")
+	cfg.CoinSource.SourceType = "vergex_signal"
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+	if !strings.Contains(prompt, "## Total Risk Budget") {
+		t.Fatalf("vergex prompt must include Total Risk Budget section:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "reduce each position's size proportionally") {
+		t.Fatalf("vergex prompt must include proportional sizing rule:\n%s", prompt)
+	}
+}
+
+// TestVergexPathHasFundingRateCrowding locks the funding-rate crowding
+// interpretation section in the vergex path — it uses a compact schema
+// without the full Data Dictionary, so the crowding signal must be
+// injected explicitly.
+func TestVergexPathHasFundingRateCrowding(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("en")
+	cfg.CoinSource.SourceType = "vergex_signal"
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+	if !strings.Contains(prompt, "## Funding Rate Crowding") {
+		t.Fatalf("vergex prompt must include Funding Rate Crowding section:\n%s", prompt)
+	}
+	if !strings.Contains(prompt, "FR at extreme levels") {
+		t.Fatalf("vergex funding rate section must cover extreme crowding:\n%s", prompt)
+	}
+}
+
+// TestSharedDisciplineAppearsInBothPaths locks the refactored
+// writeCommonDiscipline: rules that were previously duplicated (and
+// diverging) across the generic and vergex paths must now appear in
+// both and include the previously-missing canonical text.
+func TestSharedDisciplineAppearsInBothPaths(t *testing.T) {
+	// Generic path
+	cfgGen := store.GetDefaultStrategyConfig("en")
+	cfgGen.CoinSource.SourceType = "static"
+	cfgGen.CoinSource.StaticCoins = []string{"BTCUSDT"}
+	engineGen := NewStrategyEngine(&cfgGen)
+	promptGen := engineGen.BuildSystemPrompt(1000, "balanced")
+
+	// Vergex path
+	cfgVx := store.GetDefaultStrategyConfig("en")
+	cfgVx.CoinSource.SourceType = "vergex_signal"
+	engineVx := NewStrategyEngine(&cfgVx)
+	promptVx := engineVx.BuildSystemPrompt(1000, "balanced")
+
+	// Rules that the vergex path was previously missing (divergence):
+	shared := []string{
+		"Confusing realized and unrealized PnL",
+		"Ignoring OI changes",
+		"Never hold a losing position overnight",
+		"weekend gap risk",
+	}
+	for _, phrase := range shared {
+		if !strings.Contains(promptVx, phrase) {
+			t.Fatalf("vergex path is STILL missing shared-discipline rule %q after refactor:\n%s", phrase, promptVx)
+		}
+		if !strings.Contains(promptGen, phrase) {
+			t.Fatalf("generic path lost shared-discipline rule %q after refactor:\n%s", phrase, promptGen)
+		}
+	}
+}
+
+// TestVergexPromptNoLongerMissingOvernightRule is a targeted regression
+// test: before the shared-discipline refactor, the vergex Time Stop
+// section was missing the overnight-hold prohibition. After the refactor,
+// both paths share identical Time Stop text including that rule.
+func TestVergexPromptNoLongerMissingOvernightRule(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("en")
+	cfg.CoinSource.SourceType = "vergex_signal"
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+
+	// These were absent from the vergex path before the refactor.
+	if !strings.Contains(prompt, "Never hold a losing position overnight") {
+		t.Fatalf("vergex path should now include overnight-hold rule:\n%s", prompt)
+	}
+	// Vergex Anti-Patterns was missing flips, PnL confusion, OI, leverage warnings.
+	if !strings.Contains(prompt, "Flipping from long to short") {
+		t.Fatalf("vergex path should include direction-flip anti-pattern:\n%s", prompt)
+	}
 }

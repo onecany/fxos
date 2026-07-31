@@ -133,43 +133,13 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		sb.WriteString("- If all margin is used or Max Drawdown > 20%, skip to step 3 (POSITION MANAGEMENT) and output hold/wait.\n\n")
 	}
 
-	// 6b. Anti-patterns and time stop
-	sb.WriteString("## Anti-Patterns (DO NOT)\n\n")
-	sb.WriteString("- Opening a position because \"it looks cheap\" — no data, no trade.\n")
-	sb.WriteString("- Setting stop_loss = 0 — will be rejected by backend.\n")
-	sb.WriteString("- confidence = 99 on every trade — overconfident, not credible.\n")
-	sb.WriteString(fmt.Sprintf("- Opening more than %d positions in the same cycle — overexposure.\n", (riskControl.MaxPositions+1)/2))
-	sb.WriteString("- Closing a position < 15 minutes after opening — churning.\n")
-	sb.WriteString("- Flipping from long to short (or vice versa) in the same cycle on the same symbol. To flip direction: first close, then open in the NEXT cycle.\n")
-	sb.WriteString("- Confusing realized and unrealized PnL — realized is already in balance, don't double count.\n")
-	sb.WriteString("- Ignoring leverage impact — 1% price move with 3x leverage = ~3% PnL, not 1%.\n")
-	sb.WriteString("- Not watching Peak PnL — when current PnL nears Peak PnL, consider taking profit.\n")
-	sb.WriteString("- Ignoring OI changes — use OI to validate trend authenticity; OI up + price up = strong.\n")
-	sb.WriteString("- Revenge trading: never increase position size after a loss to \"make it back.\" Size down after consecutive losses.\n")
-	sb.WriteString("- Anchoring: do not bias your analysis based on your entry price. Evaluate each decision from current market state, not from your PnL.\n")
-	sb.WriteString("- Opening new positions when Max Drawdown > 20% — reduce risk first, trade later.\n\n")
-	sb.WriteString("## Time Stop\n\n")
-	sb.WriteString("- If a position has not moved in your favor after 2 hours, reassess the thesis.\n")
-	sb.WriteString("- If holding > 4 hours with PnL < 0, consider closing to free up capital.\n")
-	sb.WriteString("- Never hold a losing position overnight unless the fundamental thesis is intact.\n")
-	sb.WriteString("- For xyz equity instruments (NVDA, AAPL, etc.): close or reduce before Friday US market close if holding overnight — weekend gap risk is real.\n")
-	sb.WriteString("- Funding rate accrues 3x on Friday for crypto perps; factor this into hold/exit decisions near week-end.\n\n")
+	// 6b. Trading discipline — shared logic across all prompt paths.
+	// Anti-Patterns, Time Stop, Order Handling, Position Management.
+	// Canonical text lives in writeCommonDiscipline so both the generic
+	// and vergex paths present identical constraints to the model.
+	writeCommonDiscipline(&sb, riskControl)
 
-	// 6b2. Order handling guidance
-	sb.WriteString("## Order Handling\n\n")
-	sb.WriteString("- If an order is partially filled, the backend handles the rest automatically. Do not re-submit the remaining quantity.\n")
-	sb.WriteString("- If an order fails entirely, the error is logged. Do not retry the same order in the same cycle.\n\n")
-
-	// 6c. Position management rules (scale-in/out, trailing stop)
-	sb.WriteString("## Position Management Rules\n\n")
-	sb.WriteString("- Scale-in: Only add to winning positions, max 2 additions. Price must be above average cost by at least 0.5x ATR(14) (minimum 1% for stable coins, 2% for volatile altcoins).\n")
-	sb.WriteString("- Scale-out: Close 33% at +3% unrealized, 50% at +5%, 100% at +8%. Let winners run, lock profits incrementally.\n")
-	sb.WriteString("  - In strong trending regimes, consider extending targets by 1.5x (e.g., +12% instead of +8%).\n")
-	sb.WriteString("- Trailing stop: Close position when unrealized PnL pulls back 30% from peak (e.g., peak +5%, close at +3.5%).\n")
-	sb.WriteString("- Never average down a losing position.\n")
-	sb.WriteString("- Emergency exit: Close immediately if price gaps through your stop-loss level or if a major adverse event occurs (flash crash, exchange outage, regulatory news). Do not wait for scale-out targets.\n\n")
-
-	// 6d. Confidence calibration guidance
+	// 6c. Confidence calibration guidance
 	sb.WriteString("## Confidence Calibration\n\n")
 	sb.WriteString(fmt.Sprintf("- 90-100: All signals align (trend + momentum + volume + catalyst), high-conviction setup\n"))
 	sb.WriteString(fmt.Sprintf("- %d-89: Most signals agree, 1-2 minor conflicts, solid setup\n", riskControl.MinConfidence))
@@ -230,8 +200,41 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	writeVergexSchemaPrompt(&sb)
 	sb.WriteString("\n\n---\n\n")
 
-	sb.WriteString("# You are the FXOS Claw402 auto-trader\n\n")
-	sb.WriteString("Trade only Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board. You may trade only the current candidate symbols and existing positions; never invent tickers or rotate outside the provided universe.\n\n")
+	// Role identity: the built-in Claw402 role, OR the operator's edited
+	// role_definition — never both. Two conflicting "you are" statements
+	// (built-in auto-trader + custom role) make the model contradict itself.
+	// The trading-universe boundary is a system safety invariant, so it is
+	// re-stated after any custom role instead of being silently replaced.
+	sections := e.config.PromptSections
+	defaultSections := store.GetDefaultStrategyConfig(e.config.Language).PromptSections
+	normalizeForDedup := func(s string) string {
+		s = strings.ToLower(s)
+		s = strings.Map(func(r rune) rune {
+			switch {
+			case r >= 'a' && r <= 'z':
+				return r
+			case r >= '0' && r <= '9':
+				return r
+			default:
+				return ' '
+			}
+		}, s)
+		return strings.Join(strings.Fields(s), " ")
+	}
+	roleUnedited := func(body string) bool {
+		body = strings.TrimSpace(body)
+		return body == "" || normalizeForDedup(body) == normalizeForDedup(defaultSections.RoleDefinition)
+	}
+	if roleUnedited(sections.RoleDefinition) {
+		sb.WriteString("# You are the FXOS Claw402 auto-trader\n\n")
+		sb.WriteString("Trade only Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board. You may trade only the current candidate symbols and existing positions; never invent tickers or rotate outside the provided universe.\n\n")
+	} else {
+		sb.WriteString("# Role Definition\n\n")
+		sb.WriteString(strings.TrimSpace(sections.RoleDefinition))
+		sb.WriteString("\n\n")
+		sb.WriteString("System constraint (never override): trade only the Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board and existing positions; never invent tickers or rotate outside the provided universe.\n\n")
+	}
+
 	sb.WriteString("# Decision Data Priority\n\n")
 	sb.WriteString("1. Claw402.ai Signal Ranking: candidate pool, rank, direction and category.\n")
 	sb.WriteString("2. Claw402.ai Signal Lab: trend, momentum, event/model confirmation; this is the core pre-entry confirmation source.\n")
@@ -248,31 +251,27 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	sb.WriteString("- Stops must sit beyond invalidation; targets should prefer heatmap resistance/liquidation zones or valid risk/reward levels.\n")
 	sb.WriteString("- Correlation: avoid same-direction positions in highly correlated instruments (e.g. BTC+ETH). If multiple candidates are correlated, pick the strongest one.\n\n")
 
-	sb.WriteString("## Anti-Patterns (DO NOT)\n")
-	sb.WriteString("- Opening a position because \"it looks cheap\" — no data, no trade.\n")
-	sb.WriteString("- Setting stop_loss = 0 — will be rejected by backend.\n")
-	sb.WriteString("- confidence = 99 on every trade — overconfident, not credible.\n")
-	sb.WriteString(fmt.Sprintf("- Opening more than %d positions in the same cycle — overexposure.\n", (riskControl.MaxPositions+1)/2))
-	sb.WriteString("- Closing a position < 15 minutes after opening — churning.\n")
-	sb.WriteString("- Revenge trading: never increase position size after a loss to \"make it back.\"\n")
-	sb.WriteString("- Anchoring: evaluate from current market state, not from your PnL.\n\n")
+	// Funding rate crowding signal — vergex path needs this explicitly
+	// because it uses a compact schema without the full Data Dictionary.
+	// Crowding is a high-signal entry/exit filter for perps: when the
+	// crowd piles onto one side, the opposite trade's quality rises.
+	sb.WriteString("## Funding Rate Crowding\n\n")
+	sb.WriteString("- FR significantly above its own recent average → that side is crowded. Contrarian (opposite-direction) setups become higher quality.\n")
+	sb.WriteString("- FR significantly below its own recent average → opposite side crowded. Trend continuation setups higher quality.\n")
+	sb.WriteString("- FR near zero or at its average → balanced positioning. No crowding signal; rely on other indicators.\n")
+	sb.WriteString("- FR at extreme levels (>5× recent average) → highly crowded. Expect mean reversion or squeeze. High risk of sudden reversal.\n\n")
 
-	sb.WriteString("## Time Stop\n")
-	sb.WriteString("- If a position has not moved in your favor after 2 hours, reassess the thesis.\n")
-	sb.WriteString("- If holding > 4 hours with PnL < 0, consider closing to free up capital.\n")
-	sb.WriteString("- For xyz equity instruments: close or reduce before Friday US market close.\n")
-	sb.WriteString("- Funding rate accrues 3x on Friday for crypto perps; factor this into hold/exit decisions.\n\n")
+	// Total Risk Budget — multi-position capital allocation guardrails.
+	sb.WriteString("## Total Risk Budget\n\n")
+	sb.WriteString(fmt.Sprintf("- Maximum total margin usage across ALL positions: ≤%.0f%% (backend enforced)\n", riskControl.MaxMarginUsage*100))
+	sb.WriteString("- When multiple positions are open, reduce each position's size proportionally.\n")
+	sb.WriteString(fmt.Sprintf("- Example: %d positions open → each uses ≤%.0f%% of available margin.\n", riskControl.MaxPositions, 100.0/float64(riskControl.MaxPositions)))
+	sb.WriteString("- If total margin is already near the limit, only accept trades with confidence ≥ 85.\n")
+	sb.WriteString("- Multi-position risk: never allocate >50%% of available margin to a single symbol when multiple candidates are tradeable.\n\n")
 
-	sb.WriteString("## Order Handling\n")
-	sb.WriteString("- If an order is partially filled, the backend handles the rest automatically. Do not re-submit the remaining quantity.\n")
-	sb.WriteString("- If an order fails entirely, the error is logged. Do not retry the same order in the same cycle.\n\n")
-
-	sb.WriteString("## Position Management Rules\n")
-	sb.WriteString("- Scale-in: Only add to winning positions, max 2 additions, price above avg cost by 0.5x ATR(14).\n")
-	sb.WriteString("- Scale-out: Close 33% at +3% unrealized, 50% at +5%, 100% at +8%.\n")
-	sb.WriteString("- Trailing stop: Close when unrealized PnL pulls back 30% from peak.\n")
-	sb.WriteString("- Never average down a losing position.\n")
-	sb.WriteString("- Emergency exit: Close immediately if price gaps through your stop-loss level or if a major adverse event occurs (flash crash, exchange outage, regulatory news). Do not wait for scale-out targets.\n\n")
+	// Trading discipline — shared canonical rules, same text as
+	// the generic prompt path (writeCommonDiscipline).
+	writeCommonDiscipline(&sb, riskControl)
 
 	writeModeVariant(&sb, variant)
 
@@ -290,23 +289,9 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	// default with punctuation/whitespace/case normalization: older stored
 	// strategies may carry near-identical default copy with a trailing '!' or
 	// different line breaks (e.g. "# ... auto-trader!" vs "# ... auto-trader"),
-	// which must not count as an operator edit.
-	sections := e.config.PromptSections
-	defaultSections := store.GetDefaultStrategyConfig(e.config.Language).PromptSections
-	normalizeForDedup := func(s string) string {
-		s = strings.ToLower(s)
-		s = strings.Map(func(r rune) rune {
-			switch {
-			case r >= 'a' && r <= 'z':
-				return r
-			case r >= '0' && r <= '9':
-				return r
-			default:
-				return ' '
-			}
-		}, s)
-		return strings.Join(strings.Fields(s), " ")
-	}
+	// which must not count as an operator edit. RoleDefinition is handled at
+	// the top of the prompt (built-in role OR edited role, never both), so it
+	// is deliberately skipped here.
 	writeUserSection := func(title, body, defaultBody string) {
 		body = strings.TrimSpace(body)
 		if body == "" || normalizeForDedup(body) == normalizeForDedup(defaultBody) {
@@ -316,7 +301,6 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 		sb.WriteString(body)
 		sb.WriteString("\n\n")
 	}
-	writeUserSection("Role Definition", sections.RoleDefinition, defaultSections.RoleDefinition)
 	writeUserSection("Trading Frequency", sections.TradingFrequency, defaultSections.TradingFrequency)
 	writeUserSection("Entry Standards", sections.EntryStandards, defaultSections.EntryStandards)
 	writeUserSection("Decision Process", sections.DecisionProcess, defaultSections.DecisionProcess)
@@ -525,7 +509,46 @@ func writeModeVariant(sb *strings.Builder, variant string) {
 		sb.WriteString("## Mode: Conservative\n- Open positions only when multiple signals resonate\n- Prioritize capital preservation; pause for multiple periods after consecutive losses\n\n")
 	case "scalping":
 		sb.WriteString("## Mode: Scalping\n- Focus on short-term momentum, smaller profit targets but require quick action\n- If price doesn't move as expected within two bars, immediately reduce position or stop-loss\n\n")
+	case "balanced", "":
+		sb.WriteString("## Mode: Balanced\n- Open only when multiple signals resonate across timeframes\n- Standard position sizing: confidence-based, no systematic tilt toward aggression or caution\n- Prioritize capital preservation in unclear regimes; pause after consecutive losses\n\n")
 	}
+}
+
+// writeCommonDiscipline writes trading discipline rules shared by both the
+// generic and vergex prompt paths (Anti-Patterns, Time Stop, Order Handling,
+// Position Management). The canonical text is the union of both paths so
+// the model sees identical constraints regardless of strategy type.
+func writeCommonDiscipline(sb *strings.Builder, riskControl store.RiskControlConfig) {
+	sb.WriteString("## Anti-Patterns (DO NOT)\n\n")
+	sb.WriteString("- Opening a position because \"it looks cheap\" — no data, no trade.\n")
+	sb.WriteString("- Setting stop_loss = 0 — will be rejected by backend.\n")
+	sb.WriteString("- confidence = 99 on every trade — overconfident, not credible.\n")
+	sb.WriteString(fmt.Sprintf("- Opening more than %d positions in the same cycle — overexposure.\n", (riskControl.MaxPositions+1)/2))
+	sb.WriteString("- Closing a position < 15 minutes after opening — churning.\n")
+	sb.WriteString("- Flipping from long to short (or vice versa) in the same cycle on the same symbol. To flip direction: first close, then open in the NEXT cycle.\n")
+	sb.WriteString("- Confusing realized and unrealized PnL — realized is already in balance, don't double count.\n")
+	sb.WriteString("- Ignoring leverage impact — 1% price move with 3x leverage = ~3% PnL, not 1%.\n")
+	sb.WriteString("- Not watching Peak PnL — when current PnL nears Peak PnL, consider taking profit.\n")
+	sb.WriteString("- Ignoring OI changes — use OI to validate trend authenticity; OI up + price up = strong.\n")
+	sb.WriteString("- Revenge trading: never increase position size after a loss to \"make it back.\" Size down after consecutive losses.\n")
+	sb.WriteString("- Anchoring: do not bias your analysis based on your entry price. Evaluate each decision from current market state, not from your PnL.\n")
+	sb.WriteString("- Opening new positions when Max Drawdown > 20% — reduce risk first, trade later.\n\n")
+	sb.WriteString("## Time Stop\n\n")
+	sb.WriteString("- If a position has not moved in your favor after 2 hours, reassess the thesis.\n")
+	sb.WriteString("- If holding > 4 hours with PnL < 0, consider closing to free up capital.\n")
+	sb.WriteString("- Never hold a losing position overnight unless the fundamental thesis is intact.\n")
+	sb.WriteString("- For xyz equity instruments: close or reduce before Friday US market close — weekend gap risk is real.\n")
+	sb.WriteString("- Funding rate accrues 3x on Friday for crypto perps; factor this into hold/exit decisions near week-end.\n\n")
+	sb.WriteString("## Order Handling\n\n")
+	sb.WriteString("- If an order is partially filled, the backend handles the rest automatically. Do not re-submit the remaining quantity.\n")
+	sb.WriteString("- If an order fails entirely, the error is logged. Do not retry the same order in the same cycle.\n\n")
+	sb.WriteString("## Position Management Rules\n\n")
+	sb.WriteString("- Scale-in: Only add to winning positions, max 2 additions. Price must be above average cost by at least 0.5x ATR(14) (minimum 1% for stable coins, 2% for volatile altcoins).\n")
+	sb.WriteString("- Scale-out: Close 33% at +3% unrealized, 50% at +5%, 100% at +8%. Let winners run, lock profits incrementally.\n")
+	sb.WriteString("  - In strong trending regimes, consider extending targets by 1.5x (e.g., +12% instead of +8%).\n")
+	sb.WriteString("- Trailing stop: Close position when unrealized PnL pulls back 30% from peak (e.g., peak +5%, close at +3.5%).\n")
+	sb.WriteString("- Never average down a losing position.\n")
+	sb.WriteString("- Emergency exit: Close immediately if price gaps through your stop-loss level or if a major adverse event occurs (flash crash, exchange outage, regulatory news). Do not wait for scale-out targets.\n\n")
 }
 
 func writeHardConstraints(sb *strings.Builder, accountEquity float64, riskControl store.RiskControlConfig, btcEthPosValueRatio, altcoinPosValueRatio float64, singleSymbol bool, primarySymbol string) {

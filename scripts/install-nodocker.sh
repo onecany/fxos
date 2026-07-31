@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
-# Install FXOS as a systemd service (non-Docker deployment)
-# Builds the binary from source, then installs as a systemd service.
+# FXOS all-in-one installer (non-Docker): backend systemd service + web frontend via nginx
+# Builds the Go backend from source, installs it as a systemd service, then
+# builds the React frontend and configures nginx (mandatory HTTPS).
 #
 # Usage:
-#   sudo ./scripts/install-nodocker.sh
+#   sudo ./scripts/install-nodocker.sh                  # full install (backend + web)
+#   sudo ./scripts/install-nodocker.sh status           # status of fxos + nginx
+#   sudo ./scripts/install-nodocker.sh restart          # restart fxos + nginx
+#   sudo ./scripts/install-nodocker.sh stop             # stop fxos + nginx
+#   sudo ./scripts/install-nodocker.sh logs             # tail backend logs
+#   sudo ./scripts/install-nodocker.sh web-install      # (re)build + redeploy frontend only
+#   sudo ./scripts/install-nodocker.sh uninstall        # remove services, configs, webroot (keeps data/ and .env)
 #
-# Prerequisites (auto-checked, will bail if missing):
-#   - Go 1.26+ (go.mod requires 1.26.5)
-#   - git, make, gcc, g++, curl
-#   - openssl (only needed to generate a fresh .env on first install)
+# Environment overrides:
+#   INSTALL_DIR         runtime dir (default /opt/fxos) — keep it DIFFERENT from the
+#                       source checkout; the installer chowns INSTALL_DIR to fxos user
+#   FXOS_BACKEND_PORT   backend API port (default 8080)
+#   FXOS_FRONTEND_PORT  public HTTPS port (default 3000)
+#   FXOS_SSL_CERT/KEY   custom TLS cert/key (BOTH required together)
+#   FXOS_SERVER_IP      fixed server IP for self-signed cert SANs
+#   NODE_OPTIONS        respected if already set (low-memory default 1536)
 
 set -euo pipefail
 
@@ -48,15 +59,27 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-# Install directory (override with env, e.g. sudo INSTALL_DIR=/srv/fxos-app ./scripts/install-nodocker.sh).
-# NOTE: keep this DIFFERENT from the source checkout — the installer chowns
-# the whole INSTALL_DIR to the fxos user (see conflict warning below).
 INSTALL_DIR="${INSTALL_DIR:-/opt/fxos}"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+WEB_DIR="$SCRIPT_DIR/web"
+
+# Ports / SSL (respect .env if present, then env, then defaults)
+read_env_var() { # $1 var name, $2 default
+  local v=""
+  if [[ -f "$INSTALL_DIR/.env" ]]; then
+    v=$(grep -E "^$1=" "$INSTALL_DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)
+  fi
+  echo "${v:-$2}"
+}
+BACKEND_PORT="$(read_env_var FXOS_BACKEND_PORT "${FXOS_BACKEND_PORT:-8080}")"
+FRONTEND_PORT="$(read_env_var FXOS_FRONTEND_PORT "${FXOS_FRONTEND_PORT:-3000}")"
+SSL_DIR="/etc/fxos/ssl"
+SSL_CERT="${FXOS_SSL_CERT:-${SSL_DIR}/fxos.crt}"
+SSL_KEY="${FXOS_SSL_KEY:-${SSL_DIR}/fxos.key}"
 
 # ── Sanity: must run from the repository checkout ───────────
-if [[ ! -f "$SCRIPT_DIR/go.mod" ]]; then
-  err "go.mod not found next to this script — run it from the repo checkout:"
+if [[ ! -f "$SCRIPT_DIR/go.mod" || ! -d "$WEB_DIR" ]]; then
+  err "go.mod / web dir not found next to this script — run it from the repo checkout:"
   err "  sudo ./scripts/install-nodocker.sh"
   exit 1
 fi
@@ -73,11 +96,383 @@ if [[ "$INSTALL_DIR" == "$SCRIPT_DIR" ]]; then
   sleep 5
 fi
 
-# ── Check dependencies ──────────────────────────────────────
+# ── Distro-aware nginx config paths ─────────────────────────
+if [[ -d /etc/nginx/sites-available ]]; then
+  NGINX_CONF="/etc/nginx/sites-available/fxos"
+  NGINX_LINK="/etc/nginx/sites-enabled/fxos"
+else
+  NGINX_CONF="/etc/nginx/conf.d/fxos.conf"
+  NGINX_LINK=""
+fi
+
+# ════════════════════════════════════════════════════════════
+# Web frontend (build + nginx)
+# ════════════════════════════════════════════════════════════
+
+WEB_ROOT="/var/www/fxos"
+
+get_server_ip() {
+  # Public IP first (so remote access matches the cert SAN), then local.
+  local ip=""
+  ip=$(curl -s --max-time 3 ifconfig.me 2>/dev/null || curl -s --max-time 3 icanhazip.com 2>/dev/null || echo "")
+  if [[ -z "$ip" ]]; then
+    if command -v ip &>/dev/null; then
+      # "src" field position varies across iproute2 versions — match by name
+      ip=$(ip route get 1 2>/dev/null | awk '{for (i=1;i<=NF;i++) if ($i=="src") {print $(i+1); exit}}')
+    elif command -v hostname &>/dev/null; then
+      ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+  fi
+  echo "${ip:-127.0.0.1}"
+}
+
+build_cert_sans() {
+  local primary_ip="$1"
+  local sans="IP:${primary_ip},IP:127.0.0.1,DNS:localhost"
+  local extra_ip=""
+  extra_ip=$(curl -s --max-time 3 ifconfig.me 2>/dev/null || curl -s --max-time 3 icanhazip.com 2>/dev/null || true)
+  if [[ -n "$extra_ip" && "$extra_ip" != "$primary_ip" ]]; then
+    sans="${sans},IP:${extra_ip}"
+  fi
+  echo "$sans"
+}
+
+ensure_web_deps() {
+  log "Checking web dependencies..."
+  local missing=()
+  command -v node &>/dev/null || missing+=("nodejs")
+  command -v npm &>/dev/null || missing+=("npm")
+  command -v nginx &>/dev/null || missing+=("nginx")
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    log "Installing: ${missing[*]}"
+    pkg_install "${missing[@]}"
+  fi
+  if ! command -v nginx &>/dev/null; then
+    err "nginx install failed."
+    exit 1
+  fi
+  if [[ -d /etc/nginx/sites-available ]] && [[ ! -d /etc/nginx/sites-enabled ]]; then
+    mkdir -p /etc/nginx/sites-enabled
+    if ! grep -q "sites-enabled" /etc/nginx/nginx.conf 2>/dev/null; then
+      sed -i '/http {/a\    include /etc/nginx/sites-enabled/*;' /etc/nginx/nginx.conf 2>/dev/null || true
+    fi
+  fi
+  log "  nginx $(nginx -v 2>&1 | cut -d/ -f2) ✓"
+}
+
+ensure_node22() {
+  if ! command -v node &>/dev/null; then
+    err "node not installed."
+    exit 1
+  fi
+  local major
+  major=$(node -v | tr -d 'v' | cut -d. -f1)
+  if (( major < 22 )); then
+    warn "Node $(node -v) found, need 22+ — installing via NodeSource."
+    if command -v apt-get &>/dev/null; then
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+      apt-get install -y nodejs
+    elif command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+      curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -
+      pkg_install nodejs
+    fi
+  fi
+  log "  Node $(node -v) ✓"
+}
+
+build_frontend() {
+  log "Building frontend..."
+  cd "$WEB_DIR"
+  # Respect an existing NODE_OPTIONS; default to a low-memory heap so small
+  # VPSes don't OOM. Type-checking (tsc) is skipped here — CI enforces it.
+  export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1536}"
+  if [[ ! -d node_modules ]] || [[ package-lock.json -nt node_modules/.package-lock.json ]]; then
+    npm ci
+  fi
+  npx vite build
+  if [[ ! -f dist/index.html ]]; then
+    err "Build failed (dist/index.html missing)."
+    exit 1
+  fi
+  log "  Build succeeded ✓"
+}
+
+deploy_frontend() {
+  log "Deploying to ${WEB_ROOT}..."
+  mkdir -p "$WEB_ROOT"
+  rm -rf "${WEB_ROOT:?}"/*
+  cp -r dist/* "$WEB_ROOT/"
+  chown -R www-data:www-data "$WEB_ROOT" 2>/dev/null || true
+  log "  Deployed ✓"
+}
+
+ensure_ssl_certs() {
+  log "Setting up mandatory HTTPS certificate for port ${FRONTEND_PORT}..."
+
+  if [[ -n "${FXOS_SSL_CERT:-}" || -n "${FXOS_SSL_KEY:-}" ]]; then
+    if [[ -z "${FXOS_SSL_CERT:-}" || -z "${FXOS_SSL_KEY:-}" ]]; then
+      err "Set BOTH FXOS_SSL_CERT and FXOS_SSL_KEY when using custom certificates."
+      exit 1
+    fi
+    if [[ ! -f "$SSL_CERT" || ! -f "$SSL_KEY" ]]; then
+      err "Custom SSL file(s) not found: cert=${SSL_CERT} key=${SSL_KEY}"
+      exit 1
+    fi
+    if command -v openssl &>/dev/null; then
+      local cm km
+      cm=$(openssl x509 -noout -modulus -in "$SSL_CERT" 2>/dev/null | openssl md5 2>/dev/null || echo "_cert_")
+      km=$(openssl rsa  -noout -modulus -in "$SSL_KEY"  2>/dev/null | openssl md5 2>/dev/null || echo "_key_")
+      if [[ "$cm" != "$km" ]]; then
+        err "Custom SSL certificate and private key DO NOT match (modulus mismatch)."
+        exit 1
+      fi
+    fi
+    log "  Using custom SSL cert: ${SSL_CERT} ✓"
+    return
+  fi
+
+  if ! command -v openssl &>/dev/null; then
+    log "Installing openssl..."
+    pkg_install openssl
+  fi
+
+  if [[ -f "$SSL_CERT" && -f "$SSL_KEY" ]]; then
+    log "  Using existing SSL cert: ${SSL_CERT} ✓"
+    return
+  fi
+
+  if [[ -f "$SSL_CERT" || -f "$SSL_KEY" ]]; then
+    warn "Incomplete SSL files in ${SSL_DIR}, regenerating..."
+    rm -f "$SSL_CERT" "$SSL_KEY"
+  fi
+
+  # FXOS_SERVER_IP: .env (backend) override, then env, then auto-detect
+  local server_ip=""
+  server_ip="$(read_env_var FXOS_SERVER_IP "${FXOS_SERVER_IP:-}")"
+  if [[ -z "$server_ip" ]]; then
+    server_ip="$(get_server_ip)"
+  else
+    log "  FXOS_SERVER_IP set: ${server_ip}"
+  fi
+  local cert_sans
+  cert_sans="$(build_cert_sans "$server_ip")"
+
+  mkdir -p "$SSL_DIR" 2>/dev/null || true
+  chmod 700 "$SSL_DIR" 2>/dev/null || true
+
+  local gen_ok=false
+  log "Generating self-signed certificate for IP access (${server_ip})..."
+  if openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout "$SSL_KEY" -out "$SSL_CERT" \
+    -subj "/CN=${server_ip}" \
+    -addext "subjectAltName=${cert_sans}" >/dev/null 2>&1; then
+    gen_ok=true
+  else
+    warn "OpenSSL lacks -addext, retrying without SANs..."
+    rm -f "$SSL_CERT" "$SSL_KEY" 2>/dev/null || true
+    if openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout "$SSL_KEY" -out "$SSL_CERT" \
+      -subj "/CN=${server_ip}" >/dev/null 2>&1; then
+      gen_ok=true
+    fi
+  fi
+
+  if [[ "$gen_ok" != "true" ]]; then
+    err "Failed to generate self-signed SSL certificate."
+    exit 1
+  fi
+
+  chmod 600 "$SSL_KEY"  2>/dev/null || true
+  chmod 644 "$SSL_CERT" 2>/dev/null || true
+  warn "Self-signed cert created. Browser will warn on first visit — click Advanced → Continue."
+}
+
+write_nginx_conf() {
+  cat > "$NGINX_CONF" <<NGINX
+# ─────────────────────────────────────────────────────────────
+# FXOS Frontend (bare-metal systemd / nginx install)
+# HTTPS is MANDATORY on port ${FRONTEND_PORT}.
+# Even plaintext http://IP:${FRONTEND_PORT} is auto-upgraded to https://.
+# ─────────────────────────────────────────────────────────────
+
+# (A) Internal 127.0.0.1:80 loopback-only fallback — never exposed publicly.
+server {
+    listen 127.0.0.1:80;
+    listen [::1]:80;
+    server_name _;
+    return 301 https://\$host:${FRONTEND_PORT}\$request_uri;
+    access_log off;
+}
+
+# (B) ONLY public-facing listener: TLS on ${FRONTEND_PORT}
+server {
+    listen ${FRONTEND_PORT} ssl;
+    listen [::]:${FRONTEND_PORT} ssl;
+    server_name _;
+
+    ssl_certificate ${SSL_CERT};
+    ssl_certificate_key ${SSL_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+
+    # Same-port HTTP → HTTPS upgrade (nginx error 497 on plaintext→SSL listener)
+    error_page 497 = @upgrade_to_https;
+    location @upgrade_to_https {
+        return 301 https://\$http_host\$request_uri;
+    }
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+    root ${WEB_ROOT};
+    index index.html;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json;
+
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+
+        location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+    # API reverse proxy to backend on 127.0.0.1
+    location /api/ {
+        proxy_pass http://127.0.0.1:${BACKEND_PORT}/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+    }
+
+    location /health {
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+        access_log off;
+    }
+}
+NGINX
+
+  if [[ -n "$NGINX_LINK" ]]; then
+    ln -sf "$NGINX_CONF" "$NGINX_LINK"
+    if [[ -f /etc/nginx/sites-enabled/default ]]; then
+      rm -f /etc/nginx/sites-enabled/default
+    fi
+  fi
+
+  if ! nginx -t 2>&1; then
+    err "Nginx config test failed."
+    exit 1
+  fi
+  log "  Nginx configured ✓"
+}
+
+start_nginx() {
+  log "Starting nginx..."
+  systemctl enable nginx 2>/dev/null || true
+  systemctl restart nginx
+
+  sleep 1
+  if ! systemctl is-active --quiet nginx; then
+    err "Nginx failed to start. Check: journalctl -u nginx -n 20"
+    exit 1
+  fi
+  if curl -sfk --max-time 3 "https://127.0.0.1:${FRONTEND_PORT}/health" >/dev/null; then
+    log "  HTTPS health probe OK ✓"
+  else
+    warn "  Could not probe https://127.0.0.1:${FRONTEND_PORT}/health — check firewall."
+  fi
+}
+
+install_web() {
+  ensure_web_deps
+  ensure_node22
+  build_frontend
+  deploy_frontend
+  ensure_ssl_certs
+  write_nginx_conf
+  start_nginx
+}
+
+# ════════════════════════════════════════════════════════════
+# Sub-commands
+# ════════════════════════════════════════════════════════════
+
+cmd="${1:-install}"
+case "$cmd" in
+  status)
+    systemctl status fxos --no-pager || true
+    echo ""
+    systemctl status nginx --no-pager || true
+    exit 0
+    ;;
+  restart)
+    systemctl restart fxos
+    systemctl restart nginx
+    log "fxos + nginx restarted."
+    exit 0
+    ;;
+  stop)
+    systemctl stop fxos
+    systemctl stop nginx
+    log "fxos + nginx stopped."
+    exit 0
+    ;;
+  logs)
+    journalctl -u fxos -f --tail=50
+    exit 0
+    ;;
+  web-install)
+    install_web
+    log "Web frontend (re)deployed."
+    exit 0
+    ;;
+  uninstall)
+    log "Removing FXOS services and configs (keeping $INSTALL_DIR/data and .env)..."
+    systemctl stop fxos 2>/dev/null || true
+    systemctl disable fxos 2>/dev/null || true
+    rm -f /etc/systemd/system/fxos.service
+    systemctl daemon-reload
+    rm -f "$NGINX_CONF" "$NGINX_LINK"
+    rm -rf "$WEB_ROOT" "$SSL_DIR"
+    systemctl restart nginx 2>/dev/null || true
+    log "Uninstalled. To remove data too: rm -rf $INSTALL_DIR"
+    exit 0
+    ;;
+  install|"") ;;
+  *)
+    err "Unknown command: $cmd"
+    err "Usage: sudo $0 [install|status|restart|stop|logs|web-install|uninstall]"
+    exit 1
+    ;;
+esac
+
+# ════════════════════════════════════════════════════════════
+# Backend install
+# ════════════════════════════════════════════════════════════
+
 log "Checking dependencies..."
 
 missing=()
-
 command -v go &>/dev/null || missing+=("go")
 command -v git &>/dev/null || missing+=("git")
 command -v make &>/dev/null || missing+=("make")
@@ -92,7 +487,6 @@ if [[ ${#missing[@]} -gt 0 ]]; then
 fi
 
 # Check Go version >= 1.26 (go.mod requires 1.26.5)
-# Portable extraction (no grep -P): "go1.26.5 linux/amd64" -> "1.26"
 GO_VER=$(go version | awk '{print $3}' | sed 's/^go//' | cut -d. -f1-2)
 GO_MAJOR="${GO_VER%%.*}"
 GO_MINOR="${GO_VER##*.}"
@@ -105,7 +499,6 @@ log "  Go $GO_VER ✓"
 # ── Build binary ────────────────────────────────────────────
 log "Building fxos binary..."
 cd "$SCRIPT_DIR"
-# Remove any stale binary first so a failed build can't be mistaken for success
 rm -f fxos
 CGO_ENABLED=1 GOOS=linux go build -trimpath -ldflags="-s -w" -o fxos .
 
@@ -127,8 +520,7 @@ mkdir -p "$INSTALL_DIR/data"
 cp "$SCRIPT_DIR/fxos" "$INSTALL_DIR/fxos"
 chmod 755 "$INSTALL_DIR/fxos"
 
-# ── Ensure .env exists (JWT/DATA_ENCRYPTION/RSA are required — the
-#    backend refuses to start without them, see config.MustInit) ──
+# ── Ensure .env exists (JWT/DATA_ENCRYPTION/RSA required) ──
 if [[ ! -f "$INSTALL_DIR/.env" ]]; then
   if [[ -f "$SCRIPT_DIR/.env" ]]; then
     cp "$SCRIPT_DIR/.env" "$INSTALL_DIR/.env"
@@ -139,7 +531,6 @@ if [[ ! -f "$INSTALL_DIR/.env" ]]; then
     JWT_SECRET=$(openssl rand -base64 32)
     DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)
     # Single-line PEM with literal \n escapes — matches the backend contract
-    # (crypto.go replaces "\n" with a real newline before PEM decoding)
     RSA_PRIVATE_KEY=$(openssl genrsa 2048 2>/dev/null | tr '\n' '\\' | sed 's/\\/\\n/g' | sed 's/\\n$//')
     cat > "$INSTALL_DIR/.env" <<EOF
 # FXOS Configuration (Auto-generated by install-nodocker.sh)
@@ -147,6 +538,8 @@ JWT_SECRET=${JWT_SECRET}
 DATA_ENCRYPTION_KEY=${DATA_ENCRYPTION_KEY}
 RSA_PRIVATE_KEY=${RSA_PRIVATE_KEY}
 TZ=Asia/Shanghai
+FXOS_BACKEND_PORT=${BACKEND_PORT}
+FXOS_FRONTEND_PORT=${FRONTEND_PORT}
 EOF
     chmod 600 "$INSTALL_DIR/.env"
     log "  Generated $INSTALL_DIR/.env (JWT_SECRET, DATA_ENCRYPTION_KEY, RSA_PRIVATE_KEY)"
@@ -160,9 +553,7 @@ fi
 chown -R fxos:fxos "$INSTALL_DIR"
 chmod 770 "$INSTALL_DIR/data"
 
-# ── Install systemd unit ───────────────────────────────────
-# fxos.service uses /opt/fxos as a placeholder; substitute the real
-# INSTALL_DIR so a custom install path gets correct unit paths.
+# ── Install systemd unit (paths substituted for custom INSTALL_DIR) ──
 log "Installing systemd service..."
 sed "s|/opt/fxos|${INSTALL_DIR}|g" "$SCRIPT_DIR/scripts/fxos.service" > /etc/systemd/system/fxos.service
 systemctl daemon-reload
@@ -171,12 +562,9 @@ systemctl daemon-reload
 systemctl enable fxos.service
 systemctl start fxos.service
 
-# Wait for the service to be healthy (up to 15s). Checking only
-# `systemctl is-active` is unreliable with Restart=always — a crash
-# loop briefly reports active. Verify the health endpoint instead.
 ok=0
 for _ in $(seq 1 15); do
-  if curl -fsS --max-time 2 http://127.0.0.1:8080/api/health >/dev/null 2>&1; then
+  if curl -fsS --max-time 2 "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null 2>&1; then
     ok=1
     break
   fi
@@ -184,21 +572,47 @@ for _ in $(seq 1 15); do
 done
 
 if [[ "$ok" -eq 1 ]]; then
-  log "FXOS service is running (health check OK)."
-  systemctl status fxos.service --no-pager || true
+  log "FXOS backend is running (health check OK)."
 else
-  err "Service not healthy. Check: journalctl -u fxos -n 50"
+  err "Backend not healthy. Check: journalctl -u fxos -n 50"
   systemctl status fxos.service --no-pager || true
   exit 1
 fi
 
+# ── Web frontend ────────────────────────────────────────────
+install_web
+
+# ── Firewall hint ───────────────────────────────────────────
 log ""
-log "Installed successfully. Useful commands:"
-log "  systemctl status fxos     # check status"
-log "  systemctl restart fxos    # restart"
-log "  systemctl stop fxos       # stop"
-log "  journalctl -u fxos -f     # tail logs"
+log "Security note: the backend listens on :${BACKEND_PORT} (all interfaces)."
+log "If a firewall is active, only these inbound ports should be open:"
+log "  ${FRONTEND_PORT}/tcp (web UI, HTTPS) and 22/tcp (SSH)."
+warn "  Example (ufw): sudo ufw allow 22/tcp && sudo ufw allow ${FRONTEND_PORT}/tcp && sudo ufw --force enable"
+
+# ── Done ────────────────────────────────────────────────────
+SERVER_IP="$(get_server_ip)"
 log ""
-log "Note: this installs the backend only. The web frontend (web/dist) is"
-log "served separately — build it and point your web server (nginx) at it,"
-log "proxying /api to http://127.0.0.1:8080."
+log "════════════════════════════════════════════════════════════"
+log "  🎉 FXOS installed (backend service + web frontend)"
+log "════════════════════════════════════════════════════════════"
+log ""
+log "  Access URLs:"
+log "    Remote: https://${SERVER_IP}:${FRONTEND_PORT}"
+log "    Local:  https://127.0.0.1:${FRONTEND_PORT}"
+log ""
+log "  ℹ️  http://IP:${FRONTEND_PORT} auto-redirects to https:// (same port)."
+log "  API proxy: nginx forwards /api/ → http://127.0.0.1:${BACKEND_PORT}/api/"
+log ""
+if [[ -n "${FXOS_SSL_CERT:-}" ]]; then
+  log "  🔒 TLS: custom certificate (${FXOS_SSL_CERT})"
+else
+  log "  🔒 TLS: self-signed certificate — FIRST VISIT browser warning expected."
+fi
+log ""
+log "  Useful commands:"
+log "    sudo systemctl status fxos      # backend status"
+log "    sudo $0 restart                 # restart backend + nginx"
+log "    sudo $0 logs                    # tail backend logs"
+log "    sudo $0 web-install             # rebuild + redeploy frontend"
+log "    sudo $0 uninstall               # remove services + configs (keeps data)"
+log ""

@@ -23,6 +23,7 @@ import { LandingPage } from '../pages/LandingPage'
 import { BeginnerOnboardingPage } from '../pages/BeginnerOnboardingPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { StrategyStudioPage } from '../pages/StrategyStudioPage'
+import { PromptStudioPage } from '../pages/PromptStudioPage'
 import { TerminalDashboard } from '../components/terminal/TerminalDashboard'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -481,6 +482,18 @@ export function AppRoutes() {
             isAuthenticated ? (
               <AppChrome currentPage="strategy" animateContent>
                 <StrategyStudioPage />
+              </AppChrome>
+            ) : (
+              <LandingPage />
+            )
+          }
+        />
+        <Route
+          path={ROUTES.strategyPrompt}
+          element={
+            isAuthenticated ? (
+              <AppChrome currentPage="strategy" animateContent>
+                <PromptStudioPage />
               </AppChrome>
             ) : (
               <LandingPage />

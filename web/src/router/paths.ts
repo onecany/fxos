@@ -19,6 +19,7 @@ export const ROUTES = {
   traders: '/traders',
   dashboard: '/dashboard',
   strategy: '/strategy',
+  strategyPrompt: '/strategy/prompt',
   strategyMarket: '/strategy-market',
 } as const
 
@@ -48,6 +49,7 @@ export function getCurrentPageForPath(pathname: string): Page | undefined {
     case ROUTES.dashboard:
       return 'trader'
     case ROUTES.strategy:
+    case ROUTES.strategyPrompt:
       return 'strategy'
     case ROUTES.strategyMarket:
       return 'strategy-market'

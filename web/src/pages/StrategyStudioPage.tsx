@@ -1642,19 +1642,29 @@ export function StrategyStudioPage() {
               )}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={startUnifiedClaw402Agent}
-            disabled={saving || !selectedStrategy}
-            className="inline-flex items-center gap-2 rounded-lg bg-fxos-gold px-4 py-2 text-sm font-semibold text-fxos-bg hover:bg-fxos-gold-highlight"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Bot className="h-4 w-4" />
-            )}
-            {text(language, 'Launch Autopilot', 'Launch Autopilot')}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.strategyPrompt)}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] px-4 py-2 text-sm font-semibold text-fxos-text-muted hover:border-fxos-gold/40 hover:text-fxos-gold transition-colors"
+            >
+              <Sparkles className="h-4 w-4" />
+              {text(language, 'Prompt Studio', 'Prompt Studio')}
+            </button>
+            <button
+              type="button"
+              onClick={startUnifiedClaw402Agent}
+              disabled={saving || !selectedStrategy}
+              className="inline-flex items-center gap-2 rounded-lg bg-fxos-gold px-4 py-2 text-sm font-semibold text-fxos-bg hover:bg-fxos-gold-highlight"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Bot className="h-4 w-4" />
+              )}
+              {text(language, 'Launch Autopilot', 'Launch Autopilot')}
+            </button>
+          </div>
         </div>
       </div>
 

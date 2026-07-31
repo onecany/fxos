@@ -556,6 +556,29 @@ func writeCommonDiscipline(sb *strings.Builder, riskControl store.RiskControlCon
 	sb.WriteString("- Trailing stop: Close position when unrealized PnL pulls back 30% from peak (e.g., peak +5%, close at +3.5%).\n")
 	sb.WriteString("- Never average down a losing position.\n")
 	sb.WriteString("- Emergency exit: Close immediately if price gaps through your stop-loss level or if a major adverse event occurs (flash crash, exchange outage, regulatory news). Do not wait for scale-out targets.\n\n")
+
+	// Multi-Timeframe Analysis Framework — tells the model how to use the
+	// multiple timeframe K-line data it receives in the user prompt.
+	sb.WriteString("## Multi-Timeframe Analysis\n\n")
+	sb.WriteString("- Long-term TF (1h-4h): determine the PRIMARY trend direction. Trade with it, not against it.\n")
+	sb.WriteString("- Medium-term TF (15m-30m): find price structure — support/resistance, patterns, consolidation zones.\n")
+	sb.WriteString("- Short-term TF (1m-5m): time the entry. Look for pullbacks into structure in the primary trend direction.\n")
+	sb.WriteString("- All TFs aligned in same direction → high-confidence setup (confidence ≥85).\n")
+	sb.WriteString("- Long-term trend up but medium-term pulling back → wait for entry signal at structure support.\n")
+	sb.WriteString("- TFs conflicting (e.g. 1h down, 15m up) → lower confidence (≤70) or wait. Counter-trend trades need at least 3 confirmations.\n")
+	sb.WriteString("- Use the current candle's close + volume to validate; opening ranges and session overlap volumes add weight.\n\n")
+
+	// Position Sizing by Market Regime — the user prompt includes a Regime
+	// hint (TRENDING_UP/DOWN, RANGING, HIGH_VOL, LOW_VOL); adjust sizing.
+	sb.WriteString("## Position Sizing by Market Regime\n\n")
+	sb.WriteString("- TRENDING (directional): full-size positions per confidence; may scale into winners.\n")
+	sb.WriteString("- RANGING: half-size positions; prefer range-bound setups, take profits at band extremes.\n")
+	sb.WriteString("- HIGH_VOL (large 1h moves, wide BB, elevated ATR): reduce size to 30-50%, widen stops to 1.5-2× ATR.\n")
+	sb.WriteString("- LOW_VOL (compression, tight ranges): minimal probing positions (10-20%) or wait. Tight ranges often precede explosive moves.\n")
+	sb.WriteString("- TRANSITIONAL / UNKNOWN: standard sizing, but require stronger confluence before opening.\n")
+	sb.WriteString("- Max Drawdown >20%% or consecutive losses ≥3: pause new positions for 2-3 cycles. Only manage/close existing.\n")
+	sb.WriteString("- Account equity declining (equity trend ↓): reduce position count and size; capital preservation first.\n")
+	sb.WriteString("- Account equity rising (equity trend ↑): may gradually scale up to standard sizing over 3+ winning cycles.\n\n")
 }
 
 func writeHardConstraints(sb *strings.Builder, accountEquity float64, riskControl store.RiskControlConfig, btcEthPosValueRatio, altcoinPosValueRatio float64, singleSymbol bool, primarySymbol string) {

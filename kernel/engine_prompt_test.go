@@ -334,3 +334,47 @@ func TestVergexPromptNoLongerMissingOvernightRule(t *testing.T) {
 		t.Fatalf("vergex path should include direction-flip anti-pattern:\n%s", prompt)
 	}
 }
+
+// TestLintPromptCleanDefault verifies that the built prompt from default
+// config passes lint with zero issues.
+func TestLintPromptCleanDefault(t *testing.T) {
+	cfg := store.GetDefaultStrategyConfig("en")
+	cfg.CoinSource.SourceType = "vergex_signal"
+	engine := NewStrategyEngine(&cfg)
+	prompt := engine.BuildSystemPrompt(1000, "balanced")
+	issues := LintPrompt(prompt)
+	if len(issues) > 0 {
+		t.Fatalf("default vergex prompt should be lint-clean:\n  %s", strings.Join(issues, "\n  "))
+	}
+}
+
+// TestLintPromptDetectsDuplicatedRole verifies the lint catches a duplicated
+// Claw402 role statement.
+func TestLintPromptDetectsDuplicatedRole(t *testing.T) {
+	prompt := "---\n# You are the FXOS Claw402 auto-trader\n\nstuff\n\n# You are the FXOS Claw402 auto-trader\n\nmore\n"
+	issues := LintPrompt(prompt)
+	found := false
+	for _, issue := range issues {
+		if strings.Contains(issue, "Claw402 role") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("lint should detect duplicated Claw402 role, got: %v", issues)
+	}
+}
+
+// TestLintPromptFlagsZeroRisk verifies the lint catches risk_usd: 0.
+func TestLintPromptFlagsZeroRisk(t *testing.T) {
+	prompt := `---\n## Anti-Patterns (DO NOT)\n\nstuff\n## Time Stop\n\nstuff\n## Order Handling\n\nstuff\n## Position Management Rules\n\n{"risk_usd": 0}\n`
+	issues := LintPrompt(prompt)
+	found := false
+	for _, issue := range issues {
+		if strings.Contains(issue, "risk_usd") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("lint should flag risk_usd: 0, got: %v", issues)
+	}
+}

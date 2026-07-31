@@ -38,7 +38,7 @@ import type {
 } from '../lib/api/data'
 import { buildDashboardPath, ROUTES } from '../router/paths'
 import { apiUrl } from '../lib/api/helpers'
-import type { Language } from '../i18n/translations'
+import { t, type Language } from '../i18n/translations'
 
 type Scope =
   | 'all'
@@ -76,8 +76,8 @@ const detailBandOptions = ['5', '10', '15', '20']
 const claw402BoardLimit = 30
 const confidenceOptions = [65, 75, 82]
 
-const text = (language: string, zh: string, en: string) =>
-  language === 'zh' ? zh : en
+const text = (language: string, zh: string, en: string, id?: string) =>
+  language === 'zh' ? zh : language === 'id' && id ? id : en
 
 type Profile = 'careful' | 'balanced' | 'active'
 
@@ -87,6 +87,7 @@ const profileOptions: Array<{
   en: string
   zhNote: string
   enNote: string
+  id: string
   maxPositions: number
   leverage: number
   confidence: number
@@ -101,6 +102,7 @@ const profileOptions: Array<{
     value: 'careful',
     zh: '稳健',
     en: 'Careful',
+    id: 'Konservatif',
     zhNote: '交易较少，仅对齐信号',
     enNote: 'Fewer trades, only aligned signals',
     maxPositions: 1,
@@ -119,6 +121,7 @@ const profileOptions: Array<{
     value: 'balanced',
     zh: '均衡',
     en: 'Balanced',
+    id: 'Seimbang',
     zhNote: '机会与风险的推荐平衡',
     enNote: 'Recommended balance of opportunity and risk',
     maxPositions: 2,
@@ -137,6 +140,7 @@ const profileOptions: Array<{
     value: 'active',
     zh: '积极',
     en: 'Active',
+    id: 'Aktif',
     zhNote: '更快捕捉趋势，持仓更多',
     enNote: 'Faster trend capture with more positions',
     maxPositions: 3,
@@ -1023,13 +1027,15 @@ export function StrategyStudioPage() {
   const [detailLiqBand, setDetailLiqBand] = useState('15')
   const [listMode, setListMode] = useState<ListMode>('claw402')
   const [hasChanges, setHasChanges] = useState(false)
+  const [activeTab, setActiveTab] = useState<'editor' | 'signal'>('editor')
 
   const aiConfig = editingConfig?.ai_config || null
   const coinSource = aiConfig?.coin_source
   const indicators = aiConfig?.indicators
   const risk = aiConfig?.risk_control
   const selectedSymbols = coinSource?.static_coins || []
-  const scope = 'all' as Scope
+  // Signal Board scope filter (UI-only; does NOT touch strategy config)
+  const [scope, setScope] = useState<Scope>('all')
   const activeProfile = profileFromRisk(risk)
 
   const signalMap = useMemo(() => {
@@ -1090,7 +1096,7 @@ export function StrategyStudioPage() {
         notify.error(
           err instanceof Error
             ? err.message
-            : text(language, '加载策略失败', 'Failed to load strategies')
+            : t('strategyStudio.failedToLoad', language)
         )
       } finally {
         setLoading(false)
@@ -1109,7 +1115,7 @@ export function StrategyStudioPage() {
       setSymbolsError(
         err instanceof Error
           ? err.message
-          : text(language, '币种列表不可用', 'Symbol list unavailable')
+          : t('strategyStudio.symbolListUnavailable', language)
       )
     } finally {
       setSymbolsLoading(false)
@@ -1128,11 +1134,7 @@ export function StrategyStudioPage() {
       setSignalsError(
         err instanceof Error
           ? err.message
-          : text(
-              language,
-              'Claw402.ai 看板不可用',
-              'Claw402.ai board unavailable'
-            )
+          : t('strategyStudio.boardUnavailable', language)
       )
     } finally {
       setSignalsLoading(false)
@@ -1329,7 +1331,7 @@ export function StrategyStudioPage() {
       notify.error(
         err instanceof Error
           ? err.message
-          : text(language, '创建策略失败', 'Failed to create strategy')
+          : t('strategyStudio.failedToCreate', language)
       )
     }
   }
@@ -1363,9 +1365,7 @@ export function StrategyStudioPage() {
         }
       )
       if (!response.ok)
-        throw new Error(
-          text(language, '保存策略失败', 'Failed to save strategy')
-        )
+        throw new Error(t('strategyStudio.failedToSave', language))
       if (activateAfter) {
         await api.activateStrategy(selectedStrategy.id)
       }
@@ -1373,27 +1373,15 @@ export function StrategyStudioPage() {
       notify.success(
         successMessage ||
           (activateAfter
-            ? text(
-                language,
-                text(
-                  language,
-                  '策略已保存并激活',
-                  'Strategy saved and activated'
-                ),
-                text(
-                  language,
-                  '策略已保存并激活',
-                  'Strategy saved and activated'
-                )
-              )
-            : text(language, 'Strategy saved', 'Strategy saved'))
+            ? t('strategyStudio.savedAndActivated', language)
+            : t('strategyStudio.strategySaved', language))
       )
       await loadStrategies(selectedStrategy.id)
     } catch (err) {
       notify.error(
         err instanceof Error
           ? err.message
-          : text(language, '保存策略失败', 'Failed to save strategy')
+          : t('strategyStudio.failedToSave', language)
       )
     } finally {
       setSaving(false)
@@ -1494,13 +1482,13 @@ export function StrategyStudioPage() {
     if (!selectedStrategy) return
     try {
       await api.activateStrategy(selectedStrategy.id)
-      notify.success(text(language, 'Strategy activated', 'Strategy activated'))
+      notify.success(t('strategyStudio.strategyActivated', language))
       await loadStrategies(selectedStrategy.id)
     } catch (err) {
       notify.error(
         err instanceof Error
           ? err.message
-          : text(language, '激活策略失败', 'Failed to activate strategy')
+          : t('strategyStudio.failedToActivate', language)
       )
     }
   }
@@ -1508,21 +1496,23 @@ export function StrategyStudioPage() {
   const deleteStrategy = async () => {
     if (!selectedStrategy || selectedStrategy.is_active) return
     const ok = await confirmToast(
-      text(language, 'Delete this strategy?', 'Delete this strategy?'),
+      t('strategyStudio.confirmDeleteStrategy', language),
       {
-        title: text(language, 'Confirm delete', 'Confirm delete'),
-        okText: text(language, 'Delete', 'Delete'),
-        cancelText: text(language, 'Cancel', 'Cancel'),
+        title: t('strategyStudio.confirmDelete', language),
+        okText: t('strategyStudio.delete', language),
+        cancelText: t('strategyStudio.cancel', language),
       }
     )
     if (!ok) return
     try {
       await api.deleteStrategy(selectedStrategy.id)
-      notify.success(text(language, 'Strategy deleted', 'Strategy deleted'))
+      notify.success(t('strategyStudio.strategyDeleted', language))
       await loadStrategies()
     } catch (err) {
       notify.error(
-        err instanceof Error ? err.message : 'Failed to delete strategy'
+        err instanceof Error
+          ? err.message
+          : t('strategyStudio.failedToDelete', language)
       )
     }
   }
@@ -1539,14 +1529,6 @@ export function StrategyStudioPage() {
     patchCoinSource({
       static_coins: next,
       vergex_limit: nextLimit,
-      vergex_market_type: 'all',
-    })
-  }
-
-  const setScope = (nextScope: Scope) => {
-    patchCoinSource({
-      hyper_rank_category: nextScope,
-      static_coins: [],
       vergex_market_type: 'all',
     })
   }
@@ -1632,14 +1614,10 @@ export function StrategyStudioPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold text-fxos-text">
-              {text(language, 'FXOS Autopilot', 'FXOS Autopilot')}
+              {t('strategyStudio.title', language)}
             </h1>
             <p className="mt-1 text-sm text-fxos-text-muted">
-              {text(
-                language,
-                'Autonomous market selection powered by Claw402.ai Signal Lab, liquidation structure, and raw candles.',
-                'Autonomous market selection powered by Claw402.ai Signal Lab, liquidation structure, and raw candles.'
-              )}
+              {t('strategyStudio.subtitle', language)}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1649,7 +1627,7 @@ export function StrategyStudioPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] px-4 py-2 text-sm font-semibold text-fxos-text-muted hover:border-fxos-gold/40 hover:text-fxos-gold transition-colors"
             >
               <Sparkles className="h-4 w-4" />
-              {text(language, 'Prompt Studio', 'Prompt Studio')}
+              {t('promptStudio.title', language)}
             </button>
             <button
               type="button"
@@ -1662,17 +1640,31 @@ export function StrategyStudioPage() {
               ) : (
                 <Bot className="h-4 w-4" />
               )}
-              {text(language, 'Launch Autopilot', 'Launch Autopilot')}
+              {t('strategyStudio.launchAutopilot', language)}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="grid min-h-[calc(100vh-137px)] grid-cols-1">
-        <aside className="hidden border-r border-[var(--panel-border)] bg-fxos-bg-deeper p-3">
-          <div className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-fxos-text-muted">
-            {text(language, 'My strategies', 'My strategies')}
+      <div className="grid min-h-[calc(100vh-137px)] grid-cols-1 md:grid-cols-[280px_1fr]">
+        <aside className="border-r border-[var(--panel-border)] bg-fxos-bg-deeper p-3 md:max-h-[calc(100vh-137px)] md:overflow-y-auto">
+          <div className="mb-2 flex items-center justify-between px-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-fxos-text-muted">
+              {t('strategyStudio.myStrategies', language)}
+            </span>
+            <span className="rounded bg-fxos-bg-lighter px-1.5 py-0.5 font-mono text-[10px] text-fxos-text-muted">
+              {strategies.length}
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={createStrategy}
+            disabled={saving}
+            className="mb-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-fxos-gold/30 bg-fxos-gold/10 px-3 py-2 text-sm font-semibold text-fxos-gold transition-colors hover:bg-fxos-gold/15 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" />
+            {t('strategyStudio.createStrategy', language)}
+          </button>
           <div className="space-y-2">
             {strategies.map((strategy) => (
               <button
@@ -1695,7 +1687,7 @@ export function StrategyStudioPage() {
                   </span>
                   {strategy.is_active ? (
                     <span className="rounded bg-fxos-success/15 px-1.5 py-0.5 text-[10px] text-fxos-success">
-                      {text(language, 'Active', 'Active')}
+                      {t('strategyStudio.active', language)}
                     </span>
                   ) : null}
                 </div>
@@ -1712,7 +1704,7 @@ export function StrategyStudioPage() {
         <main className="overflow-y-auto p-5">
           {selectedStrategy && aiConfig && coinSource && indicators && risk ? (
             <div className="mx-auto max-w-7xl space-y-4">
-              <section className="hidden rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
+              <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <input
@@ -1735,28 +1727,16 @@ export function StrategyStudioPage() {
                         })
                         setHasChanges(true)
                       }}
-                      placeholder={text(
-                        language,
-                        text(
-                          language,
-                          '策略一句话备注',
-                          'One-line strategy note'
-                        ),
-                        text(
-                          language,
-                          '策略一句话备注',
-                          'One-line strategy note'
-                        )
-                      )}
+                      placeholder={t('strategyStudio.addDescription', language)}
                       className="mt-1 w-full bg-transparent text-sm text-fxos-text-muted outline-none placeholder:text-fxos-text-muted/50"
                     />
                     {hasChanges ? (
                       <div className="mt-2 text-xs text-fxos-gold">
-                        {text(language, 'Unsaved changes', 'Unsaved changes')}
+                        {t('strategyStudio.unsavedChanges', language)}
                       </div>
                     ) : null}
                   </div>
-                  <div className="hidden flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => saveStrategy(true)}
@@ -1768,7 +1748,7 @@ export function StrategyStudioPage() {
                       ) : (
                         <Check className="h-4 w-4" />
                       )}
-                      {text(language, 'Save and use', 'Save and use')}
+                      {t('strategyStudio.saveAndUse', language)}
                     </button>
                     <button
                       type="button"
@@ -1781,7 +1761,7 @@ export function StrategyStudioPage() {
                       ) : (
                         <Save className="h-4 w-4" />
                       )}
-                      {text(language, 'Save', 'Save')}
+                      {t('strategyStudio.save', language)}
                     </button>
                     {!selectedStrategy.is_active ? (
                       <button
@@ -1790,7 +1770,7 @@ export function StrategyStudioPage() {
                         className="inline-flex items-center gap-2 rounded-lg border border-fxos-success/30 bg-fxos-success/10 px-3 py-2 text-sm text-fxos-success hover:bg-fxos-success/15"
                       >
                         <Check className="h-4 w-4" />
-                        {text(language, 'Activate only', 'Activate only')}
+                        {t('strategyStudio.activateOnly', language)}
                       </button>
                     ) : null}
                     {!selectedStrategy.is_active ? (
@@ -1800,477 +1780,528 @@ export function StrategyStudioPage() {
                         className="inline-flex items-center gap-2 rounded-lg border border-fxos-danger/25 bg-fxos-danger/10 px-3 py-2 text-sm text-fxos-danger hover:bg-fxos-danger/15"
                       >
                         <Trash2 className="h-4 w-4" />
-                        {text(language, 'Delete', 'Delete')}
+                        {t('strategyStudio.delete', language)}
                       </button>
                     ) : null}
                   </div>
                 </div>
               </section>
 
-              <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-fxos-text">
-                      <Sparkles className="h-4 w-4 text-fxos-gold" />
-                      Signal Board
+              <div className="flex items-center gap-1 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper p-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('editor')}
+                  className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold transition ${
+                    activeTab === 'editor'
+                      ? 'bg-fxos-gold/10 text-fxos-gold'
+                      : 'text-fxos-text-muted hover:text-fxos-text'
+                  }`}
+                >
+                  {t('strategyStudio.editorTab', language)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('signal')}
+                  className={`flex-1 rounded-md px-4 py-2 text-sm font-semibold transition ${
+                    activeTab === 'signal'
+                      ? 'bg-fxos-gold/10 text-fxos-gold'
+                      : 'text-fxos-text-muted hover:text-fxos-text'
+                  }`}
+                >
+                  {t('strategyStudio.signalBoard', language)}
+                </button>
+              </div>
+
+              {activeTab === 'editor' ? (
+                <>
+                  <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
+                    <div className="mb-3 text-sm font-semibold text-fxos-text">
+                      {t('strategyStudio.tradingStyle', language)}
                     </div>
-                    <div className="mt-1 text-xs text-fxos-text-muted">
-                      Live Claw402.ai ranking · Signal Lab · liquidation map
+                    <div className="flex flex-wrap gap-2">
+                      {profileOptions.map((profile) => (
+                        <button
+                          key={profile.value}
+                          type="button"
+                          onClick={() => applyProfile(profile)}
+                          className={`rounded-lg border px-3 py-2 text-sm transition ${
+                            activeProfile === profile.value
+                              ? 'border-fxos-gold bg-fxos-gold/10 text-fxos-gold'
+                              : 'border-[var(--panel-border)] text-fxos-text-muted hover:text-fxos-text'
+                          }`}
+                        >
+                          {text(language, profile.zh, profile.en, profile.id)}
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (signals.length === 0) {
-                          void loadSignals()
-                        } else {
-                          setListMode('claw402')
-                        }
-                      }}
-                      disabled={signalsLoading}
-                      className={`hidden items-center gap-2 rounded-lg border px-3 py-2 text-xs disabled:opacity-50 ${
-                        listMode === 'claw402'
-                          ? 'border-fxos-gold bg-fxos-gold/10 text-fxos-gold'
-                          : 'border-[var(--panel-border)] text-fxos-text-muted hover:text-fxos-text'
-                      }`}
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {signals.length === 0
-                        ? text(
-                            language,
-                            '加载 Claw402 看板',
-                            'Load Claw402 board'
-                          )
-                        : text(language, 'Claw402 看板', 'Claw402 board')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setListMode('pool')}
-                      disabled={symbolsLoading}
-                      className={`hidden items-center gap-2 rounded-lg border px-3 py-2 text-xs disabled:opacity-50 ${
-                        listMode === 'pool'
-                          ? 'border-[var(--panel-border)] bg-fxos-bg-deeper text-fxos-text'
-                          : 'border-[var(--panel-border)] text-fxos-text-muted hover:text-fxos-text'
-                      }`}
-                    >
-                      <RefreshCw
-                        className={`h-3.5 w-3.5 ${symbolsLoading ? 'animate-spin' : ''}`}
-                      />
-                      Symbol pool
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void loadSignals()
-                      }}
-                      disabled={signalsLoading}
-                      className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text disabled:opacity-50"
-                    >
-                      <RefreshCw
-                        className={`h-3.5 w-3.5 ${signalsLoading ? 'animate-spin' : ''}`}
-                      />
-                      Refresh
-                    </button>
-                    {selectedSymbols.length > 0 ? (
+                  </section>
+
+                  <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
+                    <div className="mb-3 text-sm font-semibold text-fxos-text">
+                      {t('strategyStudio.coinSource', language)}
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
                           patchCoinSource({
                             static_coins: [],
                             vergex_market_type: 'all',
                           })
-                        }
-                        className="hidden rounded-lg border border-[var(--panel-border)] px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text"
-                      >
-                        Clear selected
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="hidden mb-4 flex-wrap gap-2">
-                  {scopeOptions.map((option) => {
-                    const signalCount =
-                      option.value === 'all'
-                        ? signals.length
-                        : signals.filter(
-                            (item) => item.category === option.value
-                          ).length
-                    const poolCount =
-                      option.value === 'all'
-                        ? symbols.filter((item) => item.category !== 'crypto')
-                            .length
-                        : symbols.filter(
-                            (item) => item.category === option.value
-                          ).length
-                    const count =
-                      listMode === 'claw402' ? signalCount : poolCount
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setScope(option.value)}
-                        className={`rounded-lg border px-3 py-2 text-xs transition ${
-                          scope === option.value
-                            ? 'border-fxos-gold bg-fxos-gold/10 text-fxos-gold'
-                            : 'border-[var(--panel-border)] bg-fxos-bg-deeper text-fxos-text-muted hover:text-fxos-text'
+                          setListMode('claw402')
+                          if (signals.length === 0) {
+                            void loadSignals()
+                          }
+                        }}
+                        className={`rounded-lg border p-4 text-left transition ${
+                          selectedSymbols.length === 0
+                            ? 'border-fxos-success bg-fxos-success/10'
+                            : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
                         }`}
                       >
-                        {option.en}
-                        {count > 0 ? (
-                          <span className="ml-2 opacity-70">{count}</span>
-                        ) : null}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-fxos-text">
+                            {t('strategyStudio.followBoard', language)}
+                          </div>
+                          {selectedSymbols.length === 0 ? (
+                            <Check className="h-4 w-4 text-fxos-success" />
+                          ) : null}
+                        </div>
+                        <div className="mt-2 text-xs text-fxos-text-muted">
+                          {t('strategyStudio.followBoardHint', language, {
+                            n: coinSource.vergex_limit || 5,
+                          })}
+                        </div>
                       </button>
-                    )
-                  })}
-                </div>
 
-                <div className="hidden mb-4 gap-3 md:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      patchCoinSource({
-                        static_coins: [],
-                        vergex_market_type: 'all',
-                      })
-                      setListMode('claw402')
-                      if (signals.length === 0) {
-                        void loadSignals()
-                      }
-                    }}
-                    className={`rounded-lg border p-4 text-left transition ${
-                      selectedSymbols.length === 0
-                        ? 'border-fxos-success bg-fxos-success/10'
-                        : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-semibold text-fxos-text">
-                        Follow Claw402.ai board dynamically
-                      </div>
-                      {selectedSymbols.length === 0 ? (
-                        <Check className="h-4 w-4 text-fxos-success" />
-                      ) : null}
-                    </div>
-                    <div className="mt-2 text-xs text-fxos-text-muted">
-                      At runtime, trade the current range Top{' '}
-                      {coinSource.vergex_limit || 5}; the board refreshes each
-                      cycle.
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setListMode('claw402')
-                      if (signals.length === 0) {
-                        void loadSignals()
-                      }
-                    }}
-                    className={`rounded-lg border p-4 text-left transition ${
-                      selectedSymbols.length > 0
-                        ? 'border-fxos-gold bg-fxos-gold/10'
-                        : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-semibold text-fxos-text">
-                        Pinned universe
-                      </div>
-                      {selectedSymbols.length > 0 ? (
-                        <Check className="h-4 w-4 text-fxos-gold" />
-                      ) : null}
-                    </div>
-                    <div className="mt-2 text-xs text-fxos-text-muted">
-                      {selectedSymbols.length > 0
-                        ? `${selectedSymbols.length} symbols fixed; trade only these.`
-                        : text(
-                            language,
-                            '自动驾驶默认使用实时 Claw402 看板。',
-                            'Autopilot uses the live Claw402 board by default.'
-                          )}
-                    </div>
-                  </button>
-                </div>
-
-                <div className="hidden mb-4 flex-wrap items-center gap-3">
-                  <span className="text-sm text-fxos-text-muted">
-                    {selectedSymbols.length > 0
-                      ? `${selectedSymbols.length} selected`
-                      : `Without manual picks, runtime uses Claw402.ai Top ${coinSource.vergex_limit || 5} in this range`}
-                  </span>
-                  {selectedSymbols.length === 0 ? (
-                    <select
-                      value={coinSource.vergex_limit || 5}
-                      onChange={(event) =>
-                        patchCoinSource({
-                          vergex_limit: Math.max(Number(event.target.value), 5),
-                        })
-                      }
-                      className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg px-3 py-2 text-sm text-fxos-text"
-                    >
-                      {topNOptions.map((value) => (
-                        <option key={value} value={value}>
-                          Top {value}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
-                </div>
-
-                {symbolsError || signalsError ? (
-                  <div className="mb-4 rounded-lg border border-fxos-gold/20 bg-fxos-gold/10 px-3 py-2 text-xs text-fxos-gold">
-                    {symbolsError || signalsError}
-                  </div>
-                ) : null}
-
-                {listMode === 'claw402' &&
-                signals.length === 0 &&
-                !signalsLoading ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void loadSignals()
-                    }}
-                    className="mb-4 inline-flex items-center gap-2 rounded-lg border border-fxos-gold/30 bg-fxos-gold/10 px-4 py-3 text-sm font-semibold text-fxos-gold hover:bg-fxos-gold/15"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Load Signal Board
-                  </button>
-                ) : null}
-
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {listMode === 'claw402' && signals.length > 0
-                    ? visibleSignalItems.map((item) => {
-                        const symbol = normalizeSymbol(item.symbol)
-                        const selected = selectedSet.has(symbol)
-                        const detailSelected = sameSignalItem(
-                          detailSignal,
-                          item
-                        )
-                        const bias = signalBiasInfo(item.bias, language)
-                        const BiasIcon = bias.icon
-                        return (
-                          <div
-                            key={`claw402-${item.rank || 0}-${symbol}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => void loadSignalDetail(item)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault()
-                                void loadSignalDetail(item)
-                              }
-                            }}
-                            className={`cursor-pointer rounded-lg border p-3 text-left transition ${
-                              detailSelected || selected
-                                ? 'border-fxos-gold bg-fxos-gold/10'
-                                : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono text-base font-semibold text-fxos-text">
-                                {symbol}
-                              </span>
-                              <span className="font-mono text-xs text-fxos-gold">
-                                #{item.rank || '-'}
-                              </span>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between gap-3">
-                              <div
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold ${bias.classes}`}
-                              >
-                                <BiasIcon className="h-3.5 w-3.5" />
-                                {bias.label}
-                              </div>
-                              <span className="font-mono text-xs text-fxos-text-muted">
-                                {formatSignalStrength(item)}
-                              </span>
-                            </div>
-                            <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--panel-border)] pt-3 text-[11px] uppercase tracking-wide text-fxos-text-muted">
-                              <span>{categoryLabel(item.category, 'en')}</span>
-                              <span>{signalMarketType(item)}</span>
-                            </div>
-                          </div>
-                        )
-                      })
-                    : visibleSymbols.map((item) => {
-                        const symbol = normalizeSymbol(item.symbol)
-                        const signal = signalMap.get(symbol)
-                        const selected = selectedSet.has(symbol)
-                        return (
-                          <button
-                            key={`${item.exchange}-${symbol}`}
-                            type="button"
-                            onClick={() => toggleSymbol(symbol)}
-                            className={`rounded-lg border p-3 text-left transition ${
-                              selected
-                                ? 'border-fxos-gold bg-fxos-gold/10'
-                                : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono text-sm font-semibold text-fxos-text">
-                                {symbol}
-                              </span>
-                              <span className="text-[10px] text-fxos-text-muted">
-                                {signal?.rank
-                                  ? `#${signal.rank}`
-                                  : formatChange(item.change_24h_pct)}
-                              </span>
-                            </div>
-                            <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-fxos-text-muted">
-                              <span>{categoryLabel(item.category, 'en')}</span>
-                              <span>
-                                {signal?.bias ||
-                                  (item.mark_price
-                                    ? `$${item.mark_price.toFixed(2)}`
-                                    : 'ready')}
-                              </span>
-                            </div>
-                          </button>
-                        )
-                      })}
-                </div>
-
-                {listMode === 'claw402' ? (
-                  <div
-                    id="claw402-detail-panel"
-                    className="mt-4 scroll-mt-28 space-y-4"
-                  >
-                    {detailSignal ? (
-                      <>
-                        <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter px-4 py-3">
-                          <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-mono text-xl font-semibold text-fxos-text">
-                                  {normalizeSymbol(detailSignal.symbol)}
-                                </span>
-                                <span className="rounded-md bg-fxos-gold/10 px-2 py-1 text-xs font-semibold text-fxos-gold">
-                                  #{detailSignal.rank || '-'}
-                                </span>
-                                <span className="rounded-md bg-fxos-bg-deeper px-2 py-1 text-xs text-fxos-text-muted">
-                                  {categoryLabel(detailSignal.category, 'en')}
-                                </span>
-                              </div>
-                              <div className="mt-2 flex flex-wrap gap-2 font-mono text-xs text-fxos-text-muted">
-                                <span>{signalMarketType(detailSignal)}</span>
-                                <span>·</span>
-                                <span>
-                                  {strategySymbolForSignal(detailSignal)}
-                                </span>
-                                <span>·</span>
-                                <span>mainnet</span>
-                                <span>·</span>
-                                <span>±{detailLiqBand}% band</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  void loadSignalDetail(
-                                    detailSignal,
-                                    detailLiqBand
-                                  )
-                                }
-                                disabled={detailLoading}
-                                className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text disabled:opacity-50"
-                              >
-                                <RefreshCw
-                                  className={`h-3.5 w-3.5 ${
-                                    detailLoading ? 'animate-spin' : ''
-                                  }`}
-                                />
-                                Refresh
-                              </button>
-                            </div>
-                          </div>
-                          {detailLoading ? (
-                            <div className="mt-3 inline-flex items-center gap-2 text-xs text-fxos-text-muted">
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              Loading Signal Lab and heatmap...
-                            </div>
-                          ) : null}
-                          {detailError ? (
-                            <div className="mt-3 rounded-md border border-fxos-gold/20 bg-fxos-gold/10 px-3 py-2 text-xs text-fxos-gold">
-                              {detailError}
-                            </div>
-                          ) : null}
-                        </section>
-
-                        <CostLiquidationHeatmap heatmap={heatmap} />
-                        <SignalLabPanel
-                          lab={signalLab}
-                          activeBand={detailLiqBand}
-                          loading={detailLoading}
-                          onBandChange={selectDetailBand}
-                          language={language}
-                        />
-                      </>
-                    ) : (
-                      <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-4 py-4 text-sm text-fxos-text-muted">
-                        FXOS Autopilot reviews the Claw402 board, Signal Lab,
-                        liquidation structure, and raw candles automatically.
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-
-                {listMode === 'claw402' &&
-                signals.length > 0 &&
-                visibleSignalItems.length === 0 ? (
-                  <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-3 text-sm text-fxos-text-muted">
-                    No Claw402 markets available.
-                  </div>
-                ) : null}
-
-                {listMode === 'pool' &&
-                visibleSymbols.length === 0 &&
-                !symbolsLoading ? (
-                  <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-3 text-sm text-fxos-text-muted">
-                    No markets available.
-                  </div>
-                ) : null}
-              </section>
-
-              <details className="hidden rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper p-4">
-                <summary className="cursor-pointer text-sm font-semibold text-fxos-text">
-                  {text(language, 'Advanced settings', 'Advanced settings')}
-                </summary>
-                <div className="mt-4 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
-                  <div className="mb-3 text-sm font-semibold text-fxos-text">
-                    {text(language, 'Trading style', 'Trading style')}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {profileOptions.map((profile) => (
                       <button
-                        key={profile.value}
                         type="button"
-                        onClick={() => applyProfile(profile)}
-                        className={`rounded-lg border px-3 py-2 text-sm transition ${
-                          activeProfile === profile.value
+                        onClick={() => {
+                          setListMode('claw402')
+                          if (signals.length === 0) {
+                            void loadSignals()
+                          }
+                        }}
+                        className={`rounded-lg border p-4 text-left transition ${
+                          selectedSymbols.length > 0
+                            ? 'border-fxos-gold bg-fxos-gold/10'
+                            : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-fxos-text">
+                            {t('strategyStudio.pinnedUniverse', language)}
+                          </div>
+                          {selectedSymbols.length > 0 ? (
+                            <Check className="h-4 w-4 text-fxos-gold" />
+                          ) : null}
+                        </div>
+                        <div className="mt-2 text-xs text-fxos-text-muted">
+                          {selectedSymbols.length > 0
+                            ? t(
+                                'strategyStudio.pinnedUniverseHintSelected',
+                                language,
+                                { count: selectedSymbols.length }
+                              )
+                            : t(
+                                'strategyStudio.pinnedUniverseHintDefault',
+                                language
+                              )}
+                        </div>
+                      </button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <span className="text-sm text-fxos-text-muted">
+                        {selectedSymbols.length > 0
+                          ? t(
+                              'strategyStudio.pinnedUniverseHintSelected',
+                              language,
+                              { count: selectedSymbols.length }
+                            )
+                          : t('strategyStudio.followBoardHint', language, {
+                              n: coinSource.vergex_limit || 5,
+                            })}
+                      </span>
+                      {selectedSymbols.length === 0 ? (
+                        <select
+                          value={coinSource.vergex_limit || 5}
+                          onChange={(event) =>
+                            patchCoinSource({
+                              vergex_limit: Math.max(
+                                Number(event.target.value),
+                                5
+                              ),
+                            })
+                          }
+                          className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg px-3 py-2 text-sm text-fxos-text"
+                        >
+                          {topNOptions.map((value) => (
+                            <option key={value} value={value}>
+                              Top {value}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-fxos-text">
+                        <Sparkles className="h-4 w-4 text-fxos-gold" />
+                        {t('strategyStudio.signalBoard', language)}
+                      </div>
+                      <div className="mt-1 text-xs text-fxos-text-muted">
+                        {t('strategyStudio.signalBoardDesc', language)}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (signals.length === 0) {
+                            void loadSignals()
+                          } else {
+                            setListMode('claw402')
+                          }
+                        }}
+                        disabled={signalsLoading}
+                        className={`items-center gap-2 rounded-lg border px-3 py-2 text-xs disabled:opacity-50 ${
+                          listMode === 'claw402'
                             ? 'border-fxos-gold bg-fxos-gold/10 text-fxos-gold'
                             : 'border-[var(--panel-border)] text-fxos-text-muted hover:text-fxos-text'
                         }`}
                       >
-                        {text(language, profile.zh, profile.en)}
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {t(
+                          signals.length === 0
+                            ? 'strategyStudio.loadBoard'
+                            : 'strategyStudio.boardMode',
+                          language
+                        )}
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={() => setListMode('pool')}
+                        disabled={symbolsLoading}
+                        className={`items-center gap-2 rounded-lg border px-3 py-2 text-xs disabled:opacity-50 ${
+                          listMode === 'pool'
+                            ? 'border-[var(--panel-border)] bg-fxos-bg-deeper text-fxos-text'
+                            : 'border-[var(--panel-border)] text-fxos-text-muted hover:text-fxos-text'
+                        }`}
+                      >
+                        <RefreshCw
+                          className={`h-3.5 w-3.5 ${symbolsLoading ? 'animate-spin' : ''}`}
+                        />
+                        {t('strategyStudio.symbolPool', language)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void loadSignals()
+                        }}
+                        disabled={signalsLoading}
+                        className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text disabled:opacity-50"
+                      >
+                        <RefreshCw
+                          className={`h-3.5 w-3.5 ${signalsLoading ? 'animate-spin' : ''}`}
+                        />
+                        {t('strategyStudio.refresh', language)}
+                      </button>
+                      {selectedSymbols.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            patchCoinSource({
+                              static_coins: [],
+                              vergex_market_type: 'all',
+                            })
+                          }
+                          className="rounded-lg border border-[var(--panel-border)] px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text"
+                        >
+                          {t('strategyStudio.clearSelected', language)}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {scopeOptions.map((option) => {
+                      const signalCount =
+                        option.value === 'all'
+                          ? signals.length
+                          : signals.filter(
+                              (item) => item.category === option.value
+                            ).length
+                      const poolCount =
+                        option.value === 'all'
+                          ? symbols.filter((item) => item.category !== 'crypto')
+                              .length
+                          : symbols.filter(
+                              (item) => item.category === option.value
+                            ).length
+                      const count =
+                        listMode === 'claw402' ? signalCount : poolCount
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setScope(option.value)}
+                          className={`rounded-lg border px-3 py-2 text-xs transition ${
+                            scope === option.value
+                              ? 'border-fxos-gold bg-fxos-gold/10 text-fxos-gold'
+                              : 'border-[var(--panel-border)] bg-fxos-bg-deeper text-fxos-text-muted hover:text-fxos-text'
+                          }`}
+                        >
+                          {option.en}
+                          {count > 0 ? (
+                            <span className="ml-2 opacity-70">{count}</span>
+                          ) : null}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {symbolsError || signalsError ? (
+                    <div className="mb-4 rounded-lg border border-fxos-gold/20 bg-fxos-gold/10 px-3 py-2 text-xs text-fxos-gold">
+                      {symbolsError || signalsError}
+                    </div>
+                  ) : null}
+
+                  {listMode === 'claw402' &&
+                  signals.length === 0 &&
+                  !signalsLoading ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void loadSignals()
+                      }}
+                      className="mb-4 inline-flex items-center gap-2 rounded-lg border border-fxos-gold/30 bg-fxos-gold/10 px-4 py-3 text-sm font-semibold text-fxos-gold hover:bg-fxos-gold/15"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {t('strategyStudio.loadSignalBoard', language)}
+                    </button>
+                  ) : null}
+
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {listMode === 'claw402' && signals.length > 0
+                      ? visibleSignalItems.map((item) => {
+                          const symbol = normalizeSymbol(item.symbol)
+                          const selected = selectedSet.has(symbol)
+                          const detailSelected = sameSignalItem(
+                            detailSignal,
+                            item
+                          )
+                          const bias = signalBiasInfo(item.bias, language)
+                          const BiasIcon = bias.icon
+                          return (
+                            <div
+                              key={`claw402-${item.rank || 0}-${symbol}`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => void loadSignalDetail(item)}
+                              onKeyDown={(event) => {
+                                if (
+                                  event.key === 'Enter' ||
+                                  event.key === ' '
+                                ) {
+                                  event.preventDefault()
+                                  void loadSignalDetail(item)
+                                }
+                              }}
+                              className={`cursor-pointer rounded-lg border p-3 text-left transition ${
+                                detailSelected || selected
+                                  ? 'border-fxos-gold bg-fxos-gold/10'
+                                  : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-mono text-base font-semibold text-fxos-text">
+                                  {symbol}
+                                </span>
+                                <span className="font-mono text-xs text-fxos-gold">
+                                  #{item.rank || '-'}
+                                </span>
+                              </div>
+                              <div className="mt-4 flex items-center justify-between gap-3">
+                                <div
+                                  className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold ${bias.classes}`}
+                                >
+                                  <BiasIcon className="h-3.5 w-3.5" />
+                                  {bias.label}
+                                </div>
+                                <span className="font-mono text-xs text-fxos-text-muted">
+                                  {formatSignalStrength(item)}
+                                </span>
+                              </div>
+                              <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--panel-border)] pt-3 text-[11px] uppercase tracking-wide text-fxos-text-muted">
+                                <span>
+                                  {categoryLabel(item.category, 'en')}
+                                </span>
+                                <span>{signalMarketType(item)}</span>
+                              </div>
+                            </div>
+                          )
+                        })
+                      : visibleSymbols.map((item) => {
+                          const symbol = normalizeSymbol(item.symbol)
+                          const signal = signalMap.get(symbol)
+                          const selected = selectedSet.has(symbol)
+                          return (
+                            <button
+                              key={`${item.exchange}-${symbol}`}
+                              type="button"
+                              onClick={() => toggleSymbol(symbol)}
+                              className={`rounded-lg border p-3 text-left transition ${
+                                selected
+                                  ? 'border-fxos-gold bg-fxos-gold/10'
+                                  : 'border-[var(--panel-border)] bg-fxos-bg-deeper hover:border-[var(--panel-border)]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-mono text-sm font-semibold text-fxos-text">
+                                  {symbol}
+                                </span>
+                                <span className="text-[10px] text-fxos-text-muted">
+                                  {signal?.rank
+                                    ? `#${signal.rank}`
+                                    : formatChange(item.change_24h_pct)}
+                                </span>
+                              </div>
+                              <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-fxos-text-muted">
+                                <span>
+                                  {categoryLabel(item.category, 'en')}
+                                </span>
+                                <span>
+                                  {signal?.bias ||
+                                    (item.mark_price
+                                      ? `$${item.mark_price.toFixed(2)}`
+                                      : 'ready')}
+                                </span>
+                              </div>
+                            </button>
+                          )
+                        })}
+                  </div>
+
+                  {listMode === 'claw402' ? (
+                    <div
+                      id="claw402-detail-panel"
+                      className="mt-4 scroll-mt-28 space-y-4"
+                    >
+                      {detailSignal ? (
+                        <>
+                          <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter px-4 py-3">
+                            <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-mono text-xl font-semibold text-fxos-text">
+                                    {normalizeSymbol(detailSignal.symbol)}
+                                  </span>
+                                  <span className="rounded-md bg-fxos-gold/10 px-2 py-1 text-xs font-semibold text-fxos-gold">
+                                    #{detailSignal.rank || '-'}
+                                  </span>
+                                  <span className="rounded-md bg-fxos-bg-deeper px-2 py-1 text-xs text-fxos-text-muted">
+                                    {categoryLabel(detailSignal.category, 'en')}
+                                  </span>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2 font-mono text-xs text-fxos-text-muted">
+                                  <span>{signalMarketType(detailSignal)}</span>
+                                  <span>·</span>
+                                  <span>
+                                    {strategySymbolForSignal(detailSignal)}
+                                  </span>
+                                  <span>·</span>
+                                  <span>mainnet</span>
+                                  <span>·</span>
+                                  <span>±{detailLiqBand}% band</span>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void loadSignalDetail(
+                                      detailSignal,
+                                      detailLiqBand
+                                    )
+                                  }
+                                  disabled={detailLoading}
+                                  className="inline-flex items-center gap-2 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-2 text-xs text-fxos-text-muted hover:text-fxos-text disabled:opacity-50"
+                                >
+                                  <RefreshCw
+                                    className={`h-3.5 w-3.5 ${
+                                      detailLoading ? 'animate-spin' : ''
+                                    }`}
+                                  />
+                                  {t('strategyStudio.refresh', language)}
+                                </button>
+                              </div>
+                            </div>
+                            {detailLoading ? (
+                              <div className="mt-3 inline-flex items-center gap-2 text-xs text-fxos-text-muted">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                {t('strategyStudio.loadingDetail', language)}
+                              </div>
+                            ) : null}
+                            {detailError ? (
+                              <div className="mt-3 rounded-md border border-fxos-gold/20 bg-fxos-gold/10 px-3 py-2 text-xs text-fxos-gold">
+                                {detailError}
+                              </div>
+                            ) : null}
+                          </section>
+
+                          <CostLiquidationHeatmap heatmap={heatmap} />
+                          <SignalLabPanel
+                            lab={signalLab}
+                            activeBand={detailLiqBand}
+                            loading={detailLoading}
+                            onBandChange={selectDetailBand}
+                            language={language}
+                          />
+                        </>
+                      ) : (
+                        <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-4 py-4 text-sm text-fxos-text-muted">
+                          {t('strategyStudio.boardEmptyHint', language)}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {listMode === 'claw402' &&
+                  signals.length > 0 &&
+                  visibleSignalItems.length === 0 ? (
+                    <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-3 text-sm text-fxos-text-muted">
+                      {t('strategyStudio.noClaw402Markets', language)}
+                    </div>
+                  ) : null}
+
+                  {listMode === 'pool' &&
+                  visibleSymbols.length === 0 &&
+                  !symbolsLoading ? (
+                    <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper px-3 py-3 text-sm text-fxos-text-muted">
+                      {t('strategyStudio.noMarkets', language)}
+                    </div>
+                  ) : null}
+                </section>
+              )}
+
+              <details className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-fxos-text">
+                  {t('strategyStudio.advancedSettings', language)}
+                </summary>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
                     <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-fxos-text">
                       <Sparkles className="h-4 w-4 text-fxos-gold" />
-                      {text(language, 'Raw candles', 'Raw candles')}
+                      {t('strategyStudio.rawCandles', language)}
                     </div>
                     <div className="space-y-4">
                       <div>
                         <div className="mb-2 text-xs text-fxos-text-muted">
-                          {text(language, 'Timeframe', 'Timeframe')}
+                          {t('strategyStudio.timeframe', language)}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {timeframeOptions.map((timeframe) => (
@@ -2292,7 +2323,7 @@ export function StrategyStudioPage() {
                       </div>
                       <div>
                         <div className="mb-2 text-xs text-fxos-text-muted">
-                          {text(language, 'Bars', 'Bars')}
+                          {t('strategyStudio.bars', language)}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {barCountOptions.map((count) => (
@@ -2317,16 +2348,12 @@ export function StrategyStudioPage() {
                   <div className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
                     <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-fxos-text">
                       <Shield className="h-4 w-4 text-fxos-success" />
-                      {text(
-                        language,
-                        text(language, '交易参数', 'Trading parameters'),
-                        text(language, '交易参数', 'Trading parameters')
-                      )}
+                      {t('strategyStudio.tradingParameters', language)}
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       <label className="space-y-2">
                         <span className="text-xs text-fxos-text-muted">
-                          {text(language, 'Max positions', 'Max positions')}
+                          {t('strategyStudio.maxPositions', language)}
                         </span>
                         <select
                           value={risk.max_positions}
@@ -2346,7 +2373,7 @@ export function StrategyStudioPage() {
                       </label>
                       <label className="space-y-2">
                         <span className="text-xs text-fxos-text-muted">
-                          {text(language, 'Leverage', 'Leverage')}
+                          {t('strategyStudio.leverage', language)}
                         </span>
                         <select
                           value={risk.altcoin_max_leverage}
@@ -2364,11 +2391,7 @@ export function StrategyStudioPage() {
                       </label>
                       <label className="space-y-2">
                         <span className="text-xs text-fxos-text-muted">
-                          {text(
-                            language,
-                            text(language, '入场置信度', 'Entry confidence'),
-                            text(language, '入场置信度', 'Entry confidence')
-                          )}
+                          {t('strategyStudio.entryConfidence', language)}
                         </span>
                         <select
                           value={risk.min_confidence}
@@ -2392,25 +2415,16 @@ export function StrategyStudioPage() {
 
                 <div className="mt-4 rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
                   <div className="mb-2 text-sm font-semibold text-fxos-text">
-                    {text(language, 'Strategy note', 'Strategy note')}
+                    {t('strategyStudio.strategyNote', language)}
                   </div>
                   <textarea
                     value={aiConfig.custom_prompt || ''}
                     onChange={(event) =>
                       patchAI({ custom_prompt: event.target.value })
                     }
-                    placeholder={text(
-                      language,
-                      text(
-                        language,
-                        '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。',
-                        'Example: only trade clean trends; skip entries when board signals conflict with candles.'
-                      ),
-                      text(
-                        language,
-                        '示例：只交易清晰趋势；当看板信号与 K 线矛盾时跳过入场。',
-                        'Example: only trade clean trends; skip entries when board signals conflict with candles.'
-                      )
+                    placeholder={t(
+                      'strategyStudio.strategyNotePlaceholder',
+                      language
                     )}
                     className="h-28 w-full resize-none rounded-lg border border-[var(--panel-border)] bg-fxos-bg px-3 py-2 text-sm text-fxos-text outline-none placeholder:text-fxos-text-muted/50"
                   />
@@ -2425,7 +2439,7 @@ export function StrategyStudioPage() {
                 className="inline-flex items-center gap-2 rounded-lg bg-fxos-gold px-4 py-2 text-sm font-semibold text-fxos-bg hover:bg-fxos-gold-highlight"
               >
                 <Plus className="h-4 w-4" />
-                {text(language, 'Initialize Autopilot', 'Initialize Autopilot')}
+                {t('strategyStudio.initializeAutopilot', language)}
               </button>
             </div>
           )}

@@ -553,6 +553,31 @@ fi
 chown -R fxos:fxos "$INSTALL_DIR"
 chmod 770 "$INSTALL_DIR/data"
 
+# ── Detect stale database: single-user system locks registration ──
+# If an existing data.db already has users, the new install can never
+# register/initialize. Surface this loudly instead of silently shipping
+# a "registration closed" deployment.
+check_stale_db() {
+  local db_file="$INSTALL_DIR/data/data.db"
+  [[ -f "$db_file" ]] || return 0
+  if ! command -v sqlite3 &>/dev/null; then
+    warn "data.db already exists at $db_file — if it contains users,"
+    warn "  registration is CLOSED (single-user system)."
+    warn "  To re-initialize: sudo -u fxos $INSTALL_DIR/fxos reset-account --yes"
+    return 0
+  fi
+  local user_count
+  user_count=$(sqlite3 "$db_file" "SELECT COUNT(*) FROM users;" 2>/dev/null || echo "")
+  if [[ "$user_count" =~ ^[0-9]+$ ]] && (( user_count > 0 )); then
+    err "data.db at $db_file already has $user_count user(s)."
+    err "FXOS is a single-user system: registration stays CLOSED until reset."
+    err "Re-initialize with: sudo -u fxos $INSTALL_DIR/fxos reset-account --yes"
+    err "  (wipes ALL users/traders/strategies/exchange credentials — back up first)"
+    exit 1
+  fi
+}
+check_stale_db
+
 # ── Install systemd unit (paths substituted for custom INSTALL_DIR) ──
 log "Installing systemd service..."
 sed "s|/opt/fxos|${INSTALL_DIR}|g" "$SCRIPT_DIR/scripts/fxos.service" > /etc/systemd/system/fxos.service

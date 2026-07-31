@@ -1,0 +1,39 @@
+[Unit]
+Description=FXOS AI Trading System
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fxos
+Group=fxos
+WorkingDirectory=/opt/fxos
+ExecStart=/opt/fxos/fxos
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Environment
+# NOTE: Do NOT use EnvironmentFile here — systemd cannot parse \n escape
+# sequences in PEM keys. The Go binary loads .env via godotenv.Load().
+Environment=TZ=Asia/Shanghai
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/fxos/data /opt/fxos/.env
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fxos
+
+[Install]
+WantedBy=multi-user.target

@@ -2,14 +2,8 @@ name: PR Docker Compose Healthcheck
 
 # Verify docker-compose.yml healthcheck config works correctly in Alpine containers
 on:
-  pull_request:
-    branches:
-      - main
-      - dev
-    paths:
-      - 'scripts/docker/**'
-      - 'scripts/nginx/**'
-      - '.github/workflows/pr-docker-compose-healthcheck.yml'
+  # Disabled: no automatic triggers. Builds only run on manual dispatch.
+  workflow_dispatch:
 
 jobs:
   healthcheck-test:

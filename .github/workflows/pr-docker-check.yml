@@ -3,20 +3,8 @@ name: PR Docker Build Check
 # Lightweight build check on PR only, no image push
 # Strategy: Quick verify amd64 + spot check arm64 (backend only)
 on:
-  pull_request:
-    branches:
-      - main
-      - dev
-    paths:
-      - 'scripts/docker/**'
-      - 'scripts/nginx/**'
-      - 'scripts/install.sh'
-      - 'go.mod'
-      - 'go.sum'
-      - '**.go'
-      - 'web/**'
-      - '.github/workflows/docker-build.yml'
-      - '.github/workflows/pr-docker-check.yml'
+  # Disabled: no automatic triggers. Builds only run on manual dispatch.
+  workflow_dispatch:
 
 jobs:
   # Quick check: amd64 builds for all images

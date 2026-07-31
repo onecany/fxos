@@ -19,39 +19,43 @@
       - '**/*.go'
       - 'go.mod'
       - 'go.sum'
-      - 'cmd/**/*'
-      - 'internal/**/*'
-      - 'pkg/**/*'
 
 # Area: Exchange
 'area: exchange':
   - changed-files:
     - any-glob-to-any-file:
-      - 'internal/exchange/**/*'
-      - 'pkg/exchange/**/*'
+      - 'trader/**/*'
+      - 'provider/**/*'
       - '**/binance*.go'
       - '**/hyperliquid*.go'
       - '**/aster*.go'
       - '**/okx*.go'
       - '**/bybit*.go'
+      - '**/kucoin*.go'
+      - '**/gate*.go'
+      - '**/indodax*.go'
+      - '**/lighter*.go'
 
 # Area: AI
 'area: ai':
   - changed-files:
     - any-glob-to-any-file:
-      - 'internal/ai/**/*'
-      - 'pkg/ai/**/*'
+      - 'mcp/**/*'
+      - 'kernel/**/*'
       - '**/deepseek*.go'
       - '**/qwen*.go'
       - '**/openai*.go'
       - '**/claude*.go'
+      - '**/gemini*.go'
+      - '**/grok*.go'
+      - '**/kimi*.go'
+      - '**/minimax*.go'
 
 # Area: API
 'area: api':
   - changed-files:
     - any-glob-to-any-file:
-      - 'internal/api/**/*'
-      - 'pkg/api/**/*'
+      - 'api/**/*'
       - '**/handler*.go'
       - '**/router*.go'
 
@@ -59,6 +63,9 @@
 'area: security':
   - changed-files:
     - any-glob-to-any-file:
+      - 'auth/**/*'
+      - 'crypto/**/*'
+      - 'security/**/*'
       - '**/auth*.go'
       - '**/jwt*.go'
       - '**/encryption*.go'
@@ -69,8 +76,7 @@
 'area: database':
   - changed-files:
     - any-glob-to-any-file:
-      - 'internal/database/**/*'
-      - 'internal/db/**/*'
+      - 'store/**/*'
       - '**/migration*.go'
       - '**/*.sql'
       - '**/schema*.go'
@@ -88,10 +94,12 @@
 'area: deployment':
   - changed-files:
     - any-glob-to-any-file:
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
+      - 'scripts/docker/**'
+      - 'scripts/nginx/**'
+      - 'scripts/install.sh'
+      - 'Dockerfile*'
+      - '.dockerignore'
       - '.github/workflows/**/*'
-      - 'start.sh'
       - '**/*deploy*.md'
 
 # Type: Documentation

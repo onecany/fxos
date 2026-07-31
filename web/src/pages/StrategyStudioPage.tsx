@@ -1047,11 +1047,12 @@ export function StrategyStudioPage() {
   }, [signals])
 
   const visibleSymbols = useMemo(() => {
-    const tradefi = symbols.filter((item) => item.category !== 'crypto')
+    // 'all' defaults to the tradefi pool (crypto is driven by the Claw402
+    // board); picking a specific category (including crypto) shows it fully.
     const scoped =
       scope === 'all'
-        ? tradefi
-        : tradefi.filter((item) => item.category === scope)
+        ? symbols.filter((item) => item.category !== 'crypto')
+        : symbols.filter((item) => item.category === scope)
     return [...scoped].sort((a, b) => {
       const aSignal = signalMap.get(normalizeSymbol(a.symbol))
       const bSignal = signalMap.get(normalizeSymbol(b.symbol))

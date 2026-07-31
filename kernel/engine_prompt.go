@@ -280,6 +280,14 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 		altcoinPosValueRatio = 1.0
 	}
 	writeVergexHardConstraints(&sb, accountEquity, riskControl, altcoinPosValueRatio)
+
+	// Quick Reference — condensed reminder to fight rule fatigue in long
+	// vergex prompts. Mirrors the main-path Quick Reference but kept
+	// vergex-specific (Claw402 universe, data-driven direction).
+	sb.WriteString("## Quick Reference\n\n")
+	sb.WriteString(fmt.Sprintf("Max %d pos | Margin ≤%.0f%% | Min conf %d | SL/TP on every open | No flip same cycle | No revenge | Direction = data-driven | Claw402 universe only\n\n",
+		riskControl.MaxPositions, riskControl.MaxMarginUsage*100, riskControl.MinConfidence))
+
 	writeVergexOutputFormat(&sb, accountEquity, riskControl, altcoinPosValueRatio, singleSymbol, primarySymbol)
 
 	// User-edited prompt sections (Prompt Studio). Only sections the operator

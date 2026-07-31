@@ -33,6 +33,7 @@ func LintPrompt(prompt string) []string {
 		"# Hard Constraints (Risk Control)",
 		"# Output Format (Strictly Follow)",
 		"## Pre-Output Checklist",
+		"## Quick Reference",
 		"# Role Definition",
 	}
 	for _, h := range headings {

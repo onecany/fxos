@@ -526,10 +526,10 @@ func (e *StrategyEngine) singleSymbolInfo() (bool, string) {
 
 func writeModeVariant(sb *strings.Builder, variant string) {
 	switch strings.ToLower(strings.TrimSpace(variant)) {
-	case "aggressive":
-		sb.WriteString("## Mode: Aggressive\n- Prioritize capturing trend breakouts; may scale in when confidence ≥ 70\n- Allow larger positions, but must strictly set stop-loss and explain the risk-reward ratio\n\n")
-	case "conservative":
+	case "careful", "conservative":
 		sb.WriteString("## Mode: Conservative\n- Open positions only when multiple signals resonate\n- Prioritize capital preservation; pause for multiple periods after consecutive losses\n\n")
+	case "active", "aggressive":
+		sb.WriteString("## Mode: Aggressive\n- Prioritize capturing trend breakouts; may scale in when confidence ≥ 70\n- Allow larger positions, but must strictly set stop-loss and explain the risk-reward ratio\n\n")
 	case "scalping":
 		sb.WriteString("## Mode: Scalping\n- Focus on short-term momentum, smaller profit targets but require quick action\n- If price doesn't move as expected within two bars, immediately reduce position or stop-loss\n\n")
 	case "balanced", "":

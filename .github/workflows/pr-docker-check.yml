@@ -8,8 +8,9 @@ on:
       - main
       - dev
     paths:
-      - 'docker/**'
-      - 'Dockerfile*'
+      - 'scripts/docker/**'
+      - 'scripts/nginx/**'
+      - 'scripts/install.sh'
       - 'go.mod'
       - 'go.sum'
       - '**.go'
@@ -66,10 +67,20 @@ jobs:
         run: |
           echo "🧪 Testing container startup..."
 
-          # Start container
-          docker run -d --name test-${{ matrix.name }} \
-            --health-cmd="exit 0" \
-            fxos-${{ matrix.name }}:pr-test
+          # Backend refuses to start without its env keys (crypto init is fatal),
+          # so provide minimal test values. Frontend needs none.
+          if [ "${{ matrix.name }}" = "backend" ]; then
+            docker run -d --name test-backend \
+              -e JWT_SECRET=pr-test-jwt-secret-minimum-32-chars \
+              -e DATA_ENCRYPTION_KEY=pr-test-data-key-32-chars-minimum \
+              -e "RSA_PRIVATE_KEY=$(openssl genrsa 2048 2>/dev/null)" \
+              --health-cmd="exit 0" \
+              fxos-backend:pr-test
+          else
+            docker run -d --name test-frontend \
+              --health-cmd="exit 0" \
+              fxos-frontend:pr-test
+          fi
 
           # Wait for container to start (up to 30 seconds)
           for i in {1..30}; do
@@ -139,8 +150,11 @@ jobs:
         run: |
           echo "🧪 Testing ARM64 container startup..."
 
-          # Start container
+          # Backend refuses to start without its env keys (crypto init is fatal)
           docker run -d --name test-backend-arm64 \
+            -e JWT_SECRET=pr-test-jwt-secret-minimum-32-chars \
+            -e DATA_ENCRYPTION_KEY=pr-test-data-key-32-chars-minimum \
+            -e "RSA_PRIVATE_KEY=$(openssl genrsa 2048 2>/dev/null)" \
             --health-cmd="exit 0" \
             fxos-backend:pr-test-arm64
 

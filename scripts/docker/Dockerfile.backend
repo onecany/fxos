@@ -1,0 +1,38 @@
+# ──────────────────────────────────────────────────────────────
+# FXOS Backend Dockerfile (Go)
+# Multi-stage: Go build → minimal Alpine runtime
+# ──────────────────────────────────────────────────────────────
+
+ARG GO_VERSION=1.26-alpine
+ARG ALPINE_VERSION=latest
+
+# ──────────────────────────────────────────────────────────────
+# Backend Build Stage (Go Application)
+# ──────────────────────────────────────────────────────────────
+FROM golang:${GO_VERSION} AS backend-builder
+
+RUN apk update && apk add --no-cache git make gcc g++ musl-dev
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+# CGO_ENABLED=1: gorm.io/driver/sqlite uses mattn/go-sqlite3 (cgo)
+RUN CGO_ENABLED=1 GOOS=linux go build -trimpath -ldflags="-s -w" -o fxos .
+
+# ──────────────────────────────────────────────────────────────
+# Runtime Stage (Minimal Executable Environment)
+# ──────────────────────────────────────────────────────────────
+FROM alpine:${ALPINE_VERSION}
+
+RUN apk update && apk add --no-cache ca-certificates tzdata sqlite
+WORKDIR /app
+COPY --from=backend-builder /app/fxos .
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+
+CMD ["./fxos"]

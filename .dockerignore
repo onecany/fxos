@@ -1,0 +1,42 @@
+# Docker build context (.dockerignore at repo root — context is the repo root for
+# both backend and frontend builds in CI; this keeps the build context small).
+# NOTE: web/ is NOT excluded here because Dockerfile.frontend COPYs web/.
+
+# Git / CI
+.git
+.github
+.husky
+
+# Local runtime data (never ship into images)
+data/
+*.db
+*.log
+ssl/
+secrets/
+.env
+config.json
+configbak.json
+
+# Node build artifacts (source must stay for multi-stage frontend build)
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Go artifacts
+fxos
+fxos_test
+fxos-server
+*.test
+*.out
+
+# Docs & misc
+docs/
+*.md
+!README.md
+screenshots/
+tmp/
+temp/
+*.tmp
+.idea
+.vscode
+.DS_Store

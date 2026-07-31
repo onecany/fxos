@@ -7,9 +7,8 @@ on:
       - main
       - dev
     paths:
-      - 'docker-compose.yml'
-      - 'docker/Dockerfile.backend'
-      - 'docker/Dockerfile.frontend'
+      - 'scripts/docker/**'
+      - 'scripts/nginx/**'
       - '.github/workflows/pr-docker-compose-healthcheck.yml'
 
 jobs:
@@ -30,9 +29,11 @@ jobs:
           # Minimal config for healthcheck testing
           FXOS_BACKEND_PORT=8080
           FXOS_FRONTEND_PORT=3000
-          FXOS_TIMEZONE=UTC
+          TZ=UTC
           DATA_ENCRYPTION_KEY=test-key-32-chars-minimum-length
           JWT_SECRET=test-jwt-secret-minimum-32-chars
+          # RSA key must be single-line with literal \n escapes (backend crypto.go restores them)
+          RSA_PRIVATE_KEY=$(openssl genrsa 2048 2>/dev/null | tr '\n' '\\' | sed 's/\\/\\n/g' | sed 's/\\n$//')
           EOF
 
       - name: Create minimal config.json
@@ -47,7 +48,7 @@ jobs:
 
       - name: Start services with docker compose
         run: |
-          docker compose up -d
+          docker compose --project-directory . -f scripts/docker/docker-compose.yml up -d
           echo "✅ Services started, waiting for healthcheck..."
 
       - name: Wait for healthcheck start_period
@@ -102,7 +103,7 @@ jobs:
           echo "🔍 Verifying healthcheck commands use Alpine-compatible tools..."
 
           # Check that docker-compose.yml uses wget (not curl)
-          if grep -q 'test:.*curl' docker-compose.yml; then
+          if grep -q 'test:.*curl' scripts/docker/docker-compose.yml; then
             echo "❌ ERROR: docker-compose.yml uses 'curl' which doesn't exist in Alpine!"
             echo ""
             echo "Alpine Linux (used by our containers) includes 'wget' but not 'curl'."
@@ -110,7 +111,7 @@ jobs:
             exit 1
           fi
 
-          if ! grep -q 'test:.*wget' docker-compose.yml; then
+          if ! grep -q 'test:.*wget' scripts/docker/docker-compose.yml; then
             echo "⚠️  WARNING: No wget healthcheck found in docker-compose.yml"
           else
             echo "✅ Healthcheck uses Alpine-compatible 'wget' command"
@@ -125,9 +126,8 @@ jobs:
           docker exec fxos-trading wget --no-verbose --tries=1 --spider http://localhost:8080/api/health
           echo "✅ Backend healthcheck command works"
 
-          # Test frontend healthcheck command
-          echo "Testing frontend healthcheck..."
-          docker exec fxos-frontend wget --no-verbose --tries=1 --spider http://127.0.0.1/health
+          # Test frontend healthcheck (HTTPS: the HTTP listener only 301-redirects)
+          docker exec fxos-frontend wget --no-verbose --tries=1 --no-check-certificate --spider https://127.0.0.1/health
           echo "✅ Frontend healthcheck command works"
 
       - name: Show container status
@@ -148,5 +148,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker compose down -v
+          docker compose --project-directory . -f scripts/docker/docker-compose.yml down -v
           rm -f .env config.json

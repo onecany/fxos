@@ -7,7 +7,7 @@ import { t } from '../../../i18n/translations'
 export default function DeploymentHub() {
     const { language } = useLanguage()
     const [copied, setCopied] = useState(false)
-    const installCmd = "curl -fsSL https://raw.githubusercontent.com/onecany/fxos/main/scripts/install.sh | bash"
+    const installCmd = "curl -fsSL https://raw.githubusercontent.com/onecany/fxos/dev/scripts/install.sh | bash"
 
     const handleCopy = () => {
         navigator.clipboard.writeText(installCmd)

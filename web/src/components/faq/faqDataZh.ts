@@ -466,8 +466,8 @@ export const faqZhCategories: FAQCategoryContent[] = [
           {
             type: 'list',
             items: [
-              '脚本:`curl -fsSL https://raw.githubusercontent.com/onecany/fxos/main/scripts/install.sh | bash`',
-              'Docker:下载 `docker-compose.prod.yml` 并运行 `docker compose -f docker-compose.prod.yml up -d`',
+              '脚本:`curl -fsSL https://raw.githubusercontent.com/onecany/fxos/dev/scripts/install.sh | bash`',
+              'Docker:下载 `scripts/docker/docker-compose.prod.yml` 并运行 `docker compose -f docker-compose.prod.yml up -d`',
               'Windows:安装 Docker Desktop,然后使用上面的 Docker 方式。',
               '源码构建:Go 1.26+、Node 20+、TA-Lib(`brew install ta-lib` / `apt-get install libta-lib0-dev`),然后 `go run .` 和 `npm --prefix web run dev`。',
             ],

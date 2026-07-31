@@ -26,7 +26,7 @@ FXOS 是一个开源、自托管的 AI 交易终端。旗舰模式 **FXOS Autopi
 ### Option 1: One-line install (Linux/macOS, via Docker) / 一行安装(推荐)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/onecany/fxos/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/onecany/fxos/dev/scripts/install.sh | bash
 ```
 
 ### Option 2: Docker Compose

@@ -467,8 +467,8 @@ export const faqIdCategories: FAQCategoryContent[] = [
           {
             type: 'list',
             items: [
-              'Skrip: `curl -fsSL https://raw.githubusercontent.com/onecany/fxos/main/scripts/install.sh | bash`',
-              'Docker: unduh `docker-compose.prod.yml` dan jalankan `docker compose -f docker-compose.prod.yml up -d`',
+              'Skrip: `curl -fsSL https://raw.githubusercontent.com/onecany/fxos/dev/scripts/install.sh | bash`',
+              'Docker: unduh `scripts/docker/docker-compose.prod.yml` dan jalankan `docker compose -f docker-compose.prod.yml up -d`',
               'Windows: instal Docker Desktop, lalu gunakan rute Docker di atas.',
               'Dari sumber: Go 1.26+, Node 20+, TA-Lib (`brew install ta-lib` / `apt-get install libta-lib0-dev`), lalu `go run .` dan `npm --prefix web run dev`.',
             ],

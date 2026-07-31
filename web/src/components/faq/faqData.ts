@@ -547,8 +547,8 @@ export const faqCategories: FAQCategory[] = [
           {
             type: 'list',
             items: [
-              'Script: `curl -fsSL https://raw.githubusercontent.com/onecany/fxos/main/scripts/install.sh | bash`',
-              'Docker: download `docker-compose.prod.yml` and run `docker compose -f docker-compose.prod.yml up -d`',
+              'Script: `curl -fsSL https://raw.githubusercontent.com/onecany/fxos/dev/scripts/install.sh | bash`',
+              'Docker: download `scripts/docker/docker-compose.prod.yml` and run `docker compose -f docker-compose.prod.yml up -d`',
               'Windows: install Docker Desktop, then use the Docker route above.',
               'From source: Go 1.26+, Node 20+, TA-Lib (`brew install ta-lib` / `apt-get install libta-lib0-dev`), then `go run .` and `npm --prefix web run dev`.',
             ],

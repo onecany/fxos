@@ -48,7 +48,10 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-INSTALL_DIR="/opt/fxos"
+# Install directory (override with env, e.g. sudo INSTALL_DIR=/srv/fxos-app ./scripts/install-nodocker.sh).
+# NOTE: keep this DIFFERENT from the source checkout — the installer chowns
+# the whole INSTALL_DIR to the fxos user (see conflict warning below).
+INSTALL_DIR="${INSTALL_DIR:-/opt/fxos}"
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # ── Sanity: must run from the repository checkout ───────────
@@ -56,6 +59,18 @@ if [[ ! -f "$SCRIPT_DIR/go.mod" ]]; then
   err "go.mod not found next to this script — run it from the repo checkout:"
   err "  sudo ./scripts/install-nodocker.sh"
   exit 1
+fi
+
+# ── Conflict warning: install dir == source checkout ────────
+if [[ "$INSTALL_DIR" == "$SCRIPT_DIR" ]]; then
+  warn "INSTALL_DIR ($INSTALL_DIR) is the same as the source checkout."
+  warn "The installer will chown the ENTIRE source tree (including .git) to"
+  warn "the fxos user, and the service process will be able to write it."
+  warn "Recommended: keep source and runtime separate, e.g."
+  warn "  sudo mv $INSTALL_DIR /srv/fxos-src"
+  warn "  sudo INSTALL_DIR=$INSTALL_DIR /srv/fxos-src/scripts/install-nodocker.sh"
+  warn "Continuing anyway in 5s (Ctrl-C to abort)..."
+  sleep 5
 fi
 
 # ── Check dependencies ──────────────────────────────────────
@@ -146,8 +161,10 @@ chown -R fxos:fxos "$INSTALL_DIR"
 chmod 770 "$INSTALL_DIR/data"
 
 # ── Install systemd unit ───────────────────────────────────
+# fxos.service uses /opt/fxos as a placeholder; substitute the real
+# INSTALL_DIR so a custom install path gets correct unit paths.
 log "Installing systemd service..."
-cp "$SCRIPT_DIR/scripts/fxos.service" /etc/systemd/system/fxos.service
+sed "s|/opt/fxos|${INSTALL_DIR}|g" "$SCRIPT_DIR/scripts/fxos.service" > /etc/systemd/system/fxos.service
 systemctl daemon-reload
 
 # ── Enable and start ────────────────────────────────────────

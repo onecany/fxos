@@ -632,7 +632,7 @@ func writeCommonDiscipline(sb *strings.Builder, riskControl store.RiskControlCon
 	sb.WriteString("## Crypto Market Cycle Notes\n\n")
 	sb.WriteString("- BTC halving cycles (~4 years) historically dominate crypto rhythm, but post-2024 spot ETF inflows add a structural bid that may dampen cycle amplitude.\n")
 	sb.WriteString("- Sustained ETF outflows = institutional risk-off. Consecutive days of outflow are a higher-signal warning than any single day.\n")
-	sb.WriteString("- Stablecoin market-cap change (USDT/USDC supply growth or contraction) is a leading indicator of sidelined capital entering or leaving the ecosystem.\n")
+	sb.WriteString("- Stablecoin market-cap change (USDT/USDC supply growth or contraction) is a leading indicator of sidelined capital entering or leaving the ecosystem.\n\n")
 }
 
 func writeHardConstraints(sb *strings.Builder, accountEquity float64, riskControl store.RiskControlConfig, btcEthPosValueRatio, altcoinPosValueRatio float64, singleSymbol bool, primarySymbol string) {

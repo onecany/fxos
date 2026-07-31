@@ -1,0 +1,4352 @@
+export type Language = 'en' | 'zh' | 'id'
+
+export const translations = {
+  en: {
+    // Header
+    appTitle: 'FXOS',
+    subtitle: 'Multi-AI Model Trading Platform',
+    languageSwitcher: 'Language',
+    aiTraders: 'AI Traders',
+    details: 'Details',
+    tradingPanel: 'Trading Panel',
+    competition: 'Competition',
+    running: 'RUNNING',
+    stopped: 'STOPPED',
+    adminMode: 'Admin Mode',
+    logout: 'Logout',
+    switchTrader: 'Switch Trader:',
+    view: 'View',
+
+    // Landing page
+    landing: {
+      chip: 'FXOS PROFESSIONAL MULTI-ASSET AGENT OS',
+      heroTitle1: 'AGENTIC',
+      heroTitle2: 'TRADING',
+      heroSubtitle:
+        'Professional AI trading agents for US stocks, commodities, FX and Pre-IPO synthetic markets. Build institutional-grade strategies by chatting in plain English.',
+      liveFeeds: 'Live Data Feeds Active',
+      marketUs: 'US STOCKS',
+      marketCommodities: 'COMMODITIES',
+      marketFx: 'FOREX',
+      marketPreIpo: 'PRE-IPO',
+      ctaStart: 'START THE AUTOPILOT',
+      ctaSee: 'SEE IT WORK',
+      promise:
+        'Self-hosted & open source · about $13 is enough to start · guided setup, no API keys — first trade in minutes',
+      tickerGlobal: 'GLOBAL MARKET ACCESS',
+      tickerRouting: 'MULTI-ASSET ROUTING ENABLED',
+      tickerLatency: 'LOW LATENCY LINK: 12ms',
+      tickerModel: 'AI MODEL: Claude Opus 4.6',
+      statStars: 'GITHUB STARS',
+      statForks: 'FORKS',
+      statContributors: 'CONTRIBUTORS',
+      statCommunity: 'DEV COMMUNITY',
+      assetClassSelect: 'ASSET CLASS SELECT',
+      proTraders1: 'PROFESSIONAL',
+      proTraders2: 'TRADERS',
+      agentTagline:
+        'CREATE TRADERS FOR US STOCKS, COMMODITIES, FX AND PRE-IPO MARKETS. DESCRIBE THE STRATEGY IN ONE SENTENCE.',
+      classLabel: 'Class',
+      apyLabel: 'APY',
+      winLabel: 'Win %',
+      riskLabel: 'Risk',
+      riskHigh: 'HIGH',
+      riskMed: 'MED',
+      riskLow: 'LOW',
+      initialize: 'INITIALIZE',
+      agent1Desc: 'Large-cap momentum and breakout trading.',
+      agent2Desc: 'FX trend and macro regime allocation.',
+      agent3Desc: 'Private-market momentum basket engine.',
+      deployEyebrow: 'System Deployment',
+      deployTitle1: 'DEPLOY',
+      deployTitle2: 'INSTANTLY',
+      deployDesc:
+        'One command on your laptop or any server installs everything. Open the address it prints, create your account, and the guided launch takes you to your first AI trade in about five minutes — around $13 is enough to start.',
+      step1: 'Register — the first account owns this instance.',
+      step2: 'Fund two small wallets: $1+ for AI fees, $12+ to trade with (guided, with QR codes).',
+      step3: 'Press Start — the AI trades on its own; stop it anytime.',
+      featureInstallLabel: 'One-Line Install',
+      featureInstallDesc: 'Docker handles every dependency',
+      featureKeysLabel: 'Your Keys Stay Home',
+      featureKeysDesc: 'Runs on your machine, keys encrypted locally',
+      feedStable: 'WS_CONN: STABLE',
+      logSignal: 'US equities momentum signal confirmed ({z} z-score)',
+      logRisk: 'Risk check passed: {pair} exposure within limits',
+      logMacro: 'Macro feed latency < {ms}ms',
+      logSys: 'System optimization cycle complete. Allocating resources.',
+    },
+
+    // Navigation
+    realtimeNav: 'Leaderboard',
+    configNav: 'Config',
+    dashboardNav: 'Dashboard',
+    strategyNav: 'Strategy',
+    faqNav: 'FAQ',
+
+    // FAQ page
+    faqPage: {
+      title: 'FAQ',
+      subtitle: '{count} answers · wallets · launch · trading · self-hosting',
+      searchPlaceholder: 'Search FAQ...',
+      noResults: 'No matching questions for “{term}”.',
+      clearSearch: 'Clear search',
+      stillQuestions: 'Still have questions?',
+      askCommunity:
+        'Ask in the community or open an issue — both are answered by the people building FXOS.',
+      telegramCommunity: 'Telegram community',
+    },
+
+    // Footer
+    footerTitle: 'FXOS - AI Trading System',
+    footerWarning: '⚠️ Trading involves risk. Use at your own discretion.',
+
+    // Stats Cards
+    totalEquity: 'Total Equity',
+    availableBalance: 'Available Balance',
+    totalPnL: 'Total P&L',
+    positions: 'Positions',
+    margin: 'Margin',
+    free: 'Free',
+
+    // Positions Table
+    currentPositions: 'Current Positions',
+    active: 'Active',
+    symbol: 'Symbol',
+    side: 'Side',
+    entryPrice: 'Entry Price',
+    stopLoss: 'Stop Loss',
+    takeProfit: 'Take Profit',
+    riskReward: 'Risk/Reward',
+    markPrice: 'Mark Price',
+    quantity: 'Quantity',
+    positionValue: 'Position Value',
+    leverage: 'Leverage',
+    unrealizedPnL: 'Unrealized P&L',
+    liqPrice: 'Liq. Price',
+    long: 'LONG',
+    short: 'SHORT',
+    noPositions: 'No Positions',
+    noActivePositions: 'No active trading positions',
+
+    // Recent Decisions
+    recentDecisions: 'Recent Decisions',
+    lastCycles: 'Last {count} trading cycles',
+    noDecisionsYet: 'No Decisions Yet',
+    aiDecisionsWillAppear: 'AI trading decisions will appear here',
+    cycle: 'Cycle',
+    success: 'Success',
+    failed: 'Failed',
+    inputPrompt: 'Input Prompt',
+    aiThinking: 'AI Chain of Thought',
+    collapse: 'Collapse',
+    expand: 'Expand',
+
+    // Decision Detail Modal
+    decisionDetail: 'Decision Detail',
+    summary: 'Summary',
+    cotAnalysis: 'CoT Analysis',
+    systemPrompt: 'System Prompt',
+    userPrompt: 'User Prompt',
+    rawResponse: 'Raw Response',
+    accountState: 'Account State',
+    decisions: 'Decisions',
+    decisionCount: '{count} decision(s)',
+    executionLog: 'Execution Log',
+    noCotTrace: 'No structured CoT trace available.',
+    noSystemPrompt: 'No system prompt available.',
+    noUserPrompt: 'No user prompt available.',
+    price: 'Price',
+    confidence: 'Confidence',
+
+    // Terminal Dashboard
+    riskRadar: 'Risk Radar',
+    riskRadarLive: 'Live position-risk check',
+    netExposure: 'Net Exposure',
+    netExposureLive: 'NET EXPOSURE',
+    marginUsed: 'Margin Used',
+    marginUsedLive: 'MARGIN USED',
+    ofEquity: 'of equity',
+    concentration: 'Concentration',
+    concentrationLive: 'CONCENTRATION',
+    topPositionShare: 'Top-Position Share',
+    drawdown: 'Drawdown',
+    drawdownLive: 'MAX DRAWDOWN',
+    peakDrawdown: 'Peak Drawdown',
+    positionsCount: 'Positions',
+    positionsLive: 'POSITIONS',
+    heldCap: 'Held / Cap',
+    unrealizedPnLLive: 'UNREALIZED PNL',
+    executionLogTitle: 'Execution Log',
+    executionLogDesc: 'Execution log · AI decisions & fills per cycle',
+    actions: 'actions',
+    aiCallDuration: 'AI call duration',
+    succeeded: 'Succeeded',
+    recentTrades: 'Recent Trades',
+    recentCloses: 'Recent Closes',
+    marketNetInflow: 'Market Net Inflow',
+    bySymbol: 'By Symbol',
+    bySymbolHistory: 'By-Symbol History',
+    tradesWinPnl: 'Trades/Win/PnL',
+    edgeProfile: 'Edge Profile',
+    netByHoldTime: 'Net by Hold Time & Side',
+    afterFees: 'After Fees',
+    noOpenPositions: 'NO OPEN POSITIONS',
+    flat: 'flat',
+    live: 'live',
+    ample: 'Ample',
+    deep: 'Deep',
+    trades: 'trades',
+    win: 'win',
+    fees: 'fees',
+    held: 'Held',
+    cap: 'Cap',
+    peak: 'Peak',
+
+    // Risk Radar Verdicts
+    flatVerdict: 'Flat',
+    longLean: 'Long-lean',
+    shortLean: 'Short-lean',
+    balanced: 'Balanced',
+    risky: 'Risky',
+    high: 'High',
+    safe: 'Safe',
+    tight: 'Tight',
+    concentrated: 'Concentrated',
+    spread: 'Spread',
+    calm: 'Calm',
+    caution: 'Caution',
+    full: 'Full',
+    room: 'Room',
+
+    // Flow Markets
+    symbol1hNet: '1H NET',
+
+    // Edge Profile
+    lastNClosed: 'last {count} closed',
+    edgeConcentrates: 'edge concentrates in holds ≥ 1h ({long} vs {short} under 1h)',
+    shortHoldsOutperform: 'short holds outperform on this sample ({short} vs {long} ≥ 1h)',
+    longSide: 'long',
+    shortSide: 'short',
+    noClosedTrades: 'No closed trades yet.',
+    tradesCount: 'trades',
+    winRateLabel: 'win',
+    feesLabel2: 'fees',
+
+    // Terminal Status
+    aiFeeWalletEmpty: 'AI fee wallet is out of USDC — decisions are failing.',
+    safeMode: 'Safe mode: AI failed repeatedly, no new positions are being opened.',
+    depositHint: 'Deposit Base USDC to the Claw402 wallet, the trader recovers automatically.',
+
+    // Liquidation Map
+    costLiqMap: 'Cost / Liquidation Map',
+    costLiqMapLive: '● live',
+    costLiqMapSync: '○ sync',
+    longCost: 'Long Cost',
+    shortCost: 'Short Cost',
+    longLiq: 'Long Liquidation',
+    shortLiq: 'Short Liquidation',
+    costLine: 'Cost line',
+    liqLevels: 'liq levels',
+    liqLevelsLabel: 'Liq',
+    noHeatmap: 'No cost/liquidation heatmap',
+    loadingHeatmap: 'Loading heatmap…',
+
+    // Order Book
+    orderBook: 'Order Book',
+    orderBookLive: 'LIVE',
+
+    // Signal Matrix
+    signalMatrix: 'Signal Matrix',
+    signalMatrixDesc: 'Signal Matrix · vergex',
+    bullish: 'Bullish',
+    bearish: 'Bearish',
+    neutral: 'Neutral',
+    noSignalData: 'No signal data (claw402).',
+    clickToSwitch: 'click to switch ▸',
+    signalsCount: 'signals',
+
+    // Next Cycle
+    nextCycle: 'Next Cycle',
+    nextCycleIn: 'Next cycle in',
+    minutes: 'min',
+
+    // Orchestration Topology
+    orchestrationTopology: 'Orchestration Topology',
+    orchestrationTopologyDesc: 'Orchestration topology · net inflow → signal → execute → hold',
+
+
+    // Scan Interval
+    scanInterval: 'Scan interval',
+
+    // Config Strip
+    model: 'model',
+    strategy: 'strategy',
+    universe: 'universe',
+    positionsLabel: 'positions',
+    lev: 'lev',
+
+    // Trades Summary
+    gross: 'gross',
+    feesLabel: 'fees',
+    net: 'net',
+    sharpeTrade: 'sharpe/trade',
+    avgWinLoss: 'avg win/loss',
+
+    // Status Messages
+    aiIsLive: 'Your AI is live.',
+    aiIsLiveDesc: 'It reads the whole market before acting — the first decision usually lands within a minute or two and will appear in the Execution Log below. You can stop it anytime from the Config page.',
+
+    // Flow Markets Legend
+    netInflowLegend: '{win} net buying · green/red = buy/sell split · trades = count · last price = last traded price',
+
+    // Settings Page Toast Messages
+    failedToLoadExchangeBalances: 'Failed to load exchange balances',
+    failedToLoadAIModels: 'Failed to load AI models',
+    failedToLoadExchanges: 'Failed to load exchanges',
+    passwordMustBeAtLeast8: 'Password must be at least 8 characters',
+    passwordUpdatedSuccessfully: 'Password updated successfully',
+    failedToUpdatePassword: 'Failed to update password',
+    modelNotFound: 'Model not found',
+    modelConfigSaved: 'Model config saved',
+    failedToSaveModelConfig: 'Failed to save model config',
+    modelConfigRemoved: 'Model config removed',
+    failedToRemoveModelConfig: 'Failed to remove model config',
+    exchangeConfigUpdated: 'Exchange config updated',
+    exchangeAccountCreated: 'Exchange account created',
+    failedToSaveExchangeConfig: 'Failed to save exchange config',
+    exchangeAccountDeleted: 'Exchange account deleted',
+    failedToDeleteExchangeAccount: 'Failed to delete exchange account',
+    updating: 'Updating...',
+    updatePassword: 'Update Password',
+
+    // Autopilot Launch Panel
+    copyFailed: 'Copy failed',
+    prepareWallet: 'Prepare an EVM wallet',
+    walletDetected: 'Wallet extension detected. Unlock it, then connect below.',
+    openHyperliquid: 'Open Hyperliquid',
+    useSameWallet: 'Use the same wallet on Hyperliquid. Deposit USDC there as trading collateral.',
+    authorizeFxos: 'Authorize FXOS',
+    walletNeeded: 'Wallet needed',
+    step1Fund: 'Step 1 · Fund the AI wallet ($1+)',
+    step1Desc: 'The AI pays a tiny fee each time it thinks. Send $1 or more of USDC on the Base network to this address — from Binance, OKX, Coinbase or any wallet. Separate from your trading money.',
+    step1Create: 'Takes 1 minute — we create the wallet for you',
+    step2Connect: 'Step 2 · Connect Hyperliquid',
+    step2Desc: 'Approve FXOS once with your crypto wallet (Rabby or MetaMask). This lets the AI place trades for you — it can never withdraw your money.',
+    step3Deposit: 'Step 3 · Add trading money ($12+)',
+    step3Desc: 'Deposit USDC into your Hyperliquid account (app.hyperliquid.xyz → Deposit, USDC on Arbitrum). This is what the AI trades with — start small, you can add more anytime.',
+    finishStep2: 'Finish step 2 first',
+    autopilotRunning: 'FXOS Autopilot is running',
+    // Autopilot Launch Panel — extra keys
+    installRabbyDesc: 'Install Rabby or MetaMask, create or import a wallet, then return here.',
+    authorizeFxosDesc: 'Back in FXOS, approve the Agent and builder fee. FXOS stores the Agent key, not your main wallet key.',
+    newToHyperliquid: 'New to Hyperliquid?',
+    newToHyperliquidDesc: 'Start here if you do not have a trading wallet or have never used Hyperliquid before.',
+    installRabby: 'Install Rabby',
+    openHyperliquidBtn: 'Open Hyperliquid',
+    depositBtn: 'Deposit',
+    copyBtn: 'Copy',
+    createBtn: 'Create',
+    aFewClicks: 'A few clicks + 3 wallet signatures',
+    openBtn: 'Open',
+    step4Title: 'Step 4 · Press start',
+    step4Desc: 'The AI reads the market every few minutes, picks its trades, and manages them on its own. Watch every decision live on the dashboard — stop it with one click anytime.',
+    runningOpenDashboard: 'Running — open the dashboard to watch',
+    readyToStart: 'Ready to start',
+    everythingReady: 'Everything is ready — press the button',
+    unlocksWhenGreen: 'Unlocks when steps 1–3 are green',
+    setupAiWallet: 'Set up the AI wallet',
+    connectHyperliquidBtn: 'Connect Hyperliquid',
+    depositUsdcHyperliquid: 'Deposit USDC on Hyperliquid',
+    openDashboard: 'Open dashboard',
+    startAutopilot: 'Start FXOS Autopilot',
+    guidedLaunch: 'Guided Launch',
+    startAutopilotTitle: 'Start FXOS Autopilot in minutes',
+    startAutopilotDesc: 'Four small steps, about $13 total. No API keys, no config files — the AI trades for you, and you can stop it anytime.',
+    refreshBtn: 'Refresh',
+    hyperliquidSetup: 'Hyperliquid setup',
+    tradingAuthReady: 'Trading authorization is ready',
+    fundsStayInHyperliquid: 'Funds stay in your Hyperliquid account. FXOS only stores the authorized Agent key required for automated execution.',
+    // Hyperliquid Wallet Connect
+    hlWalletTitle: 'Hyperliquid Wallet',
+    hlConnect: 'Connect Hyperliquid',
+    hlConnected: 'Connected',
+    hlConnectWallet: 'Connect your wallet',
+    hlCreateKey: 'Create a trading key for FXOS',
+    hlApproveAgent: 'Approve it in your wallet (trade-only, cannot withdraw)',
+    hlApproveBuilder: 'Approve the small per-trade builder fee',
+    hlSaveFxos: 'Save to FXOS — done',
+    hlAllSet: 'All set — trading authorized',
+    hlBalance: 'Hyperliquid balance',
+    hlWithdrawable: 'Withdrawable',
+    hlEquity: 'Equity',
+    hlMarginUsed: 'Margin used',
+    hlUnrealizedPnl: 'Unrealized PnL',
+    hlNoCustody: 'Funds stay in your Hyperliquid account; FXOS only stores the authorized agent wallet.',
+    hlAgentExpiry: 'Agent authorization expires',
+    hlExpired: 'Expired',
+    hlNoAuth: 'No FXOS agent authorization found',
+    hlRenewAgent: 'Renew agent authorization (+180d)',
+    hlRenewHint: 'Hyperliquid forbids reusing an agent, so renewal creates a new agent approved for 180 days, then updates the stored key in FXOS (sign-in required).',
+    hlNoWalletTitle: 'No EVM wallet detected',
+    hlNoWalletDetail: 'Install Rabby or MetaMask, create or import a wallet, then return here to connect Hyperliquid.',
+    hlInstallMetaMask: 'Install MetaMask',
+    hlNoWalletError: 'No EVM wallet detected. Install MetaMask, Rabby, OKX or Coinbase Wallet.',
+    hlWalletReturnedNoAccount: 'Wallet returned no account',
+    hlWalletConnectionFailed: 'Wallet connection failed',
+    hlAgentGenerated: 'FXOS agent wallet generated',
+    hlAgentGenerateFailed: 'Failed to generate agent wallet',
+    hlWalletNotConnected: 'Wallet is not connected',
+    hlInvalidSignature: 'Wallet returned an invalid signature',
+    hlAgentApproved: 'Hyperliquid agent approved',
+    hlAgentApprovalFailed: 'Agent approval failed',
+    hlRenewalRequiresSignIn: 'Renewal requires signing in: Hyperliquid forbids reusing the same agent, so renewal creates a new agent and updates the stored key.',
+    hlNewAgentNoConfig: 'New agent approved, but no matching FXOS config was found. Use "Save to FXOS" to store it.',
+    hlAgentRenewed: 'Agent renewed (new agent, valid 180 days)',
+    hlAgentRenewalFailed: 'Agent renewal failed',
+    hlTradingAuthFinalized: 'Trading authorization finalized',
+    hlTradingAuthFailed: 'Trading authorization failed',
+    hlSignInToSave: 'Please sign in before saving the agent wallet for trading.',
+    hlAccountUpdated: 'Hyperliquid account updated in FXOS',
+    hlExistingAuthUpdated: 'Existing Hyperliquid account authorization updated',
+    hlGenerateBeforeSave: 'Generate and authorize a new agent wallet before saving',
+    hlAccountSaved: 'Hyperliquid account saved to FXOS',
+    hlAccountSaveFailed: 'Failed to save Hyperliquid account',
+    hlMainWallet: 'Main',
+    hlAgentWallet: 'Agent',
+    hlNetwork: 'Network',
+    hlMainnet: 'Hyperliquid Mainnet',
+    hlReauthorize: 'Re-authorize trading',
+    hlOpenHyperliquid: 'Open Hyperliquid',
+    hlReset: 'Reset',
+    hlWalletSupport: 'Supports MetaMask, Rabby, Coinbase Wallet, Phantom, Brave, Backpack, OKX, Trust and other EVM wallets.',
+    // Beginner Onboarding
+    beginnerGuard: 'Beginner Guard',
+    walletReady: 'Your wallet is ready',
+    payPerCall: 'Pay per call',
+    preparingWallet: 'Preparing your Base wallet...',
+    depositAddress: 'Deposit address (Base USDC)',
+    balanceLasts: '$5–$10 usually lasts a long time · balance updates by itself after you deposit',
+    dontHaveUSDC: "Don't have USDC yet?",
+    buyUSDCDesc: 'Buy USDC on Binance, OKX or Coinbase, then withdraw it to the address above — and pick the {network} when the exchange asks. It usually arrives in about a minute. Only send USDC on Base.',
+    walletAddressLabel: 'Wallet address',
+    privateKeyLabel: 'Private key, back it up now',
+    addressCopied: 'Address copied',
+    privateKeyCopied: 'Private key copied',
+    beginnerCopyFailed: 'Copy failed',
+    copyAddress: 'Copy address',
+    copyPrivateKey: 'Copy private key',
+    continueSetup: 'Continue setup',
+    walletSavedToEnv: 'Wallet details were also saved to {path}',
+    failedPrepareWallet: 'Failed to prepare beginner wallet',
+    refreshBalance: 'Refresh balance',
+    thisWalletPaysForModel: 'This wallet only pays for model calls. It does not fund your exchange automatically. The private key cannot be recovered, and you should only deposit Base USDC.',
+    skip: 'Skip',
+
+    // TwoStageKeyModal
+    obfuscationCopied: 'Obfuscation string copied to clipboard',
+    obfuscationCopyFailed: 'Copy failed, please copy the obfuscation string manually',
+
+
+    // Equity Chart
+    accountEquityCurve: 'Account Equity Curve',
+    noHistoricalData: 'No Historical Data',
+    dataWillAppear: 'Equity curve will appear after running a few cycles',
+    initialBalance: 'Initial Balance',
+    currentEquity: 'Current Equity',
+    historicalCycles: 'Historical Cycles',
+    displayRange: 'Display Range',
+    recent: 'Recent',
+    allData: 'All Data',
+    cycles: 'Cycles',
+
+    // Comparison Chart
+    comparisonMode: 'Comparison Mode',
+    dataPoints: 'Data Points',
+    currentGap: 'Current Gap',
+    count: '{count} pts',
+
+    // TradingView Chart
+    marketChart: 'Market Chart',
+    viewChart: 'Click to view chart',
+    enterSymbol: 'Enter symbol...',
+    popularSymbols: 'Popular Symbols',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
+
+    // Competition Page
+    aiCompetition: 'AI Competition',
+    traders: 'traders',
+    liveBattle: 'Live Battle',
+    realTimeBattle: 'Real-time Battle',
+    leader: 'Leader',
+    leaderboard: 'Leaderboard',
+    realTime: 'LIVE',
+    performanceComparison: 'Performance Comparison',
+    realTimePnL: 'Real-time PnL %',
+    realTimePnLPercent: 'Real-time PnL %',
+    headToHead: 'Head-to-Head Battle',
+    leadingBy: 'Leading by {gap}%',
+    behindBy: 'Behind by {gap}%',
+    equity: 'Equity',
+    pnl: 'P&L',
+    pos: 'Pos',
+
+    // AI Traders Management
+    manageAITraders: 'Manage your AI trading bots',
+    aiModels: 'AI Models',
+    exchanges: 'Exchanges',
+    modelsConfig: 'MODELS_CONFIG',
+    exchangeKeys: 'EXCHANGE_KEYS',
+    telegramBot: 'TELEGRAM_BOT',
+    createTrader: 'Create Trader',
+    modelConfiguration: 'Model Configuration',
+    configured: 'Configured',
+    notConfigured: 'Not Configured',
+    currentTraders: 'Current Traders',
+    noTraders: 'No AI Traders',
+    createFirstTrader: 'Create your first AI trader to get started',
+    dashboardEmptyTitle: "Let's Get Started!",
+    dashboardEmptyDescription:
+      'Create your first AI trader to automate your trading strategy. Connect an exchange, choose an AI model, and start trading in minutes!',
+    goToTradersPage: 'Create Your First Trader',
+    configureModelsFirst: 'Please configure AI models first',
+    configureExchangesFirst: 'Please configure exchanges first',
+    configureModelsAndExchangesFirst:
+      'Please configure AI models and exchanges first',
+    modelNotConfigured: 'Selected model is not configured',
+    exchangeNotConfigured: 'Selected exchange is not configured',
+    confirmDeleteTrader: 'Are you sure you want to delete this trader?',
+    status: 'Status',
+    start: 'Start',
+    stop: 'Stop',
+    createNewTrader: 'Create New AI Trader',
+    selectAIModel: 'Select AI Model',
+    selectExchange: 'Select Exchange',
+    traderName: 'Trader Name',
+    enterTraderName: 'Enter trader name',
+    cancel: 'Cancel',
+    create: 'Create',
+    configureAIModels: 'Configure AI Models',
+    configureExchanges: 'Configure Exchanges',
+    aiScanInterval: 'AI Scan Decision Interval (minutes)',
+    scanIntervalRecommend: 'Recommended: 15-30 minutes',
+    useTestnet: 'Use Testnet',
+    enabled: 'Enabled',
+    save: 'Save',
+
+    // TraderConfigModal - New keys for hardcoded Chinese strings
+    fetchBalanceEditModeOnly: 'Only can fetch current balance in edit mode',
+    balanceFetched: 'Current balance fetched',
+    balanceFetchFailed: 'Failed to fetch balance',
+    balanceFetchNetworkError:
+      'Failed to fetch balance, please check network connection',
+    saving: 'Saving...',
+    saveSuccess: 'Saved successfully',
+    saveFailed: 'Save failed',
+    editTraderConfig: 'Edit Trader Configuration',
+    selectStrategyAndConfigParams:
+      'Select Strategy and Configure Basic Parameters',
+    basicConfig: 'Basic Configuration',
+    traderNameRequired: 'Trader Name *',
+    enterTraderNamePlaceholder: 'Enter trader name',
+    aiModelRequired: 'AI Model *',
+    exchangeRequired: 'Exchange *',
+    noExchangeAccount: "Don't have an exchange account? Click to register",
+    discount: 'Discount',
+    selectTradingStrategy: 'Select Trading Strategy',
+    useStrategy: 'Use Strategy',
+    noStrategyManual: '-- No Strategy (Manual Configuration) --',
+    strategyActive: ' (Active)',
+    strategyDefault: ' [Default]',
+    noStrategyHint: 'No strategies yet, please create in Strategy Studio first',
+    strategyDetails: 'Strategy Details',
+    activating: 'Activating',
+    coinSource: 'Coin Source',
+    marginLimit: 'Margin Limit',
+    tradingParams: 'Trading Parameters',
+    marginMode: 'Margin Mode',
+    crossMargin: 'Cross Margin',
+    isolatedMargin: 'Isolated Margin',
+    competitionDisplay: 'Show in Competition',
+    show: 'Show',
+    hide: 'Hide',
+    hiddenInCompetition:
+      'This trader will not be shown in the competition page when hidden',
+    initialBalanceLabel: 'Initial Balance ($)',
+    fetching: 'Fetching...',
+    fetchCurrentBalance: 'Fetch Current Balance',
+    balanceUpdateHint:
+      'Used to manually update the initial balance baseline (e.g., after deposit/withdrawal)',
+    autoFetchBalanceInfo:
+      'The system will automatically fetch your account equity as the initial balance',
+    fetchingBalance: 'Fetching balance...',
+    editTrader: 'Save Changes',
+    createTraderButton: 'Create Trader',
+
+    // AI Model Configuration
+    officialAPI: 'Official API',
+    customAPI: 'Custom API',
+    apiKey: 'API Key',
+    customAPIURL: 'Custom API URL',
+    enterAPIKey: 'Enter API Key',
+    enterCustomAPIURL: 'Enter custom API endpoint URL',
+    useOfficialAPI: 'Use official API service',
+    useCustomAPI: 'Use custom API endpoint',
+
+    // Exchange Configuration
+    secretKey: 'Secret Key',
+    privateKey: 'Private Key',
+    walletAddress: 'Wallet Address',
+    user: 'User',
+    signer: 'Signer',
+    passphrase: 'Passphrase',
+    enterPrivateKey: 'Enter Private Key',
+    enterWalletAddress: 'Enter Wallet Address',
+    enterUser: 'Enter User',
+    enterSigner: 'Enter Signer Address',
+    enterSecretKey: 'Enter Secret Key',
+    enterPassphrase: 'Enter Passphrase',
+    hyperliquidPrivateKeyDesc:
+      'Hyperliquid uses private key for trading authentication',
+    hyperliquidWalletAddressDesc:
+      'Wallet address corresponding to the private key',
+    // Hyperliquid Agent Wallet (New Security Model)
+    hyperliquidAgentWalletTitle: 'Hyperliquid Agent Wallet Configuration',
+    hyperliquidAgentWalletDesc:
+      'Use Agent Wallet for secure trading: Agent wallet signs transactions (balance ~0), Main wallet holds funds (never expose private key)',
+    hyperliquidAgentPrivateKey: 'Agent Private Key',
+    enterHyperliquidAgentPrivateKey: 'Enter Agent wallet private key',
+    hyperliquidAgentPrivateKeyDesc:
+      'Agent wallet private key for signing transactions (keep balance near 0 for security)',
+    hyperliquidMainWalletAddress: 'Main Wallet Address',
+    enterHyperliquidMainWalletAddress: 'Enter Main wallet address',
+    hyperliquidMainWalletAddressDesc:
+      'Main wallet address that holds your trading funds (never expose its private key)',
+    // Aster API Pro Configuration
+    asterApiProTitle: 'Aster API Pro Wallet Configuration',
+    asterApiProDesc:
+      'Use API Pro wallet for secure trading: API wallet signs transactions, main wallet holds funds (never expose main wallet private key)',
+    asterUserDesc:
+      'Main wallet address - The EVM wallet address you use to log in to Aster (Note: Only EVM wallets are supported)',
+    asterSignerDesc:
+      'API Pro wallet address (0x...) - Generate from https://www.asterdex.com/en/api-wallet',
+    asterPrivateKeyDesc:
+      'API Pro wallet private key - Get from https://www.asterdex.com/en/api-wallet (only used locally for signing, never transmitted)',
+    asterUsdtWarning:
+      'Important: Aster only tracks USDT balance. Please ensure you use USDT as margin currency to avoid P&L calculation errors caused by price fluctuations of other assets (BNB, ETH, etc.)',
+    asterUserLabel: 'Main Wallet Address',
+    asterSignerLabel: 'API Pro Wallet Address',
+    asterPrivateKeyLabel: 'API Pro Wallet Private Key',
+    enterAsterUser: 'Enter main wallet address (0x...)',
+    enterAsterSigner: 'Enter API Pro wallet address (0x...)',
+    enterAsterPrivateKey: 'Enter API Pro wallet private key',
+
+    // LIGHTER Configuration
+    lighterWalletAddress: 'L1 Wallet Address',
+    lighterPrivateKey: 'L1 Private Key',
+    lighterApiKeyPrivateKey: 'API Key Private Key',
+    enterLighterWalletAddress: 'Enter Ethereum wallet address (0x...)',
+    enterLighterPrivateKey: 'Enter L1 private key (32 bytes)',
+    enterLighterApiKeyPrivateKey:
+      'Enter API Key private key (40 bytes, optional)',
+    lighterWalletAddressDesc:
+      'Your Ethereum wallet address for account identification',
+    lighterPrivateKeyDesc:
+      'L1 private key for account identification (32-byte ECDSA key)',
+    lighterApiKeyPrivateKeyDesc:
+      'API Key private key for transaction signing (40-byte Poseidon2 key)',
+    lighterApiKeyOptionalNote:
+      'Without API Key, system will use limited V1 mode',
+    lighterV1Description:
+      'Basic Mode - Limited functionality, testing framework only',
+    lighterV2Description:
+      'Full Mode - Supports Poseidon2 signing and real trading',
+    lighterPrivateKeyImported: 'LIGHTER private key imported',
+
+    // Exchange names
+    hyperliquidExchangeName: 'Hyperliquid',
+    asterExchangeName: 'Aster DEX',
+
+    // Secure input
+    secureInputButton: 'Secure Input',
+    secureInputReenter: 'Re-enter Securely',
+    secureInputClear: 'Clear',
+    secureInputHint:
+      'Captured via secure two-step input. Use "Re-enter Securely" to update this value.',
+
+    // Two Stage Key Modal
+    twoStageModalTitle: 'Secure Key Input',
+    twoStageModalDescription:
+      'Use a two-step flow to enter your {length}-character private key safely.',
+    twoStageStage1Title: 'Step 1 · Enter the first half',
+    twoStageStage1Placeholder: 'First 32 characters (include 0x if present)',
+    twoStageStage1Hint:
+      'Continuing copies an obfuscation string to your clipboard as a diversion.',
+    twoStageStage1Error: 'Please enter the first part before continuing.',
+    twoStageNext: 'Next',
+    twoStageProcessing: 'Processing…',
+    twoStageCancel: 'Cancel',
+    twoStageStage2Title: 'Step 2 · Enter the rest',
+    twoStageStage2Placeholder: 'Remaining characters of your private key',
+    twoStageStage2Hint:
+      'Paste the obfuscation string somewhere neutral, then finish entering your key.',
+    twoStageClipboardSuccess:
+      'Obfuscation string copied. Paste it into any text field once before completing.',
+    twoStageClipboardReminder:
+      'Remember to paste the obfuscation string before submitting to avoid clipboard leaks.',
+    twoStageClipboardManual:
+      'Automatic copy failed. Copy the obfuscation string below manually.',
+    twoStageBack: 'Back',
+    twoStageSubmit: 'Confirm',
+    twoStageInvalidFormat:
+      'Invalid private key format. Expected {length} hexadecimal characters (optional 0x prefix).',
+    testnetDescription:
+      'Enable to connect to exchange test environment for simulated trading',
+    securityWarning: 'Security Warning',
+    saveConfiguration: 'Save Configuration',
+
+    // Trader Configuration
+    positionMode: 'Position Mode',
+    crossMarginMode: 'Cross Margin',
+    isolatedMarginMode: 'Isolated Margin',
+    crossMarginDescription:
+      'Cross margin: All positions share account balance as collateral',
+    isolatedMarginDescription:
+      'Isolated margin: Each position manages collateral independently, risk isolation',
+    leverageConfiguration: 'Leverage Configuration',
+    btcEthLeverage: 'BTC/ETH Leverage',
+    altcoinLeverage: 'Altcoin Leverage',
+    leverageRecommendation:
+      'Recommended: BTC/ETH 5-10x, Altcoins 3-5x for risk control',
+    tradingSymbols: 'Trading Symbols',
+    tradingSymbolsPlaceholder:
+      'Enter symbols, comma separated (e.g., BTCUSDT,ETHUSDT,SOLUSDT)',
+    selectSymbols: 'Select Symbols',
+    selectTradingSymbols: 'Select Trading Symbols',
+    selectedSymbolsCount: 'Selected {count} symbols',
+    clearSelection: 'Clear All',
+    confirmSelection: 'Confirm',
+    tradingSymbolsDescription:
+      'Empty = use default symbols. Use USDT perps (e.g., BTCUSDT, ETHUSDT) or Hyperliquid XYZ USDC markets (e.g., TSLA-USDC)',
+    btcEthLeverageValidation: 'BTC/ETH leverage must be between 1-50x',
+    altcoinLeverageValidation: 'Altcoin leverage must be between 1-20x',
+    invalidSymbolFormat:
+      'Invalid symbol format: {symbol}, use USDT perps or SYMBOL-USDC',
+
+    // System Prompt Templates
+    systemPromptTemplate: 'System Prompt Template',
+    promptTemplateDefault: 'Default Stable',
+    promptTemplateAdaptive: 'Conservative Strategy',
+    promptTemplateAdaptiveRelaxed: 'Aggressive Strategy',
+    promptTemplateHansen: 'Hansen Strategy',
+    promptTemplateNof1: 'NoF1 English Framework',
+    promptTemplateTaroLong: 'Taro Long Position',
+    promptDescDefault: '📊 Default Stable Strategy',
+    promptDescDefaultContent:
+      'Maximize Sharpe ratio, balanced risk-reward, suitable for beginners and stable long-term trading',
+    promptDescAdaptive: '🛡️ Conservative Strategy (v6.0.0)',
+    promptDescAdaptiveContent:
+      'Strict risk control, BTC mandatory confirmation, high win rate priority, suitable for conservative traders',
+    promptDescAdaptiveRelaxed: '⚡ Aggressive Strategy (v6.0.0)',
+    promptDescAdaptiveRelaxedContent:
+      'High-frequency trading, BTC optional confirmation, pursue trading opportunities, suitable for volatile markets',
+    promptDescHansen: '🎯 Hansen Strategy',
+    promptDescHansenContent:
+      'Hansen custom strategy, maximize Sharpe ratio, for professional traders',
+    promptDescNof1: '🌐 NoF1 English Framework',
+    promptDescNof1Content:
+      'Hyperliquid exchange specialist, English prompts, maximize risk-adjusted returns',
+    promptDescTaroLong: '📈 Taro Long Position Strategy',
+    promptDescTaroLongContent:
+      'Data-driven decisions, multi-dimensional validation, continuous learning evolution, long position specialist',
+
+    // Loading & Error
+    loading: 'Loading...',
+
+    // AI Traders Page - Additional
+    inUse: 'In Use',
+    noModelsConfigured: 'No configured AI models',
+    noExchangesConfigured: 'No configured exchanges',
+    signalSource: 'Signal Source',
+    signalSourceConfig: 'Signal Source Configuration',
+    ai500Description:
+      'API endpoint for AI500 data provider, leave blank to disable this signal source',
+    oiTopDescription:
+      'API endpoint for open interest rankings, leave blank to disable this signal source',
+    information: 'Information',
+    signalSourceInfo1:
+      '• Signal source configuration is per-user, each user can set their own URLs',
+    signalSourceInfo2:
+      '• When creating traders, you can choose whether to use these signal sources',
+    signalSourceInfo3:
+      '• Configured URLs will be used to fetch market data and trading signals',
+    editAIModel: 'Edit AI Model',
+    addAIModel: 'Add AI Model',
+    confirmDeleteModel:
+      'Are you sure you want to delete this AI model configuration?',
+    cannotDeleteModelInUse:
+      'Cannot delete this AI model because it is being used by traders',
+    tradersUsing: 'Traders using this configuration',
+    pleaseDeleteTradersFirst:
+      'Please delete or reconfigure these traders first',
+    selectModel: 'Select AI Model',
+    pleaseSelectModel: 'Please select a model',
+    customBaseURL: 'Base URL (Optional)',
+    customBaseURLPlaceholder:
+      'Custom API base URL, e.g.: https://api.openai.com/v1',
+    leaveBlankForDefault: 'Leave blank to use default API address',
+    modelConfigInfo1:
+      '• For official API, only API Key is required, leave other fields blank',
+    modelConfigInfo2:
+      '• Custom Base URL and Model Name only needed for third-party proxies',
+    modelConfigInfo3: '• API Key is encrypted and stored securely',
+    defaultModel: 'Default model',
+    applyApiKey: 'Apply API Key',
+    kimiApiNote:
+      'Kimi requires API Key from international site (moonshot.ai), China region keys are not compatible',
+    leaveBlankForDefaultModel: 'Leave blank to use default model',
+    customModelName: 'Model Name (Optional)',
+    customModelNamePlaceholder: 'e.g.: deepseek-chat, qwen3-max, gpt-4o',
+    saveConfig: 'Save Configuration',
+    editExchange: 'Edit Exchange',
+    addExchange: 'Add Exchange',
+    confirmDeleteExchange:
+      'Are you sure you want to delete this exchange configuration?',
+    cannotDeleteExchangeInUse:
+      'Cannot delete this exchange because it is being used by traders',
+    pleaseSelectExchange: 'Please select an exchange',
+    exchangeConfigWarning1:
+      '• API keys will be encrypted, recommend using read-only or futures trading permissions',
+    exchangeConfigWarning2:
+      '• Do not grant withdrawal permissions to ensure fund security',
+    exchangeConfigWarning3:
+      '• After deleting configuration, related traders will not be able to trade',
+    edit: 'Edit',
+    viewGuide: 'View Guide',
+    binanceSetupGuide: 'Binance Setup Guide',
+    closeGuide: 'Close',
+    whitelistIP: 'Whitelist IP',
+    whitelistIPDesc: 'Binance requires adding server IP to API whitelist',
+    serverIPAddresses: 'Server IP Addresses',
+    copyIP: 'Copy',
+    ipCopied: 'IP Copied',
+    copyIPFailed: 'Failed to copy IP address. Please copy manually',
+    loadingServerIP: 'Loading server IP...',
+
+    // Error Messages
+    createTraderFailed: 'Failed to create trader',
+    getTraderConfigFailed: 'Failed to get trader configuration',
+    modelConfigNotExist: 'Model configuration does not exist or is not enabled',
+    exchangeConfigNotExist:
+      'Exchange configuration does not exist or is not enabled',
+    updateTraderFailed: 'Failed to update trader',
+    deleteTraderFailed: 'Failed to delete trader',
+    operationFailed: 'Operation failed',
+    deleteConfigFailed: 'Failed to delete configuration',
+    modelNotExist: 'Model does not exist',
+    saveConfigFailed: 'Failed to save configuration',
+    exchangeNotExist: 'Exchange does not exist',
+    deleteExchangeConfigFailed: 'Failed to delete exchange configuration',
+    saveSignalSourceFailed: 'Failed to save signal source configuration',
+    encryptionFailed: 'Failed to encrypt sensitive data',
+
+    // Login & Register
+    login: 'Sign In',
+    register: 'Sign Up',
+    username: 'Username',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    usernamePlaceholder: 'your username',
+    emailPlaceholder: 'your@email.com',
+    passwordPlaceholder: 'Enter your password',
+    confirmPasswordPlaceholder: 'Re-enter your password',
+    passwordRequirements: 'Password requirements',
+    passwordRuleMinLength: 'Minimum 8 characters',
+    passwordRuleUppercase: 'At least 1 uppercase letter',
+    passwordRuleLowercase: 'At least 1 lowercase letter',
+    passwordRuleNumber: 'At least 1 number',
+    passwordRuleSpecial: 'At least 1 special character (@#$%!&*?)',
+    passwordRuleMatch: 'Passwords match',
+    passwordNotMeetRequirements:
+      'Password does not meet the security requirements',
+    loginTitle: 'Sign in to your account',
+    registerTitle: 'Create a new account',
+    loginButton: 'Sign In',
+    registerButton: 'Sign Up',
+    back: 'Back',
+    noAccount: "Don't have an account?",
+    hasAccount: 'Already have an account?',
+    registerNow: 'Sign up now',
+    loginNow: 'Sign in now',
+    forgotPassword: 'Forgot password?',
+    forgotAccount: 'Forgot account?',
+    forgotAccountConfirm:
+      '⚠️ This will permanently delete EVERYTHING: users, traders, strategies, AI model API keys, exchange API keys, and your CLAW402 wallet. Export anything you need to keep (especially wallet private keys) BEFORE continuing. Re-registration will NOT restore them. Continue?',
+    forgotAccountSuccess:
+      'Account reset successful! You can now register a new account.',
+    rememberMe: 'Remember me',
+    resetPassword: 'Reset Password',
+    resetPasswordTitle: 'Reset your password',
+    newPassword: 'New Password',
+    newPasswordPlaceholder: 'Enter new password (at least 6 characters)',
+    resetPasswordButton: 'Reset Password',
+    resetPasswordSuccess:
+      'Password reset successful! Please login with your new password',
+    resetPasswordFailed: 'Password reset failed',
+    backToLogin: 'Back to Login',
+    resetPasswordCliIntro:
+      'For security, password recovery is no longer available from the browser. Run this command on the server where FXOS is installed:',
+    resetPasswordCliSecurityNote:
+      'This requires shell access to the server, which keeps your account safe even when FXOS is exposed to the internet.',
+    resetAccountCliIntro:
+      'To wipe everything and start over, run this command on the server where FXOS is installed:',
+    copy: 'Copy',
+    loginSuccess: 'Login successful',
+    registrationSuccess: 'Registration successful',
+    loginFailed: 'Login failed. Please check your email and password.',
+    registrationFailed: 'Registration failed. Please try again.',
+    sessionExpired: 'Session expired, please login again',
+    invalidCredentials: 'Invalid email or password',
+    weak: 'Weak',
+    medium: 'Medium',
+    strong: 'Strong',
+    passwordStrength: 'Password strength',
+    passwordStrengthHint:
+      'Use at least 8 characters with mix of letters, numbers and symbols',
+    passwordMismatch: 'Passwords do not match',
+    emailRequired: 'Email is required',
+    passwordRequired: 'Password is required',
+    invalidEmail: 'Invalid email format',
+    passwordTooShort: 'Password must be at least 6 characters',
+
+    // Landing Page
+    features: 'Features',
+    howItWorks: 'How it Works',
+    community: 'Community',
+    language: 'Language',
+    loggedInAs: 'Logged in as',
+    exitLogin: 'Sign Out',
+    signIn: 'Sign In',
+    signUp: 'Sign Up',
+    registrationClosed: 'Registration Closed',
+    registrationClosedMessage:
+      'User registration is currently disabled. Please contact the administrator for access.',
+
+    // Hero Section
+    githubStarsInDays: '2.5K+ GitHub Stars in 3 days',
+    heroTitle1: 'Read the Market.',
+    heroTitle2: 'Write the Trade.',
+    heroDescription:
+      'FXOS is the future standard for AI trading — an open, community-driven agentic trading OS. Supporting Binance, Aster DEX and other exchanges, self-hosted, multi-agent competition, let AI automatically make decisions, execute and optimize trades for you.',
+    poweredBy: 'Powered by Aster DEX and Binance.',
+
+    // Landing Page CTA
+    readyToDefine: 'Ready to define the future of AI trading?',
+    startWithCrypto:
+      'Starting with crypto markets, expanding to TradFi. FXOS is the infrastructure of AgentFi.',
+    getStartedNow: 'Get Started Now',
+    viewSourceCode: 'View Source Code',
+
+    // Features Section
+    coreFeatures: 'Core Features',
+    whyChooseFxos: 'Why Choose FXOS?',
+    openCommunityDriven:
+      'Open source, transparent, community-driven AI trading OS',
+    openSourceSelfHosted: '100% Open Source & Self-Hosted',
+    openSourceDesc:
+      'Your framework, your rules. Non-black box, supports custom prompts and multi-models.',
+    openSourceFeatures1: 'Fully open source code',
+    openSourceFeatures2: 'Self-hosting deployment support',
+    openSourceFeatures3: 'Custom AI prompts',
+    openSourceFeatures4: 'Multi-model support (DeepSeek, Qwen)',
+    multiAgentCompetition: 'Multi-Agent Intelligent Competition',
+    multiAgentDesc:
+      'AI strategies battle at high speed in sandbox, survival of the fittest, achieving strategy evolution.',
+    multiAgentFeatures1: 'Multiple AI agents running in parallel',
+    multiAgentFeatures2: 'Automatic strategy optimization',
+    multiAgentFeatures3: 'Sandbox security testing',
+    multiAgentFeatures4: 'Cross-market strategy porting',
+    secureReliableTrading: 'Secure and Reliable Trading',
+    secureDesc:
+      'Enterprise-grade security, complete control over your funds and trading strategies.',
+    secureFeatures1: 'Local private key management',
+    secureFeatures2: 'Fine-grained API permission control',
+    secureFeatures3: 'Real-time risk monitoring',
+    secureFeatures4: 'Trading log auditing',
+
+    // About Section
+    aboutFxos: 'About FXOS',
+    whatIsFxos: 'What is FXOS?',
+    fxosNotAnotherBot:
+      "FXOS is not another trading bot, but the 'Linux' of AI trading —",
+    fxosDescription1:
+      'a transparent, trustworthy open source OS that provides a unified',
+    fxosDescription2:
+      "'decision-risk-execution' layer, supporting all asset classes.",
+    fxosDescription3:
+      'Starting with crypto markets (24/7, high volatility perfect testing ground), future expansion to stocks, futures, forex. Core: open architecture, AI',
+    fxosDescription4:
+      'Darwinism (multi-agent self-competition, strategy evolution), CodeFi',
+    fxosDescription5:
+      'flywheel (developers get point rewards for PR contributions).',
+    youFullControl: 'You 100% Control',
+    fullControlDesc: 'Complete control over AI prompts and funds',
+    startupMessages1: 'Starting automated trading system...',
+    startupMessages2: 'API server started on port 8080',
+    startupMessages3: 'Web console http://127.0.0.1:3000',
+
+    // How It Works Section
+    howToStart: 'How to Get Started with FXOS',
+    fourSimpleSteps:
+      'Four simple steps to start your AI automated trading journey',
+    step1Title: 'Clone GitHub Repository',
+    step2Title: 'Configure Environment',
+    step3Title: 'Deploy & Run',
+    howToWorkStep4Title: 'Optimize & Contribute',
+    howToWorkStep4Desc:
+      'Monitor trading, submit PRs to improve framework. Join Telegram to share strategies.',
+    importantRiskWarning: 'Important Risk Warning',
+    riskWarningText:
+      'Dev branch is unstable, do not use funds you cannot afford to lose. FXOS is non-custodial, no official strategies. Trading involves risks, invest carefully.',
+
+    // Community Section (testimonials are kept as-is since they are quotes)
+
+    // Footer Section
+    futureStandardAI: 'The future standard of AI trading',
+    links: 'Links',
+    resources: 'Resources',
+    documentation: 'Documentation',
+    supporters: 'Supporters',
+    strategicInvestment: '(Strategic Investment)',
+
+    // Login Modal
+    accessFxosPlatform: 'Access FXOS Platform',
+    loginRegisterPrompt:
+      'Please login or register to access the full AI trading platform',
+    registerNewAccount: 'Register New Account',
+
+    // Candidate Coins Warnings
+    candidateCoins: 'Candidate Coins',
+    candidateCoinsZeroWarning: 'Candidate Coins Count is 0',
+    possibleReasons: 'Possible Reasons:',
+    ai500ApiNotConfigured:
+      'AI500 data provider API not configured or inaccessible (check signal source settings)',
+    apiConnectionTimeout: 'API connection timeout or returned empty data',
+    noCustomCoinsAndApiFailed:
+      'No custom coins configured and API fetch failed',
+    solutions: 'Solutions:',
+    setCustomCoinsInConfig: 'Set custom coin list in trader configuration',
+    orConfigureCorrectApiUrl: 'Or configure correct data provider API address',
+    orDisableAI500Options:
+      'Or disable "Use AI500 Data Provider" and "Use OI Top" options',
+    signalSourceNotConfigured: 'Signal Source Not Configured',
+    signalSourceWarningMessage:
+      'You have traders that enabled "Use AI500 Data Provider" or "Use OI Top", but signal source API address is not configured yet. This will cause candidate coins count to be 0, and traders cannot work properly.',
+    configureSignalSourceNow: 'Configure Signal Source Now',
+
+    // FAQ Page
+
+    // FAQ Categories
+
+    // ===== GETTING STARTED =====
+
+
+
+
+
+
+    // ===== INSTALLATION =====
+
+
+
+
+
+
+    // ===== CONFIGURATION =====
+
+
+
+
+
+
+    // ===== TRADING =====
+
+
+
+
+
+
+
+
+    // ===== TECHNICAL ISSUES =====
+
+
+
+
+
+
+
+
+    // ===== SECURITY =====
+
+
+
+
+    // ===== FEATURES =====
+
+
+
+    // ===== AI MODELS =====
+
+
+
+
+    // ===== CONTRIBUTING =====
+
+
+
+
+    // Web Crypto Environment Check
+    environmentCheck: {
+      button: 'Check Secure Environment',
+      checking: 'Checking...',
+      description:
+        'Automatically verifying whether this browser context allows Web Crypto before entering sensitive keys.',
+      secureTitle: 'Secure context detected',
+      secureDesc:
+        'Web Crypto API is available. You can continue entering secrets with encryption enabled.',
+      insecureTitle: 'Insecure context detected',
+      insecureDesc:
+        'This page is not running over HTTPS or a trusted localhost origin, so browsers block Web Crypto calls.',
+      tipsTitle: 'How to fix:',
+      tipHTTPS:
+        'Serve the dashboard over HTTPS with a valid certificate (IP origins also need TLS).',
+      tipLocalhost:
+        'During development, open the app via http://localhost or 127.0.0.1.',
+      tipIframe:
+        'Avoid embedding the app in insecure HTTP iframes or reverse proxies that strip HTTPS.',
+      unsupportedTitle: 'Browser does not expose Web Crypto',
+      unsupportedDesc:
+        'Open FXOS over HTTPS (or http://localhost during development) and avoid insecure iframes/reverse proxies so the browser can enable Web Crypto.',
+      summary: 'Current origin: {origin} • Protocol: {protocol}',
+      disabledTitle: 'Transport encryption disabled',
+      disabledDesc:
+        'Server-side transport encryption is disabled. API keys will be transmitted in plaintext. Enable TRANSPORT_ENCRYPTION=true for enhanced security.',
+    },
+
+    environmentSteps: {
+      checkTitle: '1. Environment check',
+      selectTitle: '2. Select exchange',
+    },
+
+    // Two-Stage Key Modal
+    twoStageKey: {
+      title: 'Two-Stage Private Key Input',
+      stage1Description:
+        'Enter the first {length} characters of your private key',
+      stage2Description:
+        'Enter the remaining {length} characters of your private key',
+      stage1InputLabel: 'First Part',
+      stage2InputLabel: 'Second Part',
+      characters: 'characters',
+      processing: 'Processing...',
+      nextButton: 'Next',
+      cancelButton: 'Cancel',
+      backButton: 'Back',
+      encryptButton: 'Encrypt & Submit',
+      obfuscationCopied: 'Obfuscation data copied to clipboard',
+      obfuscationInstruction:
+        'Paste something else to clear clipboard, then continue',
+      obfuscationManual: 'Manual obfuscation required',
+    },
+
+    // Error Messages
+    errors: {
+      privatekeyIncomplete: 'Please enter at least {expected} characters',
+      privatekeyInvalidFormat:
+        'Invalid private key format (should be 64 hex characters)',
+      privatekeyObfuscationFailed: 'Clipboard obfuscation failed',
+    },
+
+    // Position History
+    positionHistory: {
+      title: 'Position History',
+      loading: 'Loading position history...',
+      noHistory: 'No Position History',
+      noHistoryDesc: 'Closed positions will appear here after trading.',
+      showingPositions: 'Showing {count} of {total} positions',
+      totalPnL: 'Total P&L',
+      // Stats
+      totalTrades: 'Total Trades',
+      winLoss: 'Win: {win} / Loss: {loss}',
+      winRate: 'Win Rate',
+      profitFactor: 'Profit Factor',
+      profitFactorDesc: 'Total Profit / Total Loss',
+      plRatio: 'P/L Ratio',
+      plRatioDesc: 'Avg Win / Avg Loss',
+      sharpeRatio: 'Sharpe Ratio',
+      sharpeRatioDesc: 'Risk-adjusted Return',
+      maxDrawdown: 'Max Drawdown',
+      avgWin: 'Avg Win',
+      avgLoss: 'Avg Loss',
+      netPnL: 'Net P&L',
+      netPnLDesc: 'After Fees',
+      fee: 'Fee',
+      // Direction Stats
+      trades: 'Trades',
+      avgPnL: 'Avg P&L',
+      // Symbol Performance
+      symbolPerformance: 'Symbol Performance',
+      // Filters
+      symbol: 'Symbol',
+      allSymbols: 'All Symbols',
+      side: 'Side',
+      all: 'All',
+      sort: 'Sort',
+      latestFirst: 'Latest First',
+      oldestFirst: 'Oldest First',
+      highestPnL: 'Highest P&L',
+      lowestPnL: 'Lowest P&L',
+      // Table Headers
+      entry: 'Entry',
+      exit: 'Exit',
+      qty: 'Qty',
+      value: 'Value',
+      lev: 'Lev',
+      pnl: 'P&L',
+      duration: 'Duration',
+      closedAt: 'Closed At',
+    },
+
+    // Data Page
+    dataCenter: 'Data Center',
+
+    // Strategy Market Page
+    strategyMarket: {
+      title: 'STRATEGY MARKET',
+      subtitle: 'GLOBAL STRATEGY DATABASE',
+      description:
+        'Discover, analyze, and clone high-performance trading algorithms',
+      search: 'SEARCH PARAMETERS...',
+      all: 'ALL PROTOCOLS',
+      popular: 'TRENDING',
+      recent: 'LATEST',
+      myStrategies: 'MY LIBRARY',
+      noStrategies: 'NO SIGNAL',
+      noStrategiesDesc: 'No strategic signals detected in this frequency',
+      author: 'OPERATOR',
+      createdAt: 'TIMESTAMP',
+      viewConfig: 'DECRYPT CONFIG',
+      hideConfig: 'ENCRYPT',
+      copyConfig: 'CLONE CONFIG',
+      copied: 'COPIED',
+      configHidden: 'ENCRYPTED',
+      configHiddenDesc: 'Configuration parameters encrypted',
+      indicators: 'INDICATORS',
+      maxPositions: 'POS_LIMIT',
+      maxLeverage: 'LEV_MAX',
+      shareYours: 'UPLOAD_STRATEGY',
+      makePublic: 'PUBLISH',
+      loading: 'INITIALIZING...',
+    },
+
+    // Strategy Studio Page
+    strategyStudio: {
+      title: 'Strategy Studio',
+      subtitle: 'Configure and test trading strategies',
+      strategies: 'Strategies',
+      newStrategy: 'New',
+      strategyType: 'Strategy Type',
+      aiTrading: 'AI Trading',
+      aiTradingDesc: 'AI analyzes market and makes trading decisions',
+      gridTrading: 'AI Grid Trading',
+      gridTradingDesc: 'AI-controlled grid strategy for ranging markets',
+      gridConfig: 'Grid Configuration',
+      coinSource: 'Coin Source',
+      indicators: 'Indicators',
+      riskControl: 'Risk Control',
+      promptSections: 'Prompt Editor',
+      customPrompt: 'Extra Prompt',
+      save: 'Save',
+      saving: 'Saving...',
+      activate: 'Activate',
+      active: 'Active',
+      default: 'Default',
+      promptPreview: 'Prompt Preview',
+      aiTestRun: 'AI Test',
+      systemPrompt: 'System Prompt',
+      userPrompt: 'User Prompt',
+      loadPrompt: 'Generate Prompt',
+      refreshPrompt: 'Refresh',
+      promptVariant: 'Style',
+      balanced: 'Balanced',
+      aggressive: 'Aggressive',
+      conservative: 'Conservative',
+      selectModel: 'Select AI Model',
+      runTest: 'Run AI Test',
+      running: 'Running...',
+      aiOutput: 'AI Output',
+      reasoning: 'Reasoning',
+      decisions: 'Decisions',
+      duration: 'Duration',
+      noModel: 'Please configure AI model first',
+      testNote: 'Test with real AI, no trading',
+      publishSettings: 'Publish',
+      newStrategyName: 'New Strategy',
+      strategyCopy: 'Strategy Copy',
+      strategyDeleted: 'Strategy deleted',
+      cannotDeleteActiveStrategy: 'Active strategy cannot be deleted',
+      confirmDeleteStrategy: 'Delete this strategy?',
+      confirmDelete: 'Confirm Delete',
+      delete: 'Delete',
+      cancel: 'Cancel',
+      strategyExported: 'Strategy exported',
+      invalidStrategyFile: 'Invalid strategy file',
+      imported: 'Imported',
+      strategyImported: 'Strategy imported',
+      strategySaved: 'Strategy saved',
+      importStrategy: 'Import Strategy',
+      newStrategyTooltip: 'New Strategy',
+      export: 'Export',
+      duplicate: 'Duplicate',
+      deleteTooltip: 'Delete',
+      public: 'Public',
+      addDescription: 'Add strategy description...',
+      unsaved: 'Unsaved',
+      discardChanges: 'Discard',
+      selectOrCreate: 'Select or create a strategy',
+      customPromptDesc:
+        'Extra prompt appended to System Prompt for personalized trading style',
+      customPromptPlaceholder: 'Enter custom prompt...',
+      generatePromptPreview: 'Click to generate prompt preview',
+      runAiTestHint: 'Click to run AI test',
+      tokenEstimate: 'Token Estimate',
+      tokenExceedWarning:
+        'Token estimate exceeds 128K. AI requests may fail for some models.',
+      tokenEstimating: 'Estimating...',
+      tokenTooltip: 'Based on 200K context',
+    },
+
+    // Metric Tooltip
+    metricTooltip: {
+      formula: 'Formula',
+    },
+
+    // Login Required Overlay
+    loginRequired: {
+      title: 'SYSTEM ACCESS DENIED',
+      accessDenied: 'ACCESS DENIED',
+      subtitleWithFeature:
+        'Module "{featureName}" requires elevated privileges',
+      subtitleDefault: 'Authorization required for this module',
+      description:
+        'Initialize authentication protocol to unlock full system capabilities: AI Trader configuration and Strategy Market data streams.',
+      benefit1: 'AI Trader Control',
+      benefit2: 'HFT Strategy Market',
+      benefit4: 'Full System Visualization',
+      loginButton: 'EXECUTE LOGIN',
+      registerButton: 'REGISTER NEW ID',
+      abort: 'ABORT',
+    },
+
+    // Advanced Chart
+    advancedChart: {
+      updating: 'Updating...',
+      indicators: 'Indicators',
+      orderMarkers: 'Order Markers',
+      technicalIndicators: 'Technical Indicators',
+      clickToToggle: 'Click to toggle indicators',
+      shares: 'shares',
+      units: 'units',
+    },
+
+    // Chart With Orders
+    chartWithOrders: {
+      failedToLoad: 'Failed to load chart data',
+      loading: 'Loading...',
+      buy: 'BUY',
+      sell: 'SELL',
+    },
+
+    // Comparison Chart
+    comparisonChart: {
+      '1d': '1D',
+      '3d': '3D',
+      '7d': '7D',
+      '30d': '30D',
+      all: 'All',
+    },
+
+    // TraderDashboardPage
+    traderDashboard: {
+      connectionFailed: 'Connection Failed',
+      connectionFailedDesc: 'Please check if the backend service is running.',
+      retry: 'Retry',
+      confirmClosePosition:
+        'Are you sure you want to close {symbol} {side} position?',
+      confirmClose: 'Confirm Close',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      positionClosed: 'Position closed successfully',
+      closeFailed: 'Failed to close position',
+      hideAddress: 'Hide address',
+      showFullAddress: 'Show full address',
+      copyAddress: 'Copy address',
+      noAddressConfigured: 'No address configured',
+      action: 'Action',
+      entry: 'Entry',
+      mark: 'Mark',
+      qty: 'Qty',
+      value: 'Value',
+      lev: 'Lev.',
+      uPnL: 'uPnL',
+      liq: 'Liq.',
+      closePosition: 'Close Position',
+      close: 'Close',
+      showingPositions: 'Showing {shown} of {total} positions',
+      perPage: 'Per page',
+      accountFetchFailed:
+        'DATA_FETCH::FAILED — Account data unavailable, check connection',
+      positionsFetchFailed: 'Position data unavailable',
+      decisionsFetchFailed: 'Decision data unavailable',
+    },
+
+    // AITradersPage toast messages
+    aiTradersToast: {
+      creating: 'Creating...',
+      created: 'Created successfully',
+      createFailed: 'Creation failed',
+      saving: 'Saving...',
+      saved: 'Saved successfully',
+      saveFailed: 'Save failed',
+      deleting: 'Deleting...',
+      deleted: 'Deleted successfully',
+      deleteFailed: 'Deletion failed',
+      stopping: 'Stopping...',
+      stopped: 'Stopped',
+      stopFailed: 'Stop failed',
+      starting: 'Starting...',
+      started: 'Started',
+      startFailed: 'Start failed',
+      updating: 'Updating...',
+      updatingConfig: 'Updating config...',
+      configUpdated: 'Config updated',
+      configUpdateFailed: 'Config update failed',
+      showInCompetition: 'Shown in competition',
+      hideInCompetition: 'Hidden from competition',
+      updateFailed: 'Update failed',
+      updatingModelConfig: 'Updating model config...',
+      modelConfigUpdated: 'Model config updated',
+      modelConfigUpdateFailed: 'Model config update failed',
+      deletingExchange: 'Deleting exchange account...',
+      exchangeDeleted: 'Exchange account deleted',
+      exchangeDeleteFailed: 'Failed to delete exchange account',
+      updatingExchangeConfig: 'Updating exchange config...',
+      exchangeConfigUpdated: 'Exchange config updated',
+      exchangeConfigUpdateFailed: 'Failed to update exchange config',
+      creatingExchange: 'Creating exchange account...',
+      exchangeCreated: 'Exchange account created',
+      exchangeCreateFailed: 'Failed to create exchange account',
+    },
+
+    // ModelConfigModal
+    modelConfig: {
+      selectModel: 'Select Model',
+      configure: 'Configure',
+      configureApi: 'Configure API',
+      configureWallet: 'Configure Wallet',
+      chooseProvider: 'Choose Your AI Provider',
+      claw402EntryDesc:
+        'Recommended default path. Use Base USDC pay-per-call instead of managing API keys.',
+      otherApiEntry: 'Other API Providers',
+      otherApiEntryDesc:
+        'Use your own API key for OpenAI, Claude, Gemini, DeepSeek, and more.',
+      payPerCall: 'Pay-per-call USDC · All AI Models · No API Key',
+      recommended: 'Best',
+      allModelsClaw: 'Pay-per-call with USDC — supports all major AI models',
+      selectAiModel: 'Choose AI Model',
+      allModelsUnified:
+        'All models unified via Claw402. Switch anytime after setup.',
+      setupWallet: 'Setup Wallet',
+      walletInfo: 'Claw402 uses USDC on Base chain. You need an EVM wallet.',
+      exportKey: 'Export private key from MetaMask, Rabby, etc.',
+      dedicatedWallet:
+        'Recommended: create a dedicated wallet with a small USDC balance',
+      walletPrivateKey: 'Wallet Private Key (Base Chain EVM)',
+      privateKeyNote:
+        'Private key is only used locally for signing. Never uploaded. No ETH or gas needed.',
+      howToFundUsdc: 'How to Fund USDC',
+      fundStep1:
+        'Withdraw USDC from exchange (Binance/OKX/Coinbase) to your wallet',
+      fundStep2: 'Select Base network (very low fees)',
+      fundStep3: '$5-10 USDC lasts a long time (~$0.003/call)',
+      back: 'Back',
+      startTrading: 'Start Trading',
+      modelsConfigured: 'Models with gold badge are already configured',
+      getStarted: 'Get Started',
+      getApiKey: 'Get API Key',
+      walletPrivateKeyLabel: 'Wallet Private Key *',
+      selectModelLabel: 'Select Model',
+      validating: 'Validating...',
+      walletAddress: 'Wallet Address',
+      usdcBalance: 'Base USDC Balance',
+      claw402Connected: 'claw402 Connected',
+      claw402Unreachable: 'claw402 Unreachable',
+      depositUsdc: 'Deposit USDC to this address on Base chain',
+      invalidKeyPrefix: 'Please add 0x at the beginning',
+      invalidKeyLength: 'Should be 66 characters, currently',
+      invalidKeyChars: 'Contains invalid characters',
+      testConnection: 'Test Connection',
+      testingConnection: 'Testing...',
+    },
+
+    // ExchangeConfigModal
+    exchangeConfig: {
+      selectExchange: 'Select Exchange',
+      configure: 'Configure',
+      chooseExchange: 'Choose Your Exchange',
+      centralizedExchanges: 'Centralized Exchanges',
+      decentralizedExchanges: 'Decentralized Exchanges',
+      register: 'Register',
+      bonus: 'Bonus',
+      accountName: 'Account Name',
+      accountNamePlaceholder: 'e.g., Main Account',
+      pleaseEnterAccountName: 'Please enter account name',
+      useBinanceFuturesApi: 'Use "Spot & Futures Trading" API',
+      viewTutorial: 'View Tutorial',
+      lighterApiKeySetup: 'Lighter API Key Setup',
+      lighterApiKeyDesc: 'Generate an API Key on Lighter website',
+      apiKeyIndex: 'API Key Index',
+      apiKeyIndexTooltip: 'API Key index starts from 0',
+      back: 'Back',
+    },
+
+    // TelegramConfigModal
+    telegram: {
+      botSetup: 'Telegram Bot Setup',
+      createBot: 'Create Bot',
+      bindAccount: 'Bind Account',
+      done: 'Done',
+      invalidTokenFormat:
+        'Invalid Bot Token format. Expected "numbers:alphanumeric"',
+      tokenSaved: 'Bot Token saved, waiting for binding',
+      saveFailed: 'Save failed, please verify the token',
+      unbound: 'Telegram account unbound',
+      unbindFailed: 'Unbind failed',
+      step1Title: 'Step 1: Create your Bot in Telegram',
+      step1Desc1: 'Open Telegram, search for',
+      step1Desc2: 'Send',
+      step1Desc2Suffix: 'command',
+      step1Desc3: 'Follow prompts to set bot name and username',
+      step1Desc4: 'BotFather will return a Token, copy it',
+      openBotFather: 'Open @BotFather',
+      pasteToken: 'Paste Bot Token',
+      tokenFormat: 'Format: numbers:alphanumeric, e.g. 123456789:ABCdef...',
+      selectAiModel: 'Select AI Model (optional)',
+      noEnabledModels: 'No enabled models. Configure one in AI Models first.',
+      autoSelect: '— Auto-select (recommended)',
+      autoUseEnabled: 'Leave blank to auto-use any enabled model',
+      savingToken: 'Saving...',
+      saveAndContinue: 'Save & Continue',
+      step2Title: 'Step 2: Send /start to your Bot',
+      step2Desc1: 'Search for your newly created Bot in Telegram',
+      step2Desc2: 'Click Start or send',
+      step2Desc3: 'Bot will automatically bind to your account',
+      currentToken: 'Current Token',
+      waitingForStart:
+        'Waiting for you to send /start... Refresh page after sending',
+      reconfigureToken: 'Reconfigure Token',
+      bindSuccess: 'Bound successfully!',
+      noStartReceived:
+        'No /start received yet. Please send /start to your Bot first',
+      checkFailed: 'Check failed',
+      checkStatus: 'Check Status',
+      botActive: 'Telegram Bot is Active!',
+      botActiveDesc:
+        'You can now control the trading system via natural language in Telegram',
+      supportedCommands: 'Supported Commands',
+      cmdHelp: 'Show all commands',
+      cmdStatus: 'Show trader status',
+      cmdNaturalLang: 'Natural language',
+      cmdStartStop: 'Start/stop trader',
+      cmdControl: 'Natural language control',
+      cmdPositions: 'View positions',
+      cmdPositionsDesc: 'Real-time position query',
+      cmdStrategy: 'Configure strategy',
+      cmdStrategyDesc: 'Modify trading strategy',
+      unbinding: 'Unbinding...',
+      unbindAccount: 'Unbind Account',
+      aiModelLabel: 'AI Model (for natural language)',
+      aiModelAutoSelect: '— Auto-select',
+      modelUpdated: 'AI model updated',
+      modelUpdateFailed: 'Update failed',
+      save: 'Save',
+      loading: 'Loading...',
+    },
+
+    // TraderConfigViewModal
+    traderConfigView: {
+      traderConfig: 'Trader Configuration',
+      configInfo: '{name} configuration details',
+      running: 'Running',
+      stopped: 'Stopped',
+      basicInfo: 'Basic Information',
+      traderName: 'Trader Name',
+      aiModel: 'AI Model',
+      exchange: 'Exchange',
+      initialBalance: 'Initial Balance',
+      marginMode: 'Margin Mode',
+      crossMargin: 'Cross',
+      isolatedMargin: 'Isolated',
+      scanInterval: '{minutes} minutes',
+      scanIntervalLabel: 'Scan Interval',
+      strategyUsed: 'Strategy Used',
+      strategyName: 'Strategy Name',
+      close: 'Close',
+      yes: 'Yes',
+      no: 'No',
+    },
+  },
+  zh: {
+    // Header
+    appTitle: 'FXOS',
+    subtitle: '多AI模型交易平台',
+    languageSwitcher: '语言',
+    aiTraders: 'AI交易员',
+    details: '详情',
+    tradingPanel: '交易面板',
+    competition: '竞赛',
+    running: '运行中',
+    stopped: '已停止',
+    adminMode: '管理员模式',
+    logout: '退出',
+    switchTrader: '切换交易员:',
+    view: '查看',
+
+    // 首页
+    landing: {
+      chip: 'FXOS 专业多资产智能体操作系统',
+      heroTitle1: 'AI 自主',
+      heroTitle2: '交易',
+      heroSubtitle:
+        '面向美股、大宗商品、外汇和 Pre-IPO 合成市场的专业 AI 交易智能体。用大白话描述策略,即可构建机构级交易方案。',
+      liveFeeds: '实时数据源已激活',
+      marketUs: '美股',
+      marketCommodities: '大宗商品',
+      marketFx: '外汇',
+      marketPreIpo: 'PRE-IPO',
+      ctaStart: '启动自动巡航',
+      ctaSee: '看看它怎么交易',
+      promise: '自托管 · 开源 · 约 13 美元即可起步 · 引导式配置,无需 API 密钥 —— 几分钟内完成首笔交易',
+      tickerGlobal: '全球市场接入',
+      tickerRouting: '多资产路由已启用',
+      tickerLatency: '低延迟链路:12ms',
+      tickerModel: 'AI 模型: Claude Opus 4.6',
+      statStars: 'GitHub 星标',
+      statForks: '分叉数',
+      statContributors: '贡献者',
+      statCommunity: '开发者社区',
+      assetClassSelect: '选择资产类别',
+      proTraders1: '专业',
+      proTraders2: '交易员',
+      agentTagline: '为美股、大宗商品、外汇和 Pre-IPO 市场创建交易员。用一句话描述你的策略。',
+      classLabel: '类别',
+      apyLabel: 'APY',
+      winLabel: '胜率 %',
+      riskLabel: '风险',
+      riskHigh: '高',
+      riskMed: '中',
+      riskLow: '低',
+      initialize: '初始化',
+      agent1Desc: '大盘动量与突破交易。',
+      agent2Desc: '外汇趋势与宏观周期配置。',
+      agent3Desc: '一级市场动量篮子引擎。',
+      deployEyebrow: '系统部署',
+      deployTitle1: '一键',
+      deployTitle2: '部署',
+      deployDesc:
+        '在你的笔记本或任意服务器上运行一条命令即可完成全部安装。打开它打印的地址,创建账户,引导式启动会在大约五分钟内带你完成第一笔 AI 交易——约 13 美元即可起步。',
+      step1: '注册——第一个账户拥有本实例。',
+      step2: '入金两个小额钱包:AI 费用 $1+,交易资金 $12+(引导式操作,带二维码)。',
+      step3: '按下 Start——AI 自动交易,随时可停止。',
+      featureInstallLabel: '一行安装',
+      featureInstallDesc: 'Docker 处理所有依赖',
+      featureKeysLabel: '密钥留在家中',
+      featureKeysDesc: '运行在你的机器上,密钥本地加密',
+      feedStable: 'WS_CONN: 稳定',
+      logSignal: '美股动量信号已确认({z} z-score)',
+      logRisk: '风控通过:{pair} 敞口在限额内',
+      logMacro: '宏观数据延迟 < {ms}ms',
+      logSys: '系统优化周期完成,正在分配资源。',
+    },
+
+    // Navigation
+    realtimeNav: '排行榜',
+    configNav: '配置',
+    dashboardNav: '看板',
+    strategyNav: '策略',
+    faqNav: '常见问题',
+
+    // FAQ 页面
+    faqPage: {
+      title: '常见问题',
+      subtitle: '{count} 条解答 · 钱包 · 启动 · 交易 · 自托管',
+      searchPlaceholder: '搜索常见问题...',
+      noResults: '没有找到与 “{term}” 匹配的问题。',
+      clearSearch: '清除搜索',
+      stillQuestions: '还有疑问?',
+      askCommunity: '在社区里提问或提交 issue——都会由 FXOS 的开发者亲自回答。',
+      telegramCommunity: 'Telegram 社区',
+    },
+
+    // Footer
+    footerTitle: 'FXOS - AI交易系统',
+    footerWarning: '⚠️ 交易有风险，请谨慎使用。',
+
+    // Stats Cards
+    totalEquity: '总净值',
+    availableBalance: '可用余额',
+    totalPnL: '总盈亏',
+    positions: '持仓',
+    margin: '保证金',
+    free: '空闲',
+
+    // Positions Table
+    currentPositions: '当前持仓',
+    active: '活跃',
+    symbol: '币种',
+    side: '方向',
+    entryPrice: '入场价',
+    stopLoss: '止损',
+    takeProfit: '止盈',
+    riskReward: '风险回报比',
+    markPrice: '标记价',
+    quantity: '数量',
+    positionValue: '仓位价值',
+    leverage: '杠杆',
+    unrealizedPnL: '未实现盈亏',
+    liqPrice: '强平价',
+    long: '多头',
+    short: '空头',
+    noPositions: '无持仓',
+    noActivePositions: '当前没有活跃的交易持仓',
+
+    // Recent Decisions
+    recentDecisions: '最近决策',
+    lastCycles: '最近 {count} 个交易周期',
+    noDecisionsYet: '暂无决策',
+    aiDecisionsWillAppear: 'AI交易决策将显示在这里',
+    cycle: '周期',
+    success: '成功',
+    failed: '失败',
+    inputPrompt: '输入提示',
+    aiThinking: '💭 AI思维链分析',
+    collapse: '▼ 收起',
+    expand: '▶ 展开',
+
+    // Decision Detail Modal
+    decisionDetail: '决策详情',
+    summary: '摘要',
+    cotAnalysis: 'CoT 分析',
+    systemPrompt: '系统提示词',
+    userPrompt: '用户提示词',
+    rawResponse: '原始响应',
+    accountState: '账户状态',
+    decisions: '决策',
+    decisionCount: '{count} 个决策',
+    executionLog: '执行日志',
+    noCotTrace: '暂无结构化 CoT 分析。',
+    noSystemPrompt: '暂无系统提示词。',
+    noUserPrompt: '暂无用户提示词。',
+    price: '价格',
+    confidence: '置信度',
+
+    // Terminal Dashboard
+    riskRadar: '风险雷达',
+    riskRadarLive: '实时持仓风险检查',
+    netExposure: '净敞口',
+    netExposureLive: 'NET EXPOSURE',
+    marginUsed: '已用保证金',
+    marginUsedLive: 'MARGIN USED',
+    ofEquity: '净值占比',
+    concentration: '集中度',
+    concentrationLive: 'CONCENTRATION',
+    topPositionShare: '最大持仓占比',
+    drawdown: '回撤',
+    drawdownLive: 'MAX DRAWDOWN',
+    peakDrawdown: '峰值回撤',
+    positionsCount: '持仓',
+    positionsLive: 'POSITIONS',
+    heldCap: '持仓/上限',
+    unrealizedPnLLive: 'UNREALIZED PNL',
+    executionLogTitle: '执行日志',
+    executionLogDesc: '执行日志 · AI 决策与成交',
+    actions: '个操作',
+    aiCallDuration: 'AI 调用耗时',
+    succeeded: '成功',
+    recentTrades: '最近交易',
+    recentCloses: '最近平仓',
+    marketNetInflow: '市场净流入',
+    bySymbol: '按币种',
+    bySymbolHistory: '按币种历史',
+    tradesWinPnl: '交易/胜率/盈亏',
+    edgeProfile: '边际分析',
+    netByHoldTime: '按持仓时间净盈亏',
+    afterFees: '扣除手续费后',
+    noOpenPositions: '暂无持仓',
+    flat: '空仓',
+    live: '实时',
+    ample: '充足',
+    deep: '深度',
+    trades: '笔交易',
+    win: '胜',
+    fees: '手续费',
+    held: '持仓',
+    cap: '上限',
+    peak: '峰值',
+
+    // Risk Radar Verdicts
+    flatVerdict: '空仓',
+    longLean: '偏多',
+    shortLean: '偏空',
+    balanced: '均衡',
+    risky: '危险',
+    high: '偏高',
+    safe: '安全',
+    tight: '偏紧',
+    concentrated: '集中',
+    spread: '分散',
+    calm: '平稳',
+    caution: '注意',
+    full: '满仓',
+    room: '有余',
+
+    // Flow Markets
+    symbol1hNet: '1H 净流入',
+
+    // Edge Profile
+    lastNClosed: '最近 {count} 笔平仓',
+    edgeConcentrates: '优势集中在持仓≥1小时 ({long} vs {short} 不到1小时)',
+    shortHoldsOutperform: '空头持仓表现更好 ({short} vs {long} ≥ 1小时)',
+    longSide: '多头',
+    shortSide: '空头',
+    noClosedTrades: '暂无已平仓交易。',
+    tradesCount: '笔交易',
+    winRateLabel: '胜',
+    feesLabel2: '手续费',
+
+    // Terminal Status
+    aiFeeWalletEmpty: 'AI 费用钱包 USDC 不足 — 决策正在失败。',
+    safeMode: '安全模式：AI 多次失败，不再开新仓。',
+    depositHint: '向 Claw402 钱包充值 Base USDC，交易员将自动恢复。',
+
+    // Liquidation Map
+    costLiqMap: '成本/清算图',
+    costLiqMapLive: '● 实时',
+    costLiqMapSync: '○ 同步中',
+    longCost: '多头成本',
+    shortCost: '空头成本',
+    longLiq: '多头清算',
+    shortLiq: '空头清算',
+    costLine: '成本线',
+    liqLevels: '清算层级',
+    liqLevelsLabel: '清算',
+    noHeatmap: '暂无成本/清算热力图',
+    loadingHeatmap: '加载成本/清算图…',
+
+    // Order Book
+    orderBook: '订单簿',
+    orderBookLive: '实时',
+
+    // Signal Matrix
+    signalMatrix: '信号矩阵',
+    signalMatrixDesc: '信号矩阵 · vergex',
+    bullish: '看涨',
+    bearish: '看跌',
+    neutral: '中性',
+    noSignalData: '暂无信号数据 (claw402)。',
+    clickToSwitch: '点击切换 ▸',
+    signalsCount: '个信号',
+
+    // Next Cycle
+    nextCycle: '下一周期',
+    nextCycleIn: '距下一周期',
+    minutes: '分钟',
+
+    // Orchestration Topology
+    orchestrationTopology: '编排拓扑',
+    orchestrationTopologyDesc: '编排拓扑 · 净流入 → 信号 → 执行 → 持仓',
+
+    // Edge Profile
+
+    // Scan Interval
+    scanInterval: '扫描间隔',
+
+    // Config Strip
+    model: '模型',
+    strategy: '策略',
+    universe: '币种池',
+    positionsLabel: '持仓',
+    lev: '杠杆',
+
+    // Trades Summary
+    gross: '毛利',
+    feesLabel: '手续费',
+    net: '净利',
+    sharpeTrade: '夏普/笔',
+    avgWinLoss: '平均盈亏',
+
+    // Status Messages
+    aiIsLive: 'AI 已启动。',
+    aiIsLiveDesc: 'AI 会先扫描全市场再做决策 — 首次决策通常在 1-2 分钟内出现在执行日志中。可随时在配置页面停止。',
+
+    // Flow Markets Legend
+    netInflowLegend: '{win} 净买入 · 绿色/红色 = 买卖分布 · 交易 = 笔数 · 最新价 = 最新成交价',
+
+    // Equity Chart
+    accountEquityCurve: '账户净值曲线',
+    noHistoricalData: '暂无历史数据',
+    dataWillAppear: '运行几个周期后将显示收益率曲线',
+    initialBalance: '初始余额',
+    currentEquity: '当前净值',
+    historicalCycles: '历史周期',
+    displayRange: '显示范围',
+    recent: '最近',
+    allData: '全部数据',
+    cycles: '个',
+
+    // Comparison Chart
+    comparisonMode: '对比模式',
+    dataPoints: '数据点数',
+    currentGap: '当前差距',
+    count: '{count} 个',
+
+    // TradingView Chart
+    marketChart: '行情图表',
+    viewChart: '点击查看图表',
+    enterSymbol: '输入币种...',
+    popularSymbols: '热门币种',
+    fullscreen: '全屏',
+    exitFullscreen: '退出全屏',
+
+    // Competition Page
+    aiCompetition: 'AI竞赛',
+    traders: '交易员',
+    liveBattle: '实时对战',
+    realTimeBattle: '实时对战',
+    leader: '领先者',
+    leaderboard: '排行榜',
+    realTime: '实时',
+    performanceComparison: '表现对比',
+    realTimePnL: '实时收益率',
+    realTimePnLPercent: '实时收益率',
+    headToHead: '正面对决',
+    leadingBy: '领先 {gap}%',
+    behindBy: '落后 {gap}%',
+    equity: '权益',
+    pnl: '收益',
+    pos: '持仓',
+
+    // AI Traders Management
+    manageAITraders: '管理您的AI交易机器人',
+    aiModels: 'AI模型',
+    exchanges: '交易所',
+    modelsConfig: '模型配置',
+    exchangeKeys: '交易所密钥',
+    telegramBot: 'Telegram 机器人',
+    createTrader: '创建交易员',
+    modelConfiguration: '模型配置',
+    configured: '已配置',
+    notConfigured: '未配置',
+    currentTraders: '当前交易员',
+    noTraders: '暂无AI交易员',
+    createFirstTrader: '创建您的第一个AI交易员开始使用',
+    dashboardEmptyTitle: '开始使用吧！',
+    dashboardEmptyDescription:
+      '创建您的第一个 AI 交易员，自动化您的交易策略。连接交易所、选择 AI 模型，几分钟内即可开始交易！',
+    goToTradersPage: '创建您的第一个交易员',
+    configureModelsFirst: '请先配置AI模型',
+    configureExchangesFirst: '请先配置交易所',
+    configureModelsAndExchangesFirst: '请先配置AI模型和交易所',
+    modelNotConfigured: '所选模型未配置',
+    exchangeNotConfigured: '所选交易所未配置',
+    confirmDeleteTrader: '确定要删除这个交易员吗？',
+    status: '状态',
+    start: '启动',
+    stop: '停止',
+    createNewTrader: '创建新的AI交易员',
+    selectAIModel: '选择AI模型',
+    selectExchange: '选择交易所',
+    traderName: '交易员名称',
+    enterTraderName: '输入交易员名称',
+    cancel: '取消',
+    create: '创建',
+    configureAIModels: '配置AI模型',
+    configureExchanges: '配置交易所',
+    aiScanInterval: 'AI 扫描决策间隔 (分钟)',
+    scanIntervalRecommend: '建议: 15-30分钟',
+    useTestnet: '使用测试网',
+    enabled: '启用',
+    save: '保存',
+
+    // TraderConfigModal - New keys for hardcoded Chinese strings
+    fetchBalanceEditModeOnly: '只有在编辑模式下才能获取当前余额',
+    balanceFetched: '已获取当前余额',
+    balanceFetchFailed: '获取余额失败',
+    balanceFetchNetworkError: '获取余额失败，请检查网络连接',
+    saving: '正在保存…',
+    saveSuccess: '保存成功',
+    saveFailed: '保存失败',
+    editTraderConfig: '修改交易员配置',
+    selectStrategyAndConfigParams: '选择策略并配置基础参数',
+    basicConfig: '基础配置',
+    traderNameRequired: '交易员名称 *',
+    enterTraderNamePlaceholder: '请输入交易员名称',
+    aiModelRequired: 'AI模型 *',
+    exchangeRequired: '交易所 *',
+    noExchangeAccount: '还没有交易所账号？点击注册',
+    discount: '折扣优惠',
+    selectTradingStrategy: '选择交易策略',
+    useStrategy: '使用策略',
+    noStrategyManual: '-- 不使用策略（手动配置） --',
+    strategyActive: ' (当前激活)',
+    strategyDefault: ' [默认]',
+    noStrategyHint: '暂无策略，请先在策略工作室创建策略',
+    strategyDetails: '策略详情',
+    activating: '激活中',
+    coinSource: '币种来源',
+    marginLimit: '保证金上限',
+    tradingParams: '交易参数',
+    marginMode: '保证金模式',
+    crossMargin: '全仓',
+    isolatedMargin: '逐仓',
+    competitionDisplay: '竞技场显示',
+    show: '显示',
+    hide: '隐藏',
+    hiddenInCompetition: '隐藏后将不在竞技场页面显示此交易员',
+    initialBalanceLabel: '初始余额 ($)',
+    fetching: '获取中...',
+    fetchCurrentBalance: '获取当前余额',
+    balanceUpdateHint: '用于手动更新初始余额基准（例如充值/提现后）',
+    autoFetchBalanceInfo: '系统将自动获取您的账户净值作为初始余额',
+    fetchingBalance: '正在获取余额…',
+    editTrader: '保存修改',
+    createTraderButton: '创建交易员',
+
+    // AI Model Configuration
+    officialAPI: '官方API',
+    customAPI: '自定义API',
+    apiKey: 'API密钥',
+    customAPIURL: '自定义API地址',
+    enterAPIKey: '请输入API密钥',
+    enterCustomAPIURL: '请输入自定义API端点地址',
+    useOfficialAPI: '使用官方API服务',
+    useCustomAPI: '使用自定义API端点',
+
+    // Exchange Configuration
+    secretKey: '密钥',
+    privateKey: '私钥',
+    walletAddress: '钱包地址',
+    user: '用户名',
+    signer: '签名者',
+    passphrase: '口令',
+    enterSecretKey: '输入密钥',
+    enterPrivateKey: '输入私钥',
+    enterWalletAddress: '输入钱包地址',
+    enterUser: '输入用户名',
+    enterSigner: '输入签名者地址',
+    enterPassphrase: '输入Passphrase',
+    hyperliquidPrivateKeyDesc: 'Hyperliquid 使用私钥进行交易认证',
+    hyperliquidWalletAddressDesc: '与私钥对应的钱包地址',
+    // Hyperliquid 代理钱包 (新安全模型)
+    hyperliquidAgentWalletTitle: 'Hyperliquid 代理钱包配置',
+    hyperliquidAgentWalletDesc:
+      '使用代理钱包安全交易：代理钱包用于签名（餘額~0），主钱包持有资金（永不暴露私钥）',
+    hyperliquidAgentPrivateKey: '代理私钥',
+    enterHyperliquidAgentPrivateKey: '输入代理钱包私钥',
+    hyperliquidAgentPrivateKeyDesc: '代理钱包仅有交易权限，无法提现',
+    hyperliquidMainWalletAddress: '主钱包地址',
+    enterHyperliquidMainWalletAddress: '输入主钱包地址',
+    hyperliquidMainWalletAddressDesc:
+      '持有交易资金的主钱包地址（永不暴露其私钥）',
+    // Aster API Pro 配置
+    asterApiProTitle: 'Aster API Pro 代理钱包配置',
+    asterApiProDesc:
+      '使用 API Pro 代理钱包安全交易：代理钱包用于签名交易，主钱包持有资金（永不暴露主钱包私钥）',
+    asterUserDesc:
+      '主钱包地址 - 您用于登录 Aster 的 EVM 钱包地址（仅支持 EVM 钱包）',
+    asterSignerDesc:
+      'API Pro 代理钱包地址 (0x...) - 从 https://www.asterdex.com/zh-CN/api-wallet 生成',
+    asterPrivateKeyDesc:
+      'API Pro 代理钱包私钥 - 从 https://www.asterdex.com/zh-CN/api-wallet 获取（仅在本地用于签名，不会被传输）',
+    asterUsdtWarning:
+      '重要提示：Aster 仅统计 USDT 余额。请确保您使用 USDT 作为保证金币种，避免其他资产（BNB、ETH等）的价格波动导致盈亏统计错误',
+    asterUserLabel: '主钱包地址',
+    asterSignerLabel: 'API Pro 代理钱包地址',
+    asterPrivateKeyLabel: 'API Pro 代理钱包私钥',
+    enterAsterUser: '输入主钱包地址 (0x...)',
+    enterAsterSigner: '输入 API Pro 代理钱包地址 (0x...)',
+    enterAsterPrivateKey: '输入 API Pro 代理钱包私钥',
+
+    // LIGHTER 配置
+    lighterWalletAddress: 'L1 錢包地址',
+    lighterPrivateKey: 'L1 私鑰',
+    lighterApiKeyPrivateKey: 'API Key 私鑰',
+    enterLighterWalletAddress: '請輸入以太坊錢包地址（0x...）',
+    enterLighterPrivateKey: '請輸入 L1 私鑰（32 字節）',
+    enterLighterApiKeyPrivateKey: '請輸入 API Key 私鑰（40 字節，可選）',
+    lighterWalletAddressDesc: '您的以太坊錢包地址，用於識別賬戶',
+    lighterPrivateKeyDesc: 'L1 私鑰用於賬戶識別（32 字節 ECDSA 私鑰）',
+    lighterApiKeyPrivateKeyDesc:
+      'API Key 私鑰用於簽名交易（40 字節 Poseidon2 私鑰）',
+    lighterApiKeyOptionalNote:
+      '如果不提供 API Key，系統將使用功能受限的 V1 模式',
+    lighterV1Description: '基本模式 - 功能受限，僅用於測試框架',
+    lighterV2Description: '完整模式 - 支持 Poseidon2 簽名和真實交易',
+    lighterPrivateKeyImported: 'LIGHTER 私鑰已導入',
+
+    // Exchange names
+    hyperliquidExchangeName: 'Hyperliquid',
+    asterExchangeName: 'Aster DEX',
+
+    // Secure input
+    secureInputButton: '安全输入',
+    secureInputReenter: '重新安全输入',
+    secureInputClear: '清除',
+    secureInputHint:
+      '已通过安全双阶段输入设置。若需修改，请点击"重新安全输入"。',
+
+    // Two Stage Key Modal
+    twoStageModalTitle: '安全私钥输入',
+    twoStageModalDescription: '使用双阶段流程安全输入长度为 {length} 的私钥。',
+    twoStageStage1Title: '步骤一 · 输入前半段',
+    twoStageStage1Placeholder: '前 32 位字符（若有 0x 前缀请保留）',
+    twoStageStage1Hint:
+      '继续后会将扰动字符串复制到剪贴板，用于迷惑剪贴板监控。',
+    twoStageStage1Error: '请先输入第一段私钥。',
+    twoStageNext: '下一步',
+    twoStageProcessing: '处理中…',
+    twoStageCancel: '取消',
+    twoStageStage2Title: '步骤二 · 输入剩余部分',
+    twoStageStage2Placeholder: '剩余的私钥字符',
+    twoStageStage2Hint: '将扰动字符串粘贴到任意位置后，再完成私钥输入。',
+    twoStageClipboardSuccess:
+      '扰动字符串已复制。请在完成前在任意文本处粘贴一次以迷惑剪贴板记录。',
+    twoStageClipboardReminder:
+      '记得在提交前粘贴一次扰动字符串，降低剪贴板泄漏风险。',
+    twoStageClipboardManual: '自动复制失败，请手动复制下面的扰动字符串。',
+    twoStageBack: '返回',
+    twoStageSubmit: '确认',
+    twoStageInvalidFormat:
+      '私钥格式不正确，应为 {length} 位十六进制字符（可选 0x 前缀）。',
+    testnetDescription: '启用后将连接到交易所测试环境,用于模拟交易',
+    securityWarning: '安全提示',
+    saveConfiguration: '保存配置',
+
+    // Trader Configuration
+    positionMode: '仓位模式',
+    crossMarginMode: '全仓模式',
+    isolatedMarginMode: '逐仓模式',
+    crossMarginDescription: '全仓模式：所有仓位共享账户余额作为保证金',
+    isolatedMarginDescription: '逐仓模式：每个仓位独立管理保证金，风险隔离',
+    leverageConfiguration: '杠杆配置',
+    btcEthLeverage: 'BTC/ETH杠杆',
+    altcoinLeverage: '山寨币杠杆',
+    leverageRecommendation: '推荐：BTC/ETH 5-10倍，山寨币 3-5倍，控制风险',
+    tradingSymbols: '交易币种',
+    tradingSymbolsPlaceholder:
+      '输入币种，逗号分隔（如：BTCUSDT,ETHUSDT,SOLUSDT）',
+    selectSymbols: '选择币种',
+    selectTradingSymbols: '选择交易币种',
+    selectedSymbolsCount: '已选择 {count} 个币种',
+    clearSelection: '清空选择',
+    confirmSelection: '确认选择',
+    tradingSymbolsDescription:
+      '留空 = 使用默认币种。支持 USDT 合约（如：BTCUSDT, ETHUSDT）或 Hyperliquid XYZ USDC 标的（如：TSLA-USDC）',
+    btcEthLeverageValidation: 'BTC/ETH杠杆必须在1-50倍之间',
+    altcoinLeverageValidation: '山寨币杠杆必须在1-20倍之间',
+    invalidSymbolFormat:
+      '无效的币种格式：{symbol}，请使用 USDT 合约或 SYMBOL-USDC',
+
+    // System Prompt Templates
+    systemPromptTemplate: '系统提示词模板',
+    promptTemplateDefault: '默认稳健',
+    promptTemplateAdaptive: '保守策略',
+    promptTemplateAdaptiveRelaxed: '激进策略',
+    promptTemplateHansen: 'Hansen 策略',
+    promptTemplateNof1: 'NoF1 英文框架',
+    promptTemplateTaroLong: 'Taro 长仓',
+    promptDescDefault: '📊 默认稳健策略',
+    promptDescDefaultContent:
+      '最大化夏普比率，平衡风险收益，适合新手和长期稳定交易',
+    promptDescAdaptive: '🛡️ 保守策略 (v6.0.0)',
+    promptDescAdaptiveContent:
+      '严格风控，BTC 强制确认，高胜率优先，适合保守型交易者',
+    promptDescAdaptiveRelaxed: '⚡ 激进策略 (v6.0.0)',
+    promptDescAdaptiveRelaxedContent:
+      '高频交易，BTC 可选确认，追求交易机会，适合波动市场',
+    promptDescHansen: '🎯 Hansen 策略',
+    promptDescHansenContent: 'Hansen 定制策略，最大化夏普比率，专业交易者专用',
+    promptDescNof1: '🌐 NoF1 英文框架',
+    promptDescNof1Content:
+      'Hyperliquid 交易所专用，英文提示词，风险调整回报最大化',
+    promptDescTaroLong: '📈 Taro 长仓策略',
+    promptDescTaroLongContent:
+      '数据驱动决策，多维度验证，持续学习进化，长仓专用',
+
+    // Loading & Error
+    loading: '加载中...',
+
+    // AI Traders Page - Additional
+    inUse: '正在使用',
+    noModelsConfigured: '暂无已配置的AI模型',
+    noExchangesConfigured: '暂无已配置的交易所',
+    signalSource: '信号源',
+    signalSourceConfig: '信号源配置',
+    ai500Description: '用于获取 AI500 数据源的 API 地址，留空则不使用此数据源',
+    oiTopDescription: '用于获取持仓量排行数据的API地址，留空则不使用此信号源',
+    information: '说明',
+    signalSourceInfo1:
+      '• 信号源配置为用户级别，每个用户可以设置自己的信号源URL',
+    signalSourceInfo2: '• 在创建交易员时可以选择是否使用这些信号源',
+    signalSourceInfo3: '• 配置的URL将用于获取市场数据和交易信号',
+    editAIModel: '编辑AI模型',
+    addAIModel: '添加AI模型',
+    confirmDeleteModel: '确定要删除此AI模型配置吗？',
+    cannotDeleteModelInUse: '无法删除此AI模型，因为有交易员正在使用',
+    tradersUsing: '正在使用此配置的交易员',
+    pleaseDeleteTradersFirst: '请先删除或重新配置这些交易员',
+    selectModel: '选择AI模型',
+    pleaseSelectModel: '请选择模型',
+    customBaseURL: 'Base URL (可选)',
+    customBaseURLPlaceholder: '自定义API基础URL，如: https://api.openai.com/v1',
+    leaveBlankForDefault: '留空则使用默认API地址',
+    modelConfigInfo1: '• 使用官方 API 时，只需填写 API Key，其他字段留空即可',
+    modelConfigInfo2:
+      '• 自定义 Base URL 和 Model Name 仅在使用第三方代理时需要填写',
+    modelConfigInfo3: '• API Key 加密存储，不会明文展示',
+    defaultModel: '默认模型',
+    applyApiKey: '申请 API Key',
+    kimiApiNote:
+      'Kimi 需要从国际站申请 API Key (moonshot.ai)，中国区 Key 不通用',
+    leaveBlankForDefaultModel: '留空使用默认模型名称',
+    customModelName: 'Model Name (可选)',
+    customModelNamePlaceholder: '例如: deepseek-chat, qwen3-max, gpt-4o',
+    saveConfig: '保存配置',
+    editExchange: '编辑交易所',
+    addExchange: '添加交易所',
+    confirmDeleteExchange: '确定要删除此交易所配置吗？',
+    cannotDeleteExchangeInUse: '无法删除此交易所，因为有交易员正在使用',
+    pleaseSelectExchange: '请选择交易所',
+    exchangeConfigWarning1: '• API密钥将被加密存储，建议使用只读或期货交易权限',
+    exchangeConfigWarning2: '• 不要授予提现权限，确保资金安全',
+    exchangeConfigWarning3: '• 删除配置后，相关交易员将无法正常交易',
+    edit: '编辑',
+    viewGuide: '查看教程',
+    binanceSetupGuide: '币安配置教程',
+    closeGuide: '关闭',
+    whitelistIP: '白名单IP',
+    whitelistIPDesc: '币安交易所需要填写白名单IP',
+    serverIPAddresses: '服务器IP地址',
+    copyIP: '复制',
+    ipCopied: 'IP已复制',
+    copyIPFailed: 'IP地址复制失败，请手动复制',
+    loadingServerIP: '正在加载服务器IP...',
+
+    // Error Messages
+    createTraderFailed: '创建交易员失败',
+    getTraderConfigFailed: '获取交易员配置失败',
+    modelConfigNotExist: 'AI模型配置不存在或未启用',
+    exchangeConfigNotExist: '交易所配置不存在或未启用',
+    updateTraderFailed: '更新交易员失败',
+    deleteTraderFailed: '删除交易员失败',
+    operationFailed: '操作失败',
+    deleteConfigFailed: '删除配置失败',
+    modelNotExist: '模型不存在',
+    saveConfigFailed: '保存配置失败',
+    exchangeNotExist: '交易所不存在',
+    deleteExchangeConfigFailed: '删除交易所配置失败',
+    saveSignalSourceFailed: '保存信号源配置失败',
+    encryptionFailed: '加密敏感数据失败',
+
+    // Login & Register
+    login: '登录',
+    register: '注册',
+    username: '用户名',
+    email: '邮箱',
+    password: '密码',
+    confirmPassword: '确认密码',
+    usernamePlaceholder: '请输入用户名',
+    emailPlaceholder: '请输入邮箱地址',
+    passwordPlaceholder: '请输入密码（至少6位）',
+    confirmPasswordPlaceholder: '请再次输入密码',
+    passwordRequirements: '密码要求',
+    passwordRuleMinLength: '至少 8 位',
+    passwordRuleUppercase: '至少 1 个大写字母',
+    passwordRuleLowercase: '至少 1 个小写字母',
+    passwordRuleNumber: '至少 1 个数字',
+    passwordRuleSpecial: '至少 1 个特殊字符（@#$%!&*?）',
+    passwordRuleMatch: '两次密码一致',
+    passwordNotMeetRequirements: '密码不符合安全要求',
+    loginTitle: '登录到您的账户',
+    registerTitle: '创建新账户',
+    loginButton: '登录',
+    registerButton: '注册',
+    back: '返回',
+    noAccount: '还没有账户？',
+    hasAccount: '已有账户？',
+    registerNow: '立即注册',
+    loginNow: '立即登录',
+    forgotPassword: '忘记密码？',
+    forgotAccount: '忘记账户？',
+    forgotAccountConfirm:
+      '⚠️ 这将永久删除全部数据：用户、Trader、策略、AI 模型 API Key、交易所 API Key，以及您的 CLAW402 钱包。请务必在继续前导出需要保留的内容（尤其是钱包私钥）。重新注册不会恢复任何数据。确定要继续吗？',
+    forgotAccountSuccess: '账户已重置！现在可以注册新账户了。',
+    rememberMe: '记住我',
+    resetPassword: '重置密码',
+    resetPasswordTitle: '重置您的密码',
+    newPassword: '新密码',
+    newPasswordPlaceholder: '请输入新密码（至少6位）',
+    resetPasswordButton: '重置密码',
+    resetPasswordSuccess: '密码重置成功！请使用新密码登录',
+    resetPasswordFailed: '密码重置失败',
+    backToLogin: '返回登录',
+    resetPasswordCliIntro:
+      '出于安全考虑，密码找回不再通过浏览器进行。请在部署 FXOS 的服务器上运行以下命令：',
+    resetPasswordCliSecurityNote:
+      '该操作需要服务器的 shell 访问权限，因此即使 FXOS 暴露在公网上，你的账户依然安全。',
+    resetAccountCliIntro:
+      '如需清空所有数据并重新开始，请在部署 FXOS 的服务器上运行以下命令：',
+    copy: '复制',
+    loginSuccess: '登录成功',
+    registrationSuccess: '注册成功',
+    loginFailed: '登录失败，请检查您的邮箱和密码。',
+    registrationFailed: '注册失败，请重试。',
+    sessionExpired: '登录已过期，请重新登录',
+    invalidCredentials: '邮箱或密码错误',
+    weak: '弱',
+    medium: '中',
+    strong: '强',
+    passwordStrength: '密码强度',
+    passwordStrengthHint: '建议至少8位，包含大小写、数字和符号',
+    passwordMismatch: '两次输入的密码不一致',
+    emailRequired: '请输入邮箱',
+    passwordRequired: '请输入密码',
+    invalidEmail: '邮箱格式不正确',
+    passwordTooShort: '密码至少需要6个字符',
+
+    // Landing Page
+    features: '功能',
+    howItWorks: '如何运作',
+    community: '社区',
+    language: '语言',
+    loggedInAs: '已登录为',
+    exitLogin: '退出登录',
+    signIn: '登录',
+    signUp: '注册',
+    registrationClosed: '注册已关闭',
+    registrationClosedMessage:
+      '平台当前不开放新用户注册，如需访问请联系管理员获取账号。',
+
+    // Hero Section
+    githubStarsInDays: '3 天内 2.5K+ GitHub Stars',
+    heroTitle1: '读懂市场。',
+    heroTitle2: '写出交易。',
+    heroDescription:
+      'FXOS 是 AI 交易的未来标准——一个开放、社区驱动的代理式交易操作系统。支持 Binance、Aster DEX 等交易所，自托管、多代理竞争，让 AI 为你自动决策、执行和优化交易。',
+    poweredBy: '由 Aster DEX 和 Binance 提供支持。',
+
+    // Landing Page CTA
+    readyToDefine: '准备好定义 AI 交易的未来吗？',
+    startWithCrypto:
+      '从加密市场起步，扩展到 TradFi。FXOS 是 AgentFi 的基础架构。',
+    getStartedNow: '立即开始',
+    viewSourceCode: '查看源码',
+
+    // Features Section
+    coreFeatures: '核心功能',
+    whyChooseFxos: '为什么选择 FXOS？',
+    openCommunityDriven: '开源、透明、社区驱动的 AI 交易操作系统',
+    openSourceSelfHosted: '100% 开源与自托管',
+    openSourceDesc: '你的框架，你的规则。非黑箱，支持自定义提示词和多模型。',
+    openSourceFeatures1: '完全开源代码',
+    openSourceFeatures2: '支持自托管部署',
+    openSourceFeatures3: '自定义 AI 提示词',
+    openSourceFeatures4: '多模型支持（DeepSeek、Qwen）',
+    multiAgentCompetition: '多代理智能竞争',
+    multiAgentDesc: 'AI 策略在沙盒中高速战斗，最优者生存，实现策略进化。',
+    multiAgentFeatures1: '多 AI 代理并行运行',
+    multiAgentFeatures2: '策略自动优化',
+    multiAgentFeatures3: '沙盒安全测试',
+    multiAgentFeatures4: '跨市场策略移植',
+    secureReliableTrading: '安全可靠交易',
+    secureDesc: '企业级安全保障，完全掌控你的资金和交易策略。',
+    secureFeatures1: '本地私钥管理',
+    secureFeatures2: 'API 权限精细控制',
+    secureFeatures3: '实时风险监控',
+    secureFeatures4: '交易日志审计',
+
+    // About Section
+    aboutFxos: '关于 FXOS',
+    whatIsFxos: '什么是 FXOS？',
+    fxosNotAnotherBot: "FXOS 不是另一个交易机器人，而是 AI 交易的 'Linux' ——",
+    fxosDescription1: "一个透明、可信任的开源 OS，提供统一的 '决策-风险-执行'",
+    fxosDescription2: '层，支持所有资产类别。',
+    fxosDescription3:
+      '从加密市场起步（24/7、高波动性完美测试场），未来扩展到股票、期货、外汇。核心：开放架构、AI',
+    fxosDescription4:
+      '达尔文主义（多代理自竞争、策略进化）、CodeFi 飞轮（开发者 PR',
+    fxosDescription5: '贡献获积分奖励）。',
+    youFullControl: '你 100% 掌控',
+    fullControlDesc: '完全掌控 AI 提示词和资金',
+    startupMessages1: '启动自动交易系统...',
+    startupMessages2: 'API服务器启动在端口 8080',
+    startupMessages3: 'Web 控制台 http://127.0.0.1:3000',
+
+    // How It Works Section
+    howToStart: '如何开始使用 FXOS',
+    fourSimpleSteps: '四个简单步骤，开启 AI 自动交易之旅',
+    step1Title: '拉取 GitHub 仓库',
+    howToWorkStep1Desc:
+      'git clone https://github.com/onecany/fxos 并切换到 dev 分支测试新功能。',
+    step2Title: '配置环境',
+    howToWorkStep2Desc:
+      '前端设置交易所 API（如 Binance、Hyperliquid）、AI 模型和自定义提示词。',
+    step3Title: '部署与运行',
+    howToWorkStep3Desc:
+      '一键 Docker 部署，启动 AI 代理。注意：高风险市场，仅用闲钱测试。',
+    howToWorkStep4Title: '优化与贡献',
+    howToWorkStep4Desc: '监控交易，提交 PR 改进框架。加入 Telegram 分享策略。',
+    importantRiskWarning: '重要风险提示',
+    riskWarningText:
+      'dev 分支不稳定，勿用无法承受损失的资金。FXOS 非托管，无官方策略。交易有风险，投资需谨慎。',
+
+    // Community Section (testimonials are kept as-is since they are quotes)
+
+    // Footer Section
+    futureStandardAI: 'AI 交易的未来标准',
+    links: '链接',
+    resources: '资源',
+    documentation: '文档',
+    supporters: '支持方',
+    strategicInvestment: '(战略投资)',
+
+    // Login Modal
+    accessFxosPlatform: '访问 FXOS 平台',
+    loginRegisterPrompt: '请选择登录或注册以访问完整的 AI 交易平台',
+    registerNewAccount: '注册新账号',
+
+    // Candidate Coins Warnings
+    candidateCoins: '候选币种',
+    candidateCoinsZeroWarning: '候选币种数量为 0',
+    possibleReasons: '可能原因：',
+    ai500ApiNotConfigured:
+      'AI500 数据源 API 未配置或无法访问（请检查信号源设置）',
+    apiConnectionTimeout: 'API连接超时或返回数据为空',
+    noCustomCoinsAndApiFailed: '未配置自定义币种且API获取失败',
+    solutions: '解决方案：',
+    setCustomCoinsInConfig: '在交易员配置中设置自定义币种列表',
+    orConfigureCorrectApiUrl: '或者配置正确的数据源 API 地址',
+    orDisableAI500Options: '或者禁用"使用 AI500 数据源"和"使用 OI Top"选项',
+    signalSourceNotConfigured: '信号源未配置',
+    signalSourceWarningMessage:
+      '您有交易员启用了"使用 AI500 数据源"或"使用 OI Top"，但尚未配置信号源 API 地址。这将导致候选币种数量为 0，交易员无法正常工作。',
+    configureSignalSourceNow: '立即配置信号源',
+
+    // FAQ Page
+
+    // FAQ Categories
+
+    // ===== 入门指南 =====
+
+
+
+
+
+
+    // ===== 安装部署 =====
+
+
+
+
+
+
+    // ===== 配置设置 =====
+
+
+
+
+
+
+    // ===== 交易相关 =====
+
+
+
+
+
+
+
+
+    // ===== 技术问题 =====
+
+
+
+
+
+
+
+
+    // ===== 安全相关 =====
+
+
+
+
+    // ===== 功能介绍 =====
+
+
+
+    // ===== AI 模型 =====
+
+
+
+
+    // ===== 参与贡献 =====
+
+
+
+
+    // Web Crypto Environment Check
+    environmentCheck: {
+      button: '一键检测环境',
+      checking: '正在检测...',
+      description: '系统将自动检测当前浏览器是否允许使用 Web Crypto。',
+      secureTitle: '环境安全，已启用 Web Crypto',
+      secureDesc: '页面处于安全上下文，可继续输入敏感信息并使用加密传输。',
+      insecureTitle: '检测到非安全环境',
+      insecureDesc:
+        '当前访问未通过 HTTPS 或可信 localhost，浏览器会阻止 Web Crypto 调用。',
+      tipsTitle: '修改建议：',
+      tipHTTPS:
+        '通过 HTTPS 访问（即使是 IP 也需证书），或部署到支持 TLS 的域名。',
+      tipLocalhost: '开发阶段请使用 http://localhost 或 127.0.0.1。',
+      tipIframe:
+        '避免把应用嵌入在不安全的 HTTP iframe 或会降级协议的反向代理中。',
+      unsupportedTitle: '浏览器未提供 Web Crypto',
+      unsupportedDesc:
+        '请通过 HTTPS 或本机 localhost 访问 FXOS，并避免嵌入不安全 iframe/反向代理，以符合浏览器的 Web Crypto 规则。',
+      summary: '当前来源：{origin} · 协议：{protocol}',
+      disabledTitle: '传输加密已禁用',
+      disabledDesc:
+        '服务端传输加密已关闭，API 密钥将以明文传输。如需增强安全性，请设置 TRANSPORT_ENCRYPTION=true。',
+    },
+
+    environmentSteps: {
+      checkTitle: '1. 环境检测',
+      selectTitle: '2. 选择交易所',
+    },
+
+    // Autopilot Launch Panel
+    copyFailed: '复制失败',
+    prepareWallet: '准备 EVM 钱包',
+    walletDetected: '检测到钱包扩展。解锁后点击下方连接。',
+    openHyperliquid: '打开 Hyperliquid',
+    useSameWallet: '在 Hyperliquid 上使用相同钱包。存入 USDC 作为交易保证金。',
+    authorizeFxos: '授权 FXOS',
+    walletNeeded: '需要钱包',
+    step1Fund: '第 1 步 · 为 AI 钱包充值（$1+）',
+    step1Desc: 'AI 每次思考都会支付小额费用。向此地址发送 $1 或更多 USDC（Base 网络）——来自 Binance、OKX、Coinbase 或任何钱包。与交易资金分开。',
+    step1Create: '只需 1 分钟——我们为你创建钱包',
+    step2Connect: '第 2 步 · 连接 Hyperliquid',
+    step2Desc: '使用你的加密钱包（Rabby 或 MetaMask）授权 FXOS。这让 AI 可以为你执行交易——它永远无法提取你的资金。',
+    step3Deposit: '第 3 步 · 添加交易资金（$12+）',
+    step3Desc: '将 USDC 存入你的 Hyperliquid 账户（app.hyperliquid.xyz → Deposit，USDC on Arbitrum）。这是 AI 交易使用的资金——先从小额开始，随时可以追加。',
+    finishStep2: '请先完成第 2 步',
+    autopilotRunning: 'FXOS 自动驾驶已启动',
+    installRabbyDesc: '安装 Rabby 或 MetaMask，创建或导入钱包，然后返回此处。',
+    authorizeFxosDesc: '回到 FXOS，批准 Agent 和 builder 费用。FXOS 仅存储 Agent 密钥，而非你的主钱包密钥。',
+    newToHyperliquid: '初次使用 Hyperliquid？',
+    newToHyperliquidDesc: '如果你没有交易钱包或从未使用过 Hyperliquid，请从这里开始。',
+    installRabby: '安装 Rabby',
+    openHyperliquidBtn: '打开 Hyperliquid',
+    depositBtn: '充值',
+    copyBtn: '复制',
+    createBtn: '创建',
+    aFewClicks: '几次点击 + 3 次钱包签名',
+    openBtn: '打开',
+    step4Title: '第 4 步 · 启动',
+    step4Desc: 'AI 每隔几分钟读取市场，选择交易并自主管理。在仪表板上实时查看每个决策——随时一键停止。',
+    runningOpenDashboard: '运行中 — 打开仪表板查看',
+    readyToStart: '准备就绪',
+    everythingReady: '一切就绪 — 按下按钮',
+    unlocksWhenGreen: '第 1-3 步变绿后解锁',
+    setupAiWallet: '设置 AI 钱包',
+    connectHyperliquidBtn: '连接 Hyperliquid',
+    depositUsdcHyperliquid: '在 Hyperliquid 充值 USDC',
+    openDashboard: '打开仪表板',
+    startAutopilot: '启动 FXOS 自动驾驶',
+    guidedLaunch: '引导启动',
+    startAutopilotTitle: '几分钟内启动 FXOS 自动驾驶',
+    startAutopilotDesc: '四个简单步骤，总共约 $13。无需 API 密钥，无需配置文件——AI 为你交易，随时可停止。',
+    refreshBtn: '刷新',
+    hyperliquidSetup: 'Hyperliquid 设置',
+    tradingAuthReady: '交易授权已就绪',
+    fundsStayInHyperliquid: '资金保留在你的 Hyperliquid 账户中。FXOS 仅存储自动执行所需的授权 Agent 密钥。',
+    // Hyperliquid Wallet Connect
+    hlWalletTitle: 'Hyperliquid 钱包',
+    hlConnect: '连接 Hyperliquid',
+    hlConnected: '已连接',
+    hlConnectWallet: '连接你的钱包',
+    hlCreateKey: '为 FXOS 创建交易密钥',
+    hlApproveAgent: '在钱包中批准（仅限交易，无法提现）',
+    hlApproveBuilder: '批准每笔交易的小额 builder 费用',
+    hlSaveFxos: '保存到 FXOS — 完成',
+    hlAllSet: '一切就绪 — 交易授权完成',
+    hlBalance: 'Hyperliquid 余额',
+    hlWithdrawable: '可提取',
+    hlEquity: '净值',
+    hlMarginUsed: '已用保证金',
+    hlUnrealizedPnl: '未实现盈亏',
+    hlNoCustody: '资金保留在你的 Hyperliquid 账户中；FXOS 仅存储授权的 Agent 钱包。',
+    hlAgentExpiry: 'Agent 授权过期时间',
+    hlExpired: '已过期',
+    hlNoAuth: '未找到 FXOS Agent 授权',
+    hlRenewAgent: '续期 Agent 授权（+180天）',
+    hlRenewHint: 'Hyperliquid 禁止重复使用 Agent，续期会创建一个新的 Agent（有效期 180 天），然后更新 FXOS 中存储的密钥（需要登录）。',
+    hlNoWalletTitle: '未检测到 EVM 钱包',
+    hlNoWalletDetail: '安装 Rabby 或 MetaMask，创建或导入钱包，然后返回此处连接 Hyperliquid。',
+    hlInstallMetaMask: '安装 MetaMask',
+    hlNoWalletError: '未检测到 EVM 钱包。请安装 MetaMask、Rabby、OKX 或 Coinbase Wallet。',
+    hlWalletReturnedNoAccount: '钱包未返回账户',
+    hlWalletConnectionFailed: '钱包连接失败',
+    hlAgentGenerated: 'FXOS Agent 钱包已生成',
+    hlAgentGenerateFailed: '生成 Agent 钱包失败',
+    hlWalletNotConnected: '钱包未连接',
+    hlInvalidSignature: '钱包返回了无效签名',
+    hlAgentApproved: 'Hyperliquid Agent 已批准',
+    hlAgentApprovalFailed: 'Agent 批准失败',
+    hlRenewalRequiresSignIn: '续期需要登录：Hyperliquid 禁止重复使用同一个 Agent，续期会创建新 Agent 并更新存储的密钥。',
+    hlNewAgentNoConfig: '新 Agent 已批准，但未找到匹配的 FXOS 配置。请使用"保存到 FXOS"来存储。',
+    hlAgentRenewed: 'Agent 已续期（新 Agent，有效期 180 天）',
+    hlAgentRenewalFailed: 'Agent 续期失败',
+    hlTradingAuthFinalized: '交易授权已完成',
+    hlTradingAuthFailed: '交易授权失败',
+    hlSignInToSave: '请先登录再保存 Agent 钱包用于交易。',
+    hlAccountUpdated: 'Hyperliquid 账户已在 FXOS 中更新',
+    hlExistingAuthUpdated: '已有 Hyperliquid 账户授权已更新',
+    hlGenerateBeforeSave: '请先生成并批准新的 Agent 钱包再保存',
+    hlAccountSaved: 'Hyperliquid 账户已保存到 FXOS',
+    hlAccountSaveFailed: '保存 Hyperliquid 账户失败',
+    hlMainWallet: '主钱包',
+    hlAgentWallet: 'Agent',
+    hlNetwork: '网络',
+    hlMainnet: 'Hyperliquid 主网',
+    hlReauthorize: '重新授权交易',
+    hlOpenHyperliquid: '打开 Hyperliquid',
+    hlReset: '重置',
+    hlWalletSupport: '支持 MetaMask、Rabby、Coinbase、Phantom、Brave、Backpack、OKX、Trust 及其他 EVM 钱包。',
+    // Beginner Onboarding
+    beginnerGuard: '新手保护',
+    walletReady: '你的钱包已就绪',
+    payPerCall: '按次付费',
+    preparingWallet: '正在准备你的 Base 钱包...',
+    depositAddress: '充值地址（Base USDC）',
+    balanceLasts: '$5–$10 通常可以用很久 · 充值后余额会自动更新',
+    dontHaveUSDC: '还没有 USDC？',
+    buyUSDCDesc: '在 Binance、OKX 或 Coinbase 购买 USDC，然后提现到上方地址——交易所询问时选择 {network}。通常一分钟内到账。仅支持 Base 网络的 USDC。',
+    walletAddressLabel: '钱包地址',
+    privateKeyLabel: '私钥，请立即备份',
+    addressCopied: '地址已复制',
+    privateKeyCopied: '私钥已复制',
+    beginnerCopyFailed: '复制失败',
+    copyAddress: '复制地址',
+    copyPrivateKey: '复制私钥',
+    continueSetup: '继续设置',
+    walletSavedToEnv: '钱包信息已保存到 {path}',
+    failedPrepareWallet: '准备新手钱包失败',
+    refreshBalance: '刷新余额',
+    thisWalletPaysForModel: '此钱包仅用于支付模型调用费用。不会自动为交易所充值。私钥无法恢复，仅应存入 Base USDC。',
+    skip: '跳过',
+
+    // Two-Stage Key Modal
+    twoStageKey: {
+      title: '两阶段私钥输入',
+      stage1Description: '请输入私钥的前 {length} 位字符',
+      stage2Description: '请输入私钥的后 {length} 位字符',
+      stage1InputLabel: '第一部分',
+      stage2InputLabel: '第二部分',
+      characters: '位字符',
+      processing: '处理中...',
+      nextButton: '下一步',
+      cancelButton: '取消',
+      backButton: '返回',
+      encryptButton: '加密并提交',
+      obfuscationCopied: '混淆数据已复制到剪贴板',
+      obfuscationInstruction: '请粘贴其他内容清空剪贴板，然后继续',
+      obfuscationManual: '需要手动混淆',
+    },
+
+    // Error Messages
+    errors: {
+      privatekeyIncomplete: '请输入至少 {expected} 位字符',
+      privatekeyInvalidFormat: '私钥格式无效（应为64位十六进制字符）',
+      privatekeyObfuscationFailed: '剪贴板混淆失败',
+    },
+
+    // Position History
+    positionHistory: {
+      title: '历史仓位',
+      loading: '加载历史仓位...',
+      noHistory: '暂无历史仓位',
+      noHistoryDesc: '平仓后的仓位记录将显示在此处',
+      showingPositions: '显示 {count} / {total} 条记录',
+      totalPnL: '总盈亏',
+      // Stats
+      totalTrades: '总交易次数',
+      winLoss: '盈利: {win} / 亏损: {loss}',
+      winRate: '胜率',
+      profitFactor: '盈利因子',
+      profitFactorDesc: '总盈利 / 总亏损',
+      plRatio: '盈亏比',
+      plRatioDesc: '平均盈利 / 平均亏损',
+      sharpeRatio: '夏普比率',
+      sharpeRatioDesc: '风险调整收益',
+      maxDrawdown: '最大回撤',
+      avgWin: '平均盈利',
+      avgLoss: '平均亏损',
+      netPnL: '净盈亏',
+      netPnLDesc: '扣除手续费后',
+      fee: '手续费',
+      // Direction Stats
+      trades: '交易次数',
+      avgPnL: '平均盈亏',
+      // Symbol Performance
+      symbolPerformance: '品种表现',
+      // Filters
+      symbol: '交易对',
+      allSymbols: '全部交易对',
+      side: '方向',
+      all: '全部',
+      sort: '排序',
+      latestFirst: '最新优先',
+      oldestFirst: '最早优先',
+      highestPnL: '盈利最高',
+      lowestPnL: '亏损最多',
+      // Table Headers
+      entry: '开仓价',
+      exit: '平仓价',
+      qty: '数量',
+      value: '仓位价值',
+      lev: '杠杆',
+      pnl: '盈亏',
+      duration: '持仓时长',
+      closedAt: '平仓时间',
+    },
+
+    // Data Page
+    dataCenter: '数据中心',
+
+    // Strategy Market Page
+    strategyMarket: {
+      title: '策略市场',
+      subtitle: '策略市场',
+      description: '发现、学习并复用社区精英交易员的策略配置',
+      search: '搜索参数...',
+      all: '全部协议',
+      popular: '热门配置',
+      recent: '最新提交',
+      myStrategies: '我的库',
+      noStrategies: '无信号',
+      noStrategiesDesc: '当前频段未检测到策略信号',
+      author: 'OPERATOR',
+      createdAt: 'TIMESTAMP',
+      viewConfig: '解密配置',
+      hideConfig: '加密',
+      copyConfig: '克隆配置',
+      copied: '已复制',
+      configHidden: '已加密',
+      configHiddenDesc: '配置参数已加密',
+      indicators: '指标',
+      maxPositions: '持仓上限',
+      maxLeverage: '最大杠杆',
+      shareYours: '上传策略',
+      makePublic: '发布',
+      loading: '初始化...',
+    },
+
+    // Strategy Studio Page
+    strategyStudio: {
+      title: '策略工作室',
+      subtitle: '可视化配置和测试交易策略',
+      strategies: '策略',
+      newStrategy: '新建',
+      strategyType: '策略类型',
+      aiTrading: 'AI 智能交易',
+      aiTradingDesc: 'AI 分析市场并自主决策买卖',
+      gridTrading: 'AI 网格交易',
+      gridTradingDesc: 'AI 控制网格策略，在震荡市场获利',
+      gridConfig: '网格配置',
+      coinSource: '币种来源',
+      indicators: '技术指标',
+      riskControl: '风控参数',
+      promptSections: 'Prompt 编辑',
+      customPrompt: '附加提示',
+      save: '保存',
+      saving: '保存中...',
+      activate: '激活',
+      active: '激活中',
+      default: '默认',
+      promptPreview: 'Prompt 预览',
+      aiTestRun: 'AI 测试',
+      systemPrompt: '系统提示词',
+      userPrompt: '用户提示词',
+      loadPrompt: '生成 Prompt',
+      refreshPrompt: '刷新',
+      promptVariant: '风格',
+      balanced: '平衡',
+      aggressive: '激进',
+      conservative: '保守',
+      selectModel: '选择 AI 模型',
+      runTest: '运行 AI 测试',
+      running: '运行中...',
+      aiOutput: 'AI 输出',
+      reasoning: '思维链',
+      decisions: '决策',
+      duration: '耗时',
+      noModel: '请先配置 AI 模型',
+      testNote: '使用真实 AI 模型测试，不执行交易',
+      publishSettings: '发布设置',
+      newStrategyName: '新策略',
+      strategyCopy: '策略副本',
+      strategyDeleted: '策略已删除',
+      cannotDeleteActiveStrategy: '激活中的策略不能删除',
+      confirmDeleteStrategy: '确定删除此策略？',
+      confirmDelete: '确认删除',
+      delete: '删除',
+      cancel: '取消',
+      strategyExported: '策略已导出',
+      invalidStrategyFile: '无效的策略文件',
+      imported: '导入',
+      strategyImported: '策略已导入',
+      strategySaved: '策略已保存',
+      importStrategy: '导入策略',
+      newStrategyTooltip: '新建策略',
+      export: '导出',
+      duplicate: '复制',
+      deleteTooltip: '删除',
+      public: '公开',
+      addDescription: '添加策略简介...',
+      unsaved: '未保存',
+      discardChanges: '撤销',
+      selectOrCreate: '选择或创建策略',
+      customPromptDesc:
+        '附加在 System Prompt 末尾的额外提示，用于补充个性化交易风格',
+      customPromptPlaceholder: '输入自定义提示词...',
+      generatePromptPreview: '点击生成 Prompt 预览',
+      runAiTestHint: '点击运行 AI 测试',
+      tokenEstimate: 'Token 预估',
+      tokenExceedWarning: 'Token 估算超过 128K，部分模型请求可能失败',
+      tokenEstimating: '预估中...',
+      tokenTooltip: '基于 200K 上下文计算',
+    },
+
+    // Metric Tooltip
+    metricTooltip: {
+      formula: '计算公式',
+    },
+
+    // Login Required Overlay
+    loginRequired: {
+      title: '系统访问受限',
+      accessDenied: '访问被拒绝',
+      subtitleWithFeature: '访问「{featureName}」需要更高权限',
+      subtitleDefault: '此模块需要授权访问',
+      description:
+        '初始化身份验证协议以解锁完整系统功能：AI 交易员配置、策略市场数据流。',
+      benefit1: 'AI 交易员控制权',
+      benefit2: '高频策略核心市场',
+      benefit4: '全系统数据可视化',
+      loginButton: '执行登录指令',
+      registerButton: '注册新用户 ID',
+      abort: '中止操作',
+    },
+
+    // Advanced Chart
+    advancedChart: {
+      updating: '更新中...',
+      indicators: '指标',
+      orderMarkers: '订单标记',
+      technicalIndicators: '技术指标',
+      clickToToggle: '点击选择需要显示的指标',
+      shares: '股',
+      units: '个',
+    },
+
+    // Chart With Orders
+    chartWithOrders: {
+      failedToLoad: '加载图表数据失败',
+      loading: '加载中...',
+      buy: 'BUY (买入)',
+      sell: 'SELL (卖出)',
+    },
+
+    // Comparison Chart
+    comparisonChart: {
+      '1d': '1天',
+      '3d': '3天',
+      '7d': '7天',
+      '30d': '30天',
+      all: '全部',
+    },
+
+    traderDashboard: {
+      connectionFailed: '无法连接到服务器',
+      connectionFailedDesc: '请确认后端服务已启动。',
+      retry: '重试',
+      confirmClosePosition: '确定要平仓 {symbol} {side} 吗？',
+      confirmClose: '确认平仓',
+      confirm: '确认',
+      cancel: '取消',
+      positionClosed: '平仓成功',
+      closeFailed: '平仓失败',
+      hideAddress: '隐藏地址',
+      showFullAddress: '显示完整地址',
+      copyAddress: '复制地址',
+      noAddressConfigured: '未配置地址',
+      action: '操作',
+      entry: '入场价',
+      mark: '标记价',
+      qty: '数量',
+      value: '价值',
+      lev: '杠杆',
+      uPnL: '未实现盈亏',
+      liq: '强平价',
+      closePosition: '平仓',
+      close: '平仓',
+      showingPositions: '显示 {shown} / {total} 个持仓',
+      perPage: '每页',
+      accountFetchFailed: 'DATA_FETCH::FAILED — 账户数据请求失败，请检查连接',
+      positionsFetchFailed: '持仓数据请求失败',
+      decisionsFetchFailed: '决策记录请求失败',
+    },
+
+    aiTradersToast: {
+      creating: '正在创建…',
+      created: '创建成功',
+      createFailed: '创建失败',
+      saving: '正在保存…',
+      saved: '保存成功',
+      saveFailed: '保存失败',
+      deleting: '正在删除…',
+      deleted: '删除成功',
+      deleteFailed: '删除失败',
+      stopping: '正在停止…',
+      stopped: '已停止',
+      stopFailed: '停止失败',
+      starting: '正在启动…',
+      started: '已启动',
+      startFailed: '启动失败',
+      updating: '正在更新…',
+      updatingConfig: '正在更新配置…',
+      configUpdated: '配置已更新',
+      configUpdateFailed: '更新配置失败',
+      showInCompetition: '已在竞技场显示',
+      hideInCompetition: '已在竞技场隐藏',
+      updateFailed: '更新失败',
+      updatingModelConfig: '正在更新模型配置…',
+      modelConfigUpdated: '模型配置已更新',
+      modelConfigUpdateFailed: '更新模型配置失败',
+      deletingExchange: '正在删除交易所账户…',
+      exchangeDeleted: '交易所账户已删除',
+      exchangeDeleteFailed: '删除交易所账户失败',
+      updatingExchangeConfig: '正在更新交易所配置…',
+      exchangeConfigUpdated: '交易所配置已更新',
+      exchangeConfigUpdateFailed: '更新交易所配置失败',
+      creatingExchange: '正在创建交易所账户…',
+      exchangeCreated: '交易所账户已创建',
+      exchangeCreateFailed: '创建交易所账户失败',
+    },
+
+    modelConfig: {
+      selectModel: '选择模型',
+      configure: '配置',
+      configureApi: '配置 API',
+      configureWallet: '配置钱包',
+      chooseProvider: '选择 AI 模型提供商',
+      claw402EntryDesc:
+        '默认推荐走这条路。直接用 Base USDC 按次付费，不需要自己管理 API Key。',
+      otherApiEntry: '其他 API 模型',
+      otherApiEntryDesc:
+        '如果你已经有自己的 OpenAI、Claude、Gemini、DeepSeek 等 API Key，再从这里进入。',
+      payPerCall: 'USDC 按次付费 · 支持全部 AI 模型 · 无需 API Key',
+      recommended: '推荐',
+      allModelsClaw: '用 USDC 按次付费，支持所有主流 AI 模型',
+      selectAiModel: '① 选择 AI 模型',
+      allModelsUnified: '所有模型通过 Claw402 统一调用，创建后可随时切换',
+      setupWallet: '② 设置钱包',
+      walletInfo: '💡 Claw402 使用 Base 链上的 USDC 付费，你需要一个 EVM 钱包',
+      exportKey: '可以用 MetaMask、Rabby 等钱包导出私钥',
+      dedicatedWallet: '建议新建一个专用钱包，充入少量 USDC 即可',
+      walletPrivateKey: '钱包私钥（Base 链 EVM）',
+      privateKeyNote:
+        '私钥仅在本地签名使用，不会上传或发送交易。无需 ETH，无 Gas 费用。',
+      howToFundUsdc: '如何充值 USDC',
+      fundStep1: '从交易所（Binance / OKX / Coinbase）提 USDC 到你的钱包地址',
+      fundStep2: '选择 Base 网络（手续费极低）',
+      fundStep3: '充入 $5-10 USDC 即可使用很长时间（约 $0.003/次调用）',
+      back: '返回',
+      startTrading: '开始交易',
+      modelsConfigured: '带金色标记的模型已配置',
+      getStarted: '开始使用',
+      getApiKey: '获取 API Key',
+      walletPrivateKeyLabel: '钱包私钥 *',
+      selectModelLabel: '选择模型',
+      validating: '验证中...',
+      walletAddress: '钱包地址',
+      usdcBalance: 'Base USDC 余额',
+      claw402Connected: 'claw402 已连接',
+      claw402Unreachable: 'claw402 不可达',
+      depositUsdc: '请往此地址充值 Base 链 USDC',
+      invalidKeyPrefix: '请在开头加 0x',
+      invalidKeyLength: '应为 66 个字符，当前',
+      invalidKeyChars: '包含非法字符',
+      testConnection: '测试连接',
+      testingConnection: '测试中...',
+    },
+
+    exchangeConfig: {
+      selectExchange: '选择交易所',
+      configure: '配置账户',
+      chooseExchange: '选择您的交易所',
+      centralizedExchanges: '中心化交易所 (CEX)',
+      decentralizedExchanges: '去中心化交易所 (DEX)',
+      register: '注册',
+      bonus: '优惠',
+      accountName: '账户名称',
+      accountNamePlaceholder: '例如：主账户、套利账户',
+      pleaseEnterAccountName: '请输入账户名称',
+      useBinanceFuturesApi: '币安用户必读：使用「现货与合约交易」API',
+      viewTutorial: '查看官方教程',
+      lighterApiKeySetup: 'Lighter API Key 配置',
+      lighterApiKeyDesc: '请在 Lighter 网站生成 API Key',
+      apiKeyIndex: 'API Key 索引',
+      apiKeyIndexTooltip: 'API Key 索引从0开始',
+      back: '返回',
+    },
+
+    telegram: {
+      botSetup: 'Telegram Bot 配置',
+      createBot: '创建 Bot',
+      bindAccount: '绑定账号',
+      done: '完成',
+      invalidTokenFormat: 'Bot Token 格式不正确，应为 "数字:字母数字串"',
+      tokenSaved: 'Bot Token 已保存，等待绑定',
+      saveFailed: '保存失败，请检查 Token 是否正确',
+      unbound: '已解绑 Telegram 账号',
+      unbindFailed: '解绑失败',
+      step1Title: '第一步：在 Telegram 创建你的 Bot',
+      step1Desc1: '打开 Telegram，搜索',
+      step1Desc2: '发送',
+      step1Desc2Suffix: '命令',
+      step1Desc3: '按提示输入 Bot 名称和用户名',
+      step1Desc4: 'BotFather 会返回一个 Token，复制它',
+      openBotFather: '打开 @BotFather',
+      pasteToken: '粘贴 Bot Token',
+      tokenFormat: 'Token 格式：数字:字母数字串，如 123456789:ABCdef...',
+      selectAiModel: '选择 AI 模型（可选）',
+      noEnabledModels: '暂无启用的模型，请先在「AI 模型」中配置',
+      autoSelect: '— 自动选择（推荐）',
+      autoUseEnabled: '不选则自动使用已启用的模型',
+      savingToken: '保存中...',
+      saveAndContinue: '保存并继续',
+      step2Title: '第二步：向你的 Bot 发送 /start',
+      step2Desc1: '在 Telegram 中搜索你刚创建的 Bot',
+      step2Desc2: '点击 Start 或发送',
+      step2Desc3: 'Bot 会自动绑定到你的账号',
+      currentToken: '当前 Token',
+      waitingForStart: '⏳ 等待你发送 /start... 发送后刷新页面查看状态',
+      reconfigureToken: '重新配置 Token',
+      bindSuccess: '绑定成功！',
+      noStartReceived: '尚未收到 /start，请先向 Bot 发送 /start',
+      checkFailed: '检查失败',
+      checkStatus: '检查绑定状态',
+      botActive: 'Telegram Bot 已绑定！',
+      botActiveDesc: '你现在可以通过 Telegram 用自然语言控制交易系统',
+      supportedCommands: '支持的命令',
+      cmdHelp: '查看所有命令',
+      cmdStatus: '查看交易员状态',
+      cmdNaturalLang: '自然语言查询',
+      cmdStartStop: '启动/停止交易员',
+      cmdControl: '自然语言控制',
+      cmdPositions: '查看持仓',
+      cmdPositionsDesc: '实时持仓查询',
+      cmdStrategy: '配置策略',
+      cmdStrategyDesc: '修改交易策略',
+      unbinding: '解绑中...',
+      unbindAccount: '解绑账号',
+      aiModelLabel: 'AI 模型（用于自然语言解析）',
+      aiModelAutoSelect: '— 自动选择',
+      modelUpdated: 'AI 模型已更新',
+      modelUpdateFailed: '更新失败',
+      save: '保存',
+      loading: '加载中...',
+    },
+
+    traderConfigView: {
+      traderConfig: '交易员配置',
+      configInfo: '{name} 的配置信息',
+      running: '运行中',
+      stopped: '已停止',
+      basicInfo: '基础信息',
+      traderName: '交易员名称',
+      aiModel: 'AI模型',
+      exchange: '交易所',
+      initialBalance: '初始余额',
+      marginMode: '保证金模式',
+      crossMargin: '全仓',
+      isolatedMargin: '逐仓',
+      scanInterval: '{minutes} 分钟',
+      scanIntervalLabel: '扫描间隔',
+      strategyUsed: '使用策略',
+      strategyName: '策略名称',
+      close: '关闭',
+      yes: '是',
+      no: '否',
+    },
+  },
+  id: {
+    // Header
+    appTitle: 'FXOS',
+    subtitle: 'Platform Trading Multi-AI',
+    aiTraders: 'Trader AI',
+    details: 'Detail',
+    tradingPanel: 'Panel Trading',
+    competition: 'Kompetisi',
+    running: 'BERJALAN',
+    stopped: 'BERHENTI',
+    adminMode: 'Mode Admin',
+    logout: 'Keluar',
+    switchTrader: 'Ganti Trader:',
+    view: 'Lihat',
+
+    // Halaman beranda
+    landing: {
+      chip: 'FXOS OS AGEN MULTI-ASET PROFESIONAL',
+      heroTitle1: 'AGEN AI',
+      heroTitle2: 'PERDAGANGAN',
+      heroSubtitle:
+        'Agen trading AI profesional untuk saham AS, komoditas, FX, dan pasar sintetis Pre-IPO. Bangun strategi kelas institusi cukup dengan menjelaskannya dalam bahasa sehari-hari.',
+      liveFeeds: 'Umpan Data Langsung Aktif',
+      marketUs: 'SAHAM AS',
+      marketCommodities: 'KOMODITAS',
+      marketFx: 'FOREX',
+      marketPreIpo: 'PRE-IPO',
+      ctaStart: 'MULAI AUTOPILOT',
+      ctaSee: 'LIHAT CARANYA',
+      promise: 'Self-hosted & open source · sekitar $13 cukup untuk memulai · pengaturan terpandu, tanpa kunci API — trading pertama dalam hitungan menit',
+      tickerGlobal: 'AKSES PASAR GLOBAL',
+      tickerRouting: 'ROUTING MULTI-ASET AKTIF',
+      tickerLatency: 'LINK LATENSI RENDAH: 12ms',
+      tickerModel: 'MODEL AI: Claude Opus 4.6',
+      statStars: 'BINTANG GITHUB',
+      statForks: 'FORK',
+      statContributors: 'KONTRIBUTOR',
+      statCommunity: 'KOMUNITAS DEV',
+      assetClassSelect: 'PILIH KELAS ASET',
+      proTraders1: 'TRADER',
+      proTraders2: 'PROFESIONAL',
+      agentTagline:
+        'BUAT TRADER UNTUK SAHAM AS, KOMODITAS, FX, DAN PASAR PRE-IPO. JELASKAN STRATEGI DALAM SATU KALIMAT.',
+      classLabel: 'Kelas',
+      apyLabel: 'APY',
+      winLabel: 'Menang %',
+      riskLabel: 'Risiko',
+      riskHigh: 'TINGGI',
+      riskMed: 'SEDANG',
+      riskLow: 'RENDAH',
+      initialize: 'INISIALISASI',
+      agent1Desc: 'Trading momentum dan breakout kapitalisasi besar.',
+      agent2Desc: 'Alokasi tren FX dan rezim makro.',
+      agent3Desc: 'Mesin keranjang momentum pasar privat.',
+      deployEyebrow: 'Deployment Sistem',
+      deployTitle1: 'DEPLOY',
+      deployTitle2: 'INSTAN',
+      deployDesc:
+        'Satu perintah di laptop atau server mana pun menginstal semuanya. Buka alamat yang dicetaknya, buat akun Anda, dan peluncuran terpandu membawa Anda ke trading AI pertama dalam sekitar lima menit — sekitar $13 cukup untuk memulai.',
+      step1: 'Daftar — akun pertama memiliki instance ini.',
+      step2: 'Danai dua dompet kecil: $1+ untuk biaya AI, $12+ untuk trading (terpandu, dengan kode QR).',
+      step3: 'Tekan Start — AI trading sendiri; hentikan kapan saja.',
+      featureInstallLabel: 'Instal Satu Baris',
+      featureInstallDesc: 'Docker menangani semua dependensi',
+      featureKeysLabel: 'Kunci Anda Tetap di Rumah',
+      featureKeysDesc: 'Berjalan di mesin Anda, kunci dienkripsi lokal',
+      feedStable: 'WS_CONN: STABIL',
+      logSignal: 'Sinyal momentum saham AS dikonfirmasi ({z} z-score)',
+      logRisk: 'Pemeriksaan risiko lolos: eksposur {pair} dalam batas',
+      logMacro: 'Latensi umpan makro < {ms}ms',
+      logSys: 'Siklus optimasi sistem selesai. Mengalokasikan sumber daya.',
+    },
+
+    // Navigation
+    realtimeNav: 'Papan Peringkat',
+    configNav: 'Konfigurasi',
+    dashboardNav: 'Dasbor',
+    strategyNav: 'Strategi',
+    faqNav: 'FAQ',
+
+    // Halaman FAQ
+    faqPage: {
+      title: 'FAQ',
+      subtitle: '{count} jawaban · dompet · peluncuran · trading · self-hosting',
+      searchPlaceholder: 'Cari FAQ...',
+      noResults: 'Tidak ada pertanyaan yang cocok dengan “{term}”.',
+      clearSearch: 'Bersihkan pencarian',
+      stillQuestions: 'Masih ada pertanyaan?',
+      askCommunity:
+        'Tanyakan di komunitas atau buka issue — keduanya dijawab oleh orang-orang yang membangun FXOS.',
+      telegramCommunity: 'Komunitas Telegram',
+    },
+
+    // Footer
+    footerTitle: 'FXOS - Sistem Trading AI',
+    footerWarning: '⚠️ Trading memiliki risiko. Gunakan dengan bijak.',
+
+    // Stats Cards
+    totalEquity: 'Total Ekuitas',
+    availableBalance: 'Saldo Tersedia',
+    totalPnL: 'Total L/R',
+    positions: 'Posisi',
+    margin: 'Margin',
+    free: 'Bebas',
+
+    // Positions Table
+    currentPositions: 'Posisi Saat Ini',
+    active: 'Aktif',
+    symbol: 'Simbol',
+    side: 'Arah',
+    entryPrice: 'Harga Masuk',
+    stopLoss: 'Stop Loss',
+    takeProfit: 'Take Profit',
+    riskReward: 'Risiko/Imbalan',
+    markPrice: 'Harga Tanda',
+    quantity: 'Jumlah',
+    positionValue: 'Nilai Posisi',
+    leverage: 'Leverage',
+    unrealizedPnL: 'L/R Belum Terealisasi',
+    liqPrice: 'Harga Likuidasi',
+    long: 'LONG',
+    short: 'SHORT',
+    noPositions: 'Tidak Ada Posisi',
+    noActivePositions: 'Tidak ada posisi trading yang aktif',
+
+    // Recent Decisions
+    recentDecisions: 'Keputusan Terbaru',
+    lastCycles: '{count} siklus trading terakhir',
+    noDecisionsYet: 'Belum Ada Keputusan',
+    aiDecisionsWillAppear: 'Keputusan trading AI akan muncul di sini',
+    cycle: 'Siklus',
+    success: 'Berhasil',
+    failed: 'Gagal',
+    inputPrompt: 'Prompt Input',
+    aiThinking: 'Rantai Pemikiran AI',
+    collapse: 'Tutup',
+    expand: 'Buka',
+
+    // Decision Detail Modal
+    decisionDetail: 'Detail Keputusan',
+    summary: 'Ringkasan',
+    cotAnalysis: 'Analisis CoT',
+    systemPrompt: 'Prompt Sistem',
+    userPrompt: 'Prompt Pengguna',
+    rawResponse: 'Respons Mentah',
+    accountState: 'Status Akun',
+    decisions: 'Keputusan',
+    decisionCount: '{count} keputusan',
+    executionLog: 'Log Eksekusi',
+    noCotTrace: 'Tidak ada jejak CoT terstruktur.',
+    noSystemPrompt: 'Tidak ada prompt sistem.',
+    noUserPrompt: 'Tidak ada prompt pengguna.',
+    price: 'Harga',
+    confidence: 'Confidence',
+
+    // Equity Chart
+    accountEquityCurve: 'Kurva Ekuitas Akun',
+    noHistoricalData: 'Tidak Ada Data Historis',
+    dataWillAppear:
+      'Kurva ekuitas akan muncul setelah beberapa siklus berjalan',
+    initialBalance: 'Saldo Awal',
+    currentEquity: 'Ekuitas Saat Ini',
+    historicalCycles: 'Siklus Historis',
+    displayRange: 'Rentang Tampilan',
+    recent: 'Terbaru',
+    allData: 'Semua Data',
+    cycles: 'Siklus',
+
+    // Comparison Chart
+    comparisonMode: 'Mode Perbandingan',
+    dataPoints: 'Titik Data',
+    currentGap: 'Selisih Saat Ini',
+    count: '{count} poin',
+
+    // TradingView Chart
+    marketChart: 'Grafik Pasar',
+    viewChart: 'Klik untuk melihat grafik',
+    enterSymbol: 'Masukkan simbol...',
+    popularSymbols: 'Simbol Populer',
+    fullscreen: 'Layar Penuh',
+    exitFullscreen: 'Keluar Layar Penuh',
+
+    // Competition Page
+    aiCompetition: 'Kompetisi AI',
+    traders: 'trader',
+    liveBattle: 'Pertarungan Langsung',
+    realTimeBattle: 'Pertarungan Realtime',
+    leader: 'Pemimpin',
+    leaderboard: 'Papan Peringkat',
+    live: 'LIVE',
+    realTime: 'LIVE',
+    performanceComparison: 'Perbandingan Performa',
+    realTimePnL: 'L/R Realtime %',
+    realTimePnLPercent: 'L/R Realtime %',
+    headToHead: 'Pertarungan Langsung',
+    leadingBy: 'Unggul {gap}%',
+    behindBy: 'Tertinggal {gap}%',
+    equity: 'Ekuitas',
+    pnl: 'L/R',
+    pos: 'Pos',
+
+    // AI Traders Management
+    manageAITraders: 'Kelola bot trading AI Anda',
+    aiModels: 'Model AI',
+    exchanges: 'Bursa',
+    createTrader: 'Buat Trader',
+    modelConfiguration: 'Konfigurasi Model',
+    configured: 'Terkonfigurasi',
+    notConfigured: 'Belum Dikonfigurasi',
+    currentTraders: 'Trader Saat Ini',
+    noTraders: 'Tidak Ada Trader AI',
+    createFirstTrader: 'Buat trader AI pertama Anda untuk memulai',
+    dashboardEmptyTitle: 'Mari Mulai!',
+    dashboardEmptyDescription:
+      'Buat trader AI pertama Anda untuk mengotomatisasi strategi trading. Hubungkan bursa, pilih model AI, dan mulai trading dalam hitungan menit!',
+    goToTradersPage: 'Buat Trader Pertama Anda',
+    configureModelsFirst: 'Silakan konfigurasi model AI terlebih dahulu',
+    configureExchangesFirst: 'Silakan konfigurasi bursa terlebih dahulu',
+    configureModelsAndExchangesFirst:
+      'Silakan konfigurasi model AI dan bursa terlebih dahulu',
+    modelNotConfigured: 'Model yang dipilih belum dikonfigurasi',
+    exchangeNotConfigured: 'Bursa yang dipilih belum dikonfigurasi',
+    confirmDeleteTrader: 'Apakah Anda yakin ingin menghapus trader ini?',
+    status: 'Status',
+    start: 'Mulai',
+    stop: 'Berhenti',
+    createNewTrader: 'Buat Trader AI Baru',
+    selectAIModel: 'Pilih Model AI',
+    selectExchange: 'Pilih Bursa',
+    traderName: 'Nama Trader',
+    enterTraderName: 'Masukkan nama trader',
+    cancel: 'Batal',
+    create: 'Buat',
+    configureAIModels: 'Konfigurasi Model AI',
+    configureExchanges: 'Konfigurasi Bursa',
+    aiScanInterval: 'Interval Keputusan AI (menit)',
+    scanIntervalRecommend: 'Disarankan: 15-30 menit',
+    useTestnet: 'Gunakan Testnet',
+    enabled: 'Aktif',
+    save: 'Simpan',
+
+    // TraderConfigModal
+    fetchBalanceEditModeOnly:
+      'Hanya bisa mengambil saldo saat ini dalam mode edit',
+    balanceFetched: 'Saldo saat ini berhasil diambil',
+    balanceFetchFailed: 'Gagal mengambil saldo',
+    balanceFetchNetworkError: 'Gagal mengambil saldo, periksa koneksi jaringan',
+    saving: 'Menyimpan...',
+    saveSuccess: 'Berhasil disimpan',
+    saveFailed: 'Gagal menyimpan',
+    editTraderConfig: 'Edit Konfigurasi Trader',
+    selectStrategyAndConfigParams:
+      'Pilih Strategi dan Konfigurasi Parameter Dasar',
+    basicConfig: 'Konfigurasi Dasar',
+    traderNameRequired: 'Nama Trader *',
+    enterTraderNamePlaceholder: 'Masukkan nama trader',
+    aiModelRequired: 'Model AI *',
+    exchangeRequired: 'Bursa *',
+    noExchangeAccount: 'Belum punya akun bursa? Klik untuk mendaftar',
+    discount: 'Diskon',
+    selectTradingStrategy: 'Pilih Strategi Trading',
+    useStrategy: 'Gunakan Strategi',
+    noStrategyManual: '-- Tanpa Strategi (Konfigurasi Manual) --',
+    strategyActive: ' (Aktif)',
+    strategyDefault: ' [Default]',
+    noStrategyHint:
+      'Belum ada strategi, buat di Strategy Studio terlebih dahulu',
+    strategyDetails: 'Detail Strategi',
+    activating: 'Mengaktifkan',
+    coinSource: 'Sumber Koin',
+    marginLimit: 'Batas Margin',
+    tradingParams: 'Parameter Trading',
+    marginMode: 'Mode Margin',
+    crossMargin: 'Cross Margin',
+    isolatedMargin: 'Isolated Margin',
+    competitionDisplay: 'Tampilkan di Kompetisi',
+    show: 'Tampilkan',
+    hide: 'Sembunyikan',
+    hiddenInCompetition:
+      'Trader ini tidak akan ditampilkan di halaman kompetisi saat disembunyikan',
+    initialBalanceLabel: 'Saldo Awal ($)',
+    fetching: 'Mengambil...',
+    fetchCurrentBalance: 'Ambil Saldo Saat Ini',
+    balanceUpdateHint:
+      'Digunakan untuk memperbarui saldo awal secara manual (misal setelah deposit/withdraw)',
+    autoFetchBalanceInfo:
+      'Sistem akan otomatis mengambil ekuitas akun Anda sebagai saldo awal',
+    fetchingBalance: 'Mengambil saldo...',
+    editTrader: 'Simpan Perubahan',
+    createTraderButton: 'Buat Trader',
+
+    // AI Model Configuration
+    officialAPI: 'API Resmi',
+    customAPI: 'API Kustom',
+    apiKey: 'API Key',
+    customAPIURL: 'URL API Kustom',
+    enterAPIKey: 'Masukkan API Key',
+    enterCustomAPIURL: 'Masukkan URL endpoint API kustom',
+    useOfficialAPI: 'Gunakan layanan API resmi',
+    useCustomAPI: 'Gunakan endpoint API kustom',
+
+    // Exchange Configuration
+    secretKey: 'Secret Key',
+    privateKey: 'Private Key',
+    walletAddress: 'Alamat Wallet',
+    user: 'Pengguna',
+    signer: 'Penandatangan',
+    passphrase: 'Passphrase',
+    enterPrivateKey: 'Masukkan Private Key',
+    enterWalletAddress: 'Masukkan Alamat Wallet',
+    enterUser: 'Masukkan Pengguna',
+    enterSigner: 'Masukkan Alamat Penandatangan',
+    enterSecretKey: 'Masukkan Secret Key',
+    enterPassphrase: 'Masukkan Passphrase',
+    hyperliquidPrivateKeyDesc:
+      'Hyperliquid menggunakan private key untuk autentikasi trading',
+    hyperliquidWalletAddressDesc:
+      'Alamat wallet yang sesuai dengan private key',
+    hyperliquidAgentWalletTitle: 'Konfigurasi Agent Wallet Hyperliquid',
+    hyperliquidAgentWalletDesc:
+      'Gunakan Agent Wallet untuk trading aman: Agent wallet menandatangani transaksi (saldo ~0), Wallet utama menyimpan dana (jangan pernah ekspos private key)',
+    hyperliquidAgentPrivateKey: 'Agent Private Key',
+    enterHyperliquidAgentPrivateKey: 'Masukkan private key agent wallet',
+    hyperliquidAgentPrivateKeyDesc:
+      'Private key agent wallet untuk menandatangani transaksi (jaga saldo mendekati 0 untuk keamanan)',
+    hyperliquidMainWalletAddress: 'Alamat Wallet Utama',
+    enterHyperliquidMainWalletAddress: 'Masukkan alamat wallet utama',
+    hyperliquidMainWalletAddressDesc:
+      'Alamat wallet utama yang menyimpan dana trading Anda (jangan pernah ekspos private key-nya)',
+    asterApiProTitle: 'Konfigurasi Wallet API Pro Aster',
+    asterApiProDesc:
+      'Gunakan wallet API Pro untuk trading aman: Wallet API menandatangani transaksi, wallet utama menyimpan dana (jangan pernah ekspos private key wallet utama)',
+    asterUserDesc:
+      'Alamat wallet utama - Alamat wallet EVM yang Anda gunakan untuk login ke Aster (Catatan: Hanya wallet EVM yang didukung)',
+    asterSignerDesc:
+      'Alamat wallet API Pro (0x...) - Buat dari https://www.asterdex.com/en/api-wallet',
+    asterPrivateKeyDesc:
+      'Private key wallet API Pro - Dapatkan dari https://www.asterdex.com/en/api-wallet (hanya digunakan lokal untuk penandatanganan, tidak pernah ditransmisikan)',
+    asterUsdtWarning:
+      'Penting: Aster hanya melacak saldo USDT. Pastikan Anda menggunakan USDT sebagai mata uang margin untuk menghindari kesalahan perhitungan L/R akibat fluktuasi harga aset lain (BNB, ETH, dll.)',
+    asterUserLabel: 'Alamat Wallet Utama',
+    asterSignerLabel: 'Alamat Wallet API Pro',
+    asterPrivateKeyLabel: 'Private Key Wallet API Pro',
+    enterAsterUser: 'Masukkan alamat wallet utama (0x...)',
+    enterAsterSigner: 'Masukkan alamat wallet API Pro (0x...)',
+    enterAsterPrivateKey: 'Masukkan private key wallet API Pro',
+    lighterWalletAddress: 'Alamat Wallet L1',
+    lighterPrivateKey: 'Private Key L1',
+    lighterApiKeyPrivateKey: 'Private Key API Key',
+    enterLighterWalletAddress: 'Masukkan alamat wallet Ethereum (0x...)',
+    enterLighterPrivateKey: 'Masukkan private key L1 (32 byte)',
+    enterLighterApiKeyPrivateKey:
+      'Masukkan private key API Key (40 byte, opsional)',
+    lighterWalletAddressDesc:
+      'Alamat wallet Ethereum Anda untuk identifikasi akun',
+    lighterPrivateKeyDesc:
+      'Private key L1 untuk identifikasi akun (kunci ECDSA 32 byte)',
+    lighterApiKeyPrivateKeyDesc:
+      'Private key API Key untuk penandatanganan transaksi (kunci Poseidon2 40 byte)',
+    lighterApiKeyOptionalNote:
+      'Tanpa API Key, sistem akan menggunakan mode V1 terbatas',
+    lighterV1Description:
+      'Mode Dasar - Fungsionalitas terbatas, hanya framework pengujian',
+    lighterV2Description:
+      'Mode Lengkap - Mendukung penandatanganan Poseidon2 dan trading nyata',
+    lighterPrivateKeyImported: 'Private key LIGHTER telah diimpor',
+    hyperliquidExchangeName: 'Hyperliquid',
+    asterExchangeName: 'Aster DEX',
+    secureInputButton: 'Input Aman',
+    secureInputReenter: 'Masukkan Ulang dengan Aman',
+    secureInputClear: 'Hapus',
+    secureInputHint:
+      'Diambil melalui input aman dua tahap. Gunakan "Masukkan Ulang dengan Aman" untuk memperbarui nilai ini.',
+    twoStageModalTitle: 'Input Kunci Aman',
+    twoStageModalDescription:
+      'Gunakan alur dua tahap untuk memasukkan private key {length} karakter Anda dengan aman.',
+    twoStageStage1Title: 'Tahap 1 · Masukkan bagian pertama',
+    twoStageStage1Placeholder: '32 karakter pertama (sertakan 0x jika ada)',
+    twoStageStage1Hint:
+      'Melanjutkan akan menyalin string pengacak ke clipboard sebagai pengalih.',
+    twoStageStage1Error: 'Silakan masukkan bagian pertama terlebih dahulu.',
+    twoStageNext: 'Lanjut',
+    twoStageProcessing: 'Memproses…',
+    twoStageCancel: 'Batal',
+    twoStageStage2Title: 'Tahap 2 · Masukkan sisanya',
+    twoStageStage2Placeholder: 'Karakter sisa dari private key Anda',
+    twoStageStage2Hint:
+      'Tempelkan string pengacak di tempat netral, lalu selesaikan memasukkan kunci Anda.',
+    twoStageClipboardSuccess:
+      'String pengacak disalin. Tempelkan di kolom teks mana pun sebelum menyelesaikan.',
+    twoStageClipboardReminder:
+      'Ingat tempelkan string pengacak sebelum mengirim untuk menghindari kebocoran clipboard.',
+    twoStageClipboardManual:
+      'Salin otomatis gagal. Salin string pengacak di bawah secara manual.',
+    twoStageBack: 'Kembali',
+    twoStageSubmit: 'Konfirmasi',
+    twoStageInvalidFormat:
+      'Format private key tidak valid. Diharapkan {length} karakter heksadesimal (awalan 0x opsional).',
+    testnetDescription:
+      'Aktifkan untuk terhubung ke lingkungan uji coba bursa untuk trading simulasi',
+    securityWarning: 'Peringatan Keamanan',
+    saveConfiguration: 'Simpan Konfigurasi',
+
+    // Trader Configuration
+    positionMode: 'Mode Posisi',
+    crossMarginMode: 'Cross Margin',
+    isolatedMarginMode: 'Isolated Margin',
+    crossMarginDescription:
+      'Cross margin: Semua posisi berbagi saldo akun sebagai jaminan',
+    isolatedMarginDescription:
+      'Isolated margin: Setiap posisi mengelola jaminan secara independen, isolasi risiko',
+    leverageConfiguration: 'Konfigurasi Leverage',
+    btcEthLeverage: 'Leverage BTC/ETH',
+    altcoinLeverage: 'Leverage Altcoin',
+    leverageRecommendation:
+      'Disarankan: BTC/ETH 5-10x, Altcoin 3-5x untuk kontrol risiko',
+    tradingSymbols: 'Simbol Trading',
+    tradingSymbolsPlaceholder:
+      'Masukkan simbol, pisahkan dengan koma (misal BTCUSDT,ETHUSDT,SOLUSDT)',
+    selectSymbols: 'Pilih Simbol',
+    selectTradingSymbols: 'Pilih Simbol Trading',
+    selectedSymbolsCount: '{count} simbol dipilih',
+    clearSelection: 'Hapus Semua',
+    confirmSelection: 'Konfirmasi',
+    tradingSymbolsDescription:
+      'Kosong = gunakan simbol default. Gunakan perp USDT (misal BTCUSDT, ETHUSDT) atau market Hyperliquid XYZ USDC (misal TSLA-USDC)',
+    btcEthLeverageValidation: 'Leverage BTC/ETH harus antara 1-50x',
+    altcoinLeverageValidation: 'Leverage Altcoin harus antara 1-20x',
+    invalidSymbolFormat:
+      'Format simbol tidak valid: {symbol}, gunakan perp USDT atau SYMBOL-USDC',
+    systemPromptTemplate: 'Template Prompt Sistem',
+    promptTemplateDefault: 'Default Stabil',
+    promptTemplateAdaptive: 'Strategi Konservatif',
+    promptTemplateAdaptiveRelaxed: 'Strategi Agresif',
+    promptTemplateHansen: 'Strategi Hansen',
+    promptTemplateNof1: 'Framework NoF1 English',
+    promptTemplateTaroLong: 'Taro Long Position',
+    promptDescDefault: '📊 Strategi Default Stabil',
+    promptDescDefaultContent:
+      'Maksimalkan rasio Sharpe, risiko-imbalan seimbang, cocok untuk pemula dan trading jangka panjang stabil',
+    promptDescAdaptive: '🛡️ Strategi Konservatif (v6.0.0)',
+    promptDescAdaptiveContent:
+      'Kontrol risiko ketat, konfirmasi BTC wajib, prioritas win rate tinggi, cocok untuk trader konservatif',
+    promptDescAdaptiveRelaxed: '⚡ Strategi Agresif (v6.0.0)',
+    promptDescAdaptiveRelaxedContent:
+      'Trading frekuensi tinggi, konfirmasi BTC opsional, mengejar peluang trading, cocok untuk pasar volatil',
+    promptDescHansen: '🎯 Strategi Hansen',
+    promptDescHansenContent:
+      'Strategi kustom Hansen, maksimalkan rasio Sharpe, untuk trader profesional',
+    promptDescNof1: '🌐 Framework NoF1 English',
+    promptDescNof1Content:
+      'Spesialis bursa Hyperliquid, prompt bahasa Inggris, maksimalkan return yang disesuaikan risiko',
+    promptDescTaroLong: '📈 Strategi Taro Long Position',
+    promptDescTaroLongContent:
+      'Keputusan berbasis data, validasi multi-dimensi, evolusi pembelajaran berkelanjutan, spesialis posisi long',
+    loading: 'Memuat...',
+
+    // AI Traders Page - Additional
+    inUse: 'Digunakan',
+    noModelsConfigured: 'Belum ada model AI yang dikonfigurasi',
+    noExchangesConfigured: 'Belum ada bursa yang dikonfigurasi',
+    signalSource: 'Sumber Sinyal',
+    signalSourceConfig: 'Konfigurasi Sumber Sinyal',
+    ai500Description:
+      'Endpoint API untuk penyedia data AI500, kosongkan untuk menonaktifkan sumber sinyal ini',
+    oiTopDescription:
+      'Endpoint API untuk peringkat open interest, kosongkan untuk menonaktifkan sumber sinyal ini',
+    information: 'Informasi',
+    signalSourceInfo1:
+      '• Konfigurasi sumber sinyal per-pengguna, setiap pengguna dapat mengatur URL sendiri',
+    signalSourceInfo2:
+      '• Saat membuat trader, Anda dapat memilih apakah akan menggunakan sumber sinyal ini',
+    signalSourceInfo3:
+      '• URL yang dikonfigurasi akan digunakan untuk mengambil data pasar dan sinyal trading',
+    editAIModel: 'Edit Model AI',
+    addAIModel: 'Tambah Model AI',
+    confirmDeleteModel:
+      'Apakah Anda yakin ingin menghapus konfigurasi model AI ini?',
+    cannotDeleteModelInUse:
+      'Tidak dapat menghapus model AI ini karena sedang digunakan oleh trader',
+    tradersUsing: 'Trader yang menggunakan konfigurasi ini',
+    pleaseDeleteTradersFirst:
+      'Silakan hapus atau konfigurasi ulang trader ini terlebih dahulu',
+    selectModel: 'Pilih Model AI',
+    pleaseSelectModel: 'Silakan pilih model',
+    customBaseURL: 'Base URL (Opsional)',
+    customBaseURLPlaceholder:
+      'URL base API kustom, misal: https://api.openai.com/v1',
+    leaveBlankForDefault: 'Kosongkan untuk menggunakan alamat API default',
+    modelConfigInfo1:
+      '• Untuk API resmi, hanya API Key yang diperlukan, biarkan kolom lain kosong',
+    modelConfigInfo2:
+      '• Base URL dan Nama Model kustom hanya diperlukan untuk proxy pihak ketiga',
+    modelConfigInfo3: '• API Key dienkripsi dan disimpan dengan aman',
+    defaultModel: 'Model default',
+    applyApiKey: 'Dapatkan API Key',
+    kimiApiNote:
+      'Kimi memerlukan API Key dari situs internasional (moonshot.ai), key region China tidak kompatibel',
+    leaveBlankForDefaultModel: 'Kosongkan untuk menggunakan model default',
+    customModelName: 'Nama Model (Opsional)',
+    customModelNamePlaceholder: 'misal: deepseek-chat, qwen3-max, gpt-4o',
+    saveConfig: 'Simpan Konfigurasi',
+    editExchange: 'Edit Bursa',
+    addExchange: 'Tambah Bursa',
+    confirmDeleteExchange:
+      'Apakah Anda yakin ingin menghapus konfigurasi bursa ini?',
+    cannotDeleteExchangeInUse:
+      'Tidak dapat menghapus bursa ini karena sedang digunakan oleh trader',
+    pleaseSelectExchange: 'Silakan pilih bursa',
+    exchangeConfigWarning1:
+      '• API key akan dienkripsi, disarankan menggunakan izin baca-saja atau trading futures',
+    exchangeConfigWarning2:
+      '• Jangan berikan izin penarikan untuk memastikan keamanan dana',
+    exchangeConfigWarning3:
+      '• Setelah menghapus konfigurasi, trader terkait tidak akan dapat trading',
+    edit: 'Edit',
+    viewGuide: 'Lihat Panduan',
+    binanceSetupGuide: 'Panduan Pengaturan Binance',
+    closeGuide: 'Tutup',
+    whitelistIP: 'Whitelist IP',
+    whitelistIPDesc: 'Binance memerlukan penambahan IP server ke whitelist API',
+    serverIPAddresses: 'Alamat IP Server',
+    copyIP: 'Salin',
+    ipCopied: 'IP Disalin',
+    copyIPFailed: 'Gagal menyalin alamat IP. Silakan salin secara manual',
+    loadingServerIP: 'Memuat IP server...',
+
+    // Error Messages
+    createTraderFailed: 'Gagal membuat trader',
+    getTraderConfigFailed: 'Gagal mendapatkan konfigurasi trader',
+    modelConfigNotExist: 'Konfigurasi model tidak ada atau tidak diaktifkan',
+    exchangeConfigNotExist: 'Konfigurasi bursa tidak ada atau tidak diaktifkan',
+    updateTraderFailed: 'Gagal memperbarui trader',
+    deleteTraderFailed: 'Gagal menghapus trader',
+    operationFailed: 'Operasi gagal',
+    deleteConfigFailed: 'Gagal menghapus konfigurasi',
+    modelNotExist: 'Model tidak ada',
+    saveConfigFailed: 'Gagal menyimpan konfigurasi',
+    exchangeNotExist: 'Bursa tidak ada',
+    deleteExchangeConfigFailed: 'Gagal menghapus konfigurasi bursa',
+    saveSignalSourceFailed: 'Gagal menyimpan konfigurasi sumber sinyal',
+    encryptionFailed: 'Gagal mengenkripsi data sensitif',
+
+    // Login & Register
+    login: 'Masuk',
+    register: 'Daftar',
+    username: 'Nama Pengguna',
+    email: 'Email',
+    password: 'Kata Sandi',
+    confirmPassword: 'Konfirmasi Kata Sandi',
+    usernamePlaceholder: 'nama pengguna anda',
+    emailPlaceholder: 'email@anda.com',
+    passwordPlaceholder: 'Masukkan kata sandi',
+    confirmPasswordPlaceholder: 'Masukkan ulang kata sandi',
+    passwordRequirements: 'Persyaratan kata sandi',
+    passwordRuleMinLength: 'Minimal 8 karakter',
+    passwordRuleUppercase: 'Minimal 1 huruf besar',
+    passwordRuleLowercase: 'Minimal 1 huruf kecil',
+    passwordRuleNumber: 'Minimal 1 angka',
+    passwordRuleSpecial: 'Minimal 1 karakter khusus (@#$%!&*?)',
+    passwordRuleMatch: 'Kata sandi cocok',
+    passwordNotMeetRequirements:
+      'Kata sandi tidak memenuhi persyaratan keamanan',
+    loginTitle: 'Masuk ke akun Anda',
+    registerTitle: 'Buat akun baru',
+    loginButton: 'Masuk',
+    registerButton: 'Daftar',
+    back: 'Kembali',
+    noAccount: 'Belum punya akun?',
+    hasAccount: 'Sudah punya akun?',
+    registerNow: 'Daftar sekarang',
+    loginNow: 'Masuk sekarang',
+    forgotPassword: 'Lupa kata sandi?',
+    forgotAccount: 'Lupa akun?',
+    forgotAccountConfirm:
+      '⚠️ Ini akan MENGHAPUS PERMANEN semua data: pengguna, trader, strategi, kunci API model AI, kunci API bursa, dan dompet CLAW402 Anda. Ekspor apa pun yang ingin Anda simpan (terutama kunci privat dompet) SEBELUM melanjutkan. Pendaftaran ulang TIDAK akan memulihkannya. Lanjutkan?',
+    forgotAccountSuccess:
+      'Akun berhasil direset! Anda sekarang dapat mendaftar akun baru.',
+    rememberMe: 'Ingat saya',
+    resetPassword: 'Reset Kata Sandi',
+    resetPasswordTitle: 'Reset kata sandi Anda',
+    newPassword: 'Kata Sandi Baru',
+    newPasswordPlaceholder: 'Masukkan kata sandi baru (minimal 6 karakter)',
+    resetPasswordButton: 'Reset Kata Sandi',
+    resetPasswordSuccess:
+      'Kata sandi berhasil direset! Silakan masuk dengan kata sandi baru',
+    resetPasswordFailed: 'Gagal mereset kata sandi',
+    backToLogin: 'Kembali ke Login',
+    resetPasswordCliIntro:
+      'Demi keamanan, pemulihan kata sandi tidak lagi tersedia dari browser. Jalankan perintah ini di server tempat FXOS dipasang:',
+    resetPasswordCliSecurityNote:
+      'Ini memerlukan akses shell ke server, sehingga akun Anda tetap aman bahkan saat FXOS terekspos ke internet.',
+    resetAccountCliIntro:
+      'Untuk menghapus semua data dan memulai dari awal, jalankan perintah ini di server tempat FXOS dipasang:',
+    copy: 'Salin',
+    loginSuccess: 'Berhasil masuk',
+    registrationSuccess: 'Berhasil mendaftar',
+    loginFailed: 'Gagal masuk. Periksa email dan kata sandi Anda.',
+    registrationFailed: 'Gagal mendaftar. Silakan coba lagi.',
+    sessionExpired: 'Sesi berakhir, silakan masuk kembali',
+    invalidCredentials: 'Email atau kata sandi salah',
+    weak: 'Lemah',
+    medium: 'Sedang',
+    strong: 'Kuat',
+    passwordStrength: 'Kekuatan kata sandi',
+    passwordStrengthHint:
+      'Gunakan minimal 8 karakter dengan campuran huruf, angka dan simbol',
+    passwordMismatch: 'Kata sandi tidak cocok',
+    emailRequired: 'Email diperlukan',
+    passwordRequired: 'Kata sandi diperlukan',
+    invalidEmail: 'Format email tidak valid',
+    passwordTooShort: 'Kata sandi minimal 6 karakter',
+
+    // Landing Page
+    features: 'Fitur',
+    howItWorks: 'Cara Kerja',
+    community: 'Komunitas',
+    language: 'Bahasa',
+    loggedInAs: 'Masuk sebagai',
+    exitLogin: 'Keluar',
+    signIn: 'Masuk',
+    signUp: 'Daftar',
+    registrationClosed: 'Pendaftaran Ditutup',
+    registrationClosedMessage:
+      'Pendaftaran pengguna saat ini dinonaktifkan. Silakan hubungi administrator untuk akses.',
+    githubStarsInDays: '2.5K+ GitHub Stars dalam 3 hari',
+    heroTitle1: 'Read the Market.',
+    heroTitle2: 'Write the Trade.',
+    heroDescription:
+      'FXOS adalah standar masa depan untuk trading AI — OS trading agensi yang terbuka dan didorong komunitas. Mendukung Binance, Aster DEX dan bursa lainnya, self-hosted, kompetisi multi-agen, biarkan AI secara otomatis membuat keputusan, mengeksekusi dan mengoptimalkan trading untuk Anda.',
+    poweredBy: 'Didukung oleh Aster DEX dan Binance.',
+    readyToDefine: 'Siap mendefinisikan masa depan trading AI?',
+    startWithCrypto:
+      'Dimulai dari pasar kripto, berkembang ke TradFi. FXOS adalah infrastruktur AgentFi.',
+    getStartedNow: 'Mulai Sekarang',
+    viewSourceCode: 'Lihat Kode Sumber',
+    coreFeatures: 'Fitur Inti',
+    whyChooseFxos: 'Mengapa Memilih FXOS?',
+    openCommunityDriven:
+      'Open source, transparan, OS trading AI yang didorong komunitas',
+    openSourceSelfHosted: '100% Open Source & Self-Hosted',
+    openSourceDesc:
+      'Framework Anda, aturan Anda. Non-black box, mendukung prompt kustom dan multi-model.',
+    openSourceFeatures1: 'Kode sumber sepenuhnya terbuka',
+    openSourceFeatures2: 'Dukungan deployment self-hosting',
+    openSourceFeatures3: 'Prompt AI kustom',
+    openSourceFeatures4: 'Dukungan multi-model (DeepSeek, Qwen)',
+    multiAgentCompetition: 'Kompetisi Multi-Agen Cerdas',
+    multiAgentDesc:
+      'Strategi AI bertarung kecepatan tinggi di sandbox, yang terkuat bertahan, mencapai evolusi strategi.',
+    multiAgentFeatures1: 'Beberapa agen AI berjalan paralel',
+    multiAgentFeatures2: 'Optimasi strategi otomatis',
+    multiAgentFeatures3: 'Pengujian keamanan sandbox',
+    multiAgentFeatures4: 'Portabilitas strategi lintas pasar',
+    secureReliableTrading: 'Trading Aman dan Andal',
+    secureDesc:
+      'Keamanan tingkat enterprise, kontrol penuh atas dana dan strategi trading Anda.',
+    secureFeatures1: 'Manajemen private key lokal',
+    secureFeatures2: 'Kontrol izin API granular',
+    secureFeatures3: 'Pemantauan risiko realtime',
+    secureFeatures4: 'Audit log trading',
+    aboutFxos: 'Tentang FXOS',
+    whatIsFxos: 'Apa itu FXOS?',
+    fxosNotAnotherBot:
+      "FXOS bukan bot trading biasa, melainkan 'Linux' dari trading AI —",
+    fxosDescription1:
+      'OS open source yang transparan dan terpercaya yang menyediakan lapisan',
+    fxosDescription2:
+      "'keputusan-risiko-eksekusi' terpadu, mendukung semua kelas aset.",
+    fxosDescription3:
+      'Dimulai dari pasar kripto (24/7, volatilitas tinggi sebagai tempat uji sempurna), ekspansi masa depan ke saham, futures, forex. Inti: arsitektur terbuka, AI',
+    fxosDescription4:
+      'Darwinisme (kompetisi mandiri multi-agen, evolusi strategi), flywheel CodeFi',
+    fxosDescription5: '(pengembang mendapat reward poin untuk kontribusi PR).',
+    youFullControl: 'Anda 100% Mengendalikan',
+    fullControlDesc: 'Kontrol penuh atas prompt AI dan dana',
+    startupMessages1: 'Memulai sistem trading otomatis...',
+    startupMessages2: 'Server API dimulai di port 8080',
+    startupMessages3: 'Konsol Web http://127.0.0.1:3000',
+    howToStart: 'Cara Memulai FXOS',
+    fourSimpleSteps:
+      'Empat langkah sederhana untuk memulai perjalanan trading AI otomatis Anda',
+    step1Title: 'Clone Repository GitHub',
+    step1Desc:
+      'git clone https://github.com/onecany/fxos dan beralih ke branch dev untuk menguji fitur baru.',
+    step2Title: 'Konfigurasi Lingkungan',
+    step2Desc:
+      'Setup frontend untuk API bursa (seperti Binance, Hyperliquid), model AI dan prompt kustom.',
+    step3Title: 'Deploy & Jalankan',
+    step3Desc:
+      'Deployment Docker satu klik, mulai agen AI. Catatan: Pasar berisiko tinggi, hanya uji dengan uang yang bisa Anda rugi.',
+    step4Title: 'Optimalkan & Kontribusi',
+    step4Desc:
+      'Pantau trading, kirim PR untuk meningkatkan framework. Bergabung ke Telegram untuk berbagi strategi.',
+    importantRiskWarning: 'Peringatan Risiko Penting',
+    riskWarningText:
+      'Branch dev tidak stabil, jangan gunakan dana yang tidak sanggup Anda rugi. FXOS non-custodial, tanpa strategi resmi. Trading memiliki risiko, investasi dengan hati-hati.',
+    futureStandardAI: 'Standar masa depan trading AI',
+    links: 'Tautan',
+    resources: 'Sumber Daya',
+    documentation: 'Dokumentasi',
+    supporters: 'Pendukung',
+    strategicInvestment: '(Investasi Strategis)',
+    accessFxosPlatform: 'Akses Platform FXOS',
+    loginRegisterPrompt:
+      'Silakan masuk atau daftar untuk mengakses platform trading AI lengkap',
+    registerNewAccount: 'Daftar Akun Baru',
+    candidateCoins: 'Koin Kandidat',
+    candidateCoinsZeroWarning: 'Jumlah Koin Kandidat adalah 0',
+    possibleReasons: 'Kemungkinan Penyebab:',
+    ai500ApiNotConfigured:
+      'API penyedia data AI500 tidak dikonfigurasi atau tidak dapat diakses (periksa pengaturan sumber sinyal)',
+    apiConnectionTimeout: 'Koneksi API timeout atau mengembalikan data kosong',
+    noCustomCoinsAndApiFailed:
+      'Tidak ada koin kustom yang dikonfigurasi dan pengambilan API gagal',
+    solutions: 'Solusi:',
+    setCustomCoinsInConfig: 'Atur daftar koin kustom di konfigurasi trader',
+    orConfigureCorrectApiUrl:
+      'Atau konfigurasi alamat API penyedia data yang benar',
+    orDisableAI500Options:
+      'Atau nonaktifkan opsi "Gunakan Penyedia Data AI500" dan "Gunakan OI Top"',
+    signalSourceNotConfigured: 'Sumber Sinyal Belum Dikonfigurasi',
+    signalSourceWarningMessage:
+      'Anda memiliki trader yang mengaktifkan "Gunakan Penyedia Data AI500" atau "Gunakan OI Top", tetapi alamat API sumber sinyal belum dikonfigurasi. Ini akan menyebabkan jumlah koin kandidat menjadi 0, dan trader tidak dapat bekerja dengan baik.',
+    configureSignalSourceNow: 'Konfigurasi Sumber Sinyal Sekarang',
+
+    // FAQ Page
+
+    // Web Crypto Environment Check
+    environmentCheck: {
+      button: 'Periksa Lingkungan Aman',
+      checking: 'Memeriksa...',
+      description:
+        'Memverifikasi otomatis apakah konteks browser ini memungkinkan Web Crypto sebelum memasukkan kunci sensitif.',
+      secureTitle: 'Konteks aman terdeteksi',
+      secureDesc:
+        'API Web Crypto tersedia. Anda dapat melanjutkan memasukkan rahasia dengan enkripsi diaktifkan.',
+      insecureTitle: 'Konteks tidak aman terdeteksi',
+      insecureDesc:
+        'Halaman ini tidak berjalan melalui HTTPS atau origin localhost tepercaya.',
+      tipsTitle: 'Cara memperbaiki:',
+      tipHTTPS: 'Sajikan dasbor melalui HTTPS dengan sertifikat valid.',
+      tipLocalhost:
+        'Selama pengembangan, buka aplikasi via http://localhost atau 127.0.0.1.',
+      tipIframe:
+        'Hindari menyematkan aplikasi dalam iframe HTTP yang tidak aman.',
+      unsupportedTitle: 'Browser tidak mengekspos Web Crypto',
+      unsupportedDesc:
+        'Buka FXOS melalui HTTPS (atau http://localhost saat pengembangan).',
+      summary: 'Origin saat ini: {origin} · Protokol: {protocol}',
+      disabledTitle: 'Enkripsi transport dinonaktifkan',
+      disabledDesc:
+        'Enkripsi transport sisi server dinonaktifkan. API key akan ditransmisikan dalam plaintext. Aktifkan TRANSPORT_ENCRYPTION=true untuk keamanan yang lebih baik.',
+    },
+    environmentSteps: {
+      checkTitle: '1. Pemeriksaan lingkungan',
+      selectTitle: '2. Pilih bursa',
+    },
+    twoStageKey: {
+      title: 'Input Private Key Dua Tahap',
+      stage1Description: 'Masukkan {length} karakter pertama private key Anda',
+      stage2Description: 'Masukkan {length} karakter sisa private key Anda',
+      stage1InputLabel: 'Bagian Pertama',
+      stage2InputLabel: 'Bagian Kedua',
+      characters: 'karakter',
+      processing: 'Memproses...',
+      nextButton: 'Lanjut',
+      cancelButton: 'Batal',
+      backButton: 'Kembali',
+      encryptButton: 'Enkripsi & Kirim',
+      obfuscationCopied: 'Data pengacak disalin ke clipboard',
+      obfuscationInstruction:
+        'Tempelkan sesuatu yang lain untuk membersihkan clipboard, lalu lanjutkan',
+      obfuscationManual: 'Diperlukan pengacakan manual',
+    },
+    errors: {
+      privatekeyIncomplete: 'Masukkan minimal {expected} karakter',
+      privatekeyInvalidFormat:
+        'Format private key tidak valid (harus 64 karakter heksadesimal)',
+      privatekeyObfuscationFailed: 'Pengacakan clipboard gagal',
+    },
+    positionHistory: {
+      title: 'Riwayat Posisi',
+      loading: 'Memuat riwayat posisi...',
+      noHistory: 'Tidak Ada Riwayat Posisi',
+      noHistoryDesc: 'Posisi yang ditutup akan muncul di sini setelah trading.',
+      showingPositions: 'Menampilkan {count} dari {total} posisi',
+      totalPnL: 'Total L/R',
+      totalTrades: 'Total Trading',
+      winLoss: 'Menang: {win} / Kalah: {loss}',
+      winRate: 'Win Rate',
+      profitFactor: 'Profit Factor',
+      profitFactorDesc: 'Total Profit / Total Loss',
+      plRatio: 'Rasio L/R',
+      plRatioDesc: 'Rata-rata Menang / Rata-rata Kalah',
+      sharpeRatio: 'Rasio Sharpe',
+      sharpeRatioDesc: 'Return yang Disesuaikan Risiko',
+      maxDrawdown: 'Drawdown Maksimum',
+      avgWin: 'Rata-rata Menang',
+      avgLoss: 'Rata-rata Kalah',
+      netPnL: 'L/R Bersih',
+      netPnLDesc: 'Setelah Biaya',
+      fee: 'Biaya',
+      trades: 'Trading',
+      avgPnL: 'Rata-rata L/R',
+      symbolPerformance: 'Performa Simbol',
+      symbol: 'Simbol',
+      allSymbols: 'Semua Simbol',
+      side: 'Arah',
+      all: 'Semua',
+      sort: 'Urutkan',
+      latestFirst: 'Terbaru Dulu',
+      oldestFirst: 'Terlama Dulu',
+      highestPnL: 'L/R Tertinggi',
+      lowestPnL: 'L/R Terendah',
+      entry: 'Masuk',
+      exit: 'Keluar',
+      qty: 'Jml',
+      value: 'Nilai',
+      lev: 'Lev',
+      pnl: 'L/R',
+      duration: 'Durasi',
+      closedAt: 'Ditutup Pada',
+    },
+
+    // Data Page
+    dataCenter: 'Data Center',
+
+    // Strategy Market Page
+    strategyMarket: {
+      title: 'PASAR STRATEGI',
+      subtitle: 'DATABASE STRATEGI GLOBAL',
+      description:
+        'Temukan, analisis, dan kloning algoritma trading berperforma tinggi',
+      search: 'CARI PARAMETER...',
+      all: 'SEMUA PROTOKOL',
+      popular: 'TREN',
+      recent: 'TERBARU',
+      myStrategies: 'PERPUSTAKAAN SAYA',
+      noStrategies: 'TIDAK ADA SINYAL',
+      noStrategiesDesc:
+        'Tidak ada sinyal strategis terdeteksi pada frekuensi ini',
+      author: 'OPERATOR',
+      createdAt: 'TIMESTAMP',
+      viewConfig: 'DEKRIPSI CONFIG',
+      hideConfig: 'ENKRIPSI',
+      copyConfig: 'KLON CONFIG',
+      copied: 'DISALIN',
+      configHidden: 'TERENKRIPSI',
+      configHiddenDesc: 'Parameter konfigurasi terenkripsi',
+      indicators: 'INDIKATOR',
+      maxPositions: 'BATAS_POS',
+      maxLeverage: 'LEV_MAKS',
+      shareYours: 'UNGGAH_STRATEGI',
+      makePublic: 'PUBLIKASI',
+      loading: 'MENGINISIALISASI...',
+    },
+
+    // Strategy Studio Page
+    strategyStudio: {
+      title: 'Studio Strategi',
+      subtitle: 'Konfigurasi dan uji strategi trading',
+      strategies: 'Strategi',
+      newStrategy: 'Baru',
+      strategyType: 'Jenis Strategi',
+      aiTrading: 'AI Trading',
+      aiTradingDesc: 'AI menganalisis pasar dan membuat keputusan trading',
+      gridTrading: 'AI Grid Trading',
+      gridTradingDesc: 'Strategi grid yang dikontrol AI untuk pasar ranging',
+      gridConfig: 'Konfigurasi Grid',
+      coinSource: 'Sumber Koin',
+      indicators: 'Indikator',
+      riskControl: 'Kontrol Risiko',
+      promptSections: 'Editor Prompt',
+      customPrompt: 'Prompt Ekstra',
+      save: 'Simpan',
+      saving: 'Menyimpan...',
+      activate: 'Aktifkan',
+      active: 'Aktif',
+      default: 'Default',
+      promptPreview: 'Pratinjau Prompt',
+      aiTestRun: 'Uji AI',
+      systemPrompt: 'System Prompt',
+      userPrompt: 'User Prompt',
+      loadPrompt: 'Generate Prompt',
+      refreshPrompt: 'Refresh',
+      promptVariant: 'Gaya',
+      balanced: 'Seimbang',
+      aggressive: 'Agresif',
+      conservative: 'Konservatif',
+      selectModel: 'Pilih Model AI',
+      runTest: 'Jalankan Uji AI',
+      running: 'Berjalan...',
+      aiOutput: 'Output AI',
+      reasoning: 'Penalaran',
+      decisions: 'Keputusan',
+      duration: 'Durasi',
+      noModel: 'Silakan konfigurasi model AI terlebih dahulu',
+      testNote: 'Uji dengan AI nyata, tanpa trading',
+      publishSettings: 'Publikasi',
+      newStrategyName: 'Strategi Baru',
+      strategyCopy: 'Salinan Strategi',
+      strategyDeleted: 'Strategi dihapus',
+      cannotDeleteActiveStrategy: 'Strategi aktif tidak bisa dihapus',
+      confirmDeleteStrategy: 'Hapus strategi ini?',
+      confirmDelete: 'Konfirmasi Hapus',
+      delete: 'Hapus',
+      cancel: 'Batal',
+      strategyExported: 'Strategi diekspor',
+      invalidStrategyFile: 'File strategi tidak valid',
+      imported: 'Diimpor',
+      strategyImported: 'Strategi diimpor',
+      strategySaved: 'Strategi disimpan',
+      importStrategy: 'Impor Strategi',
+      newStrategyTooltip: 'Strategi Baru',
+      export: 'Ekspor',
+      duplicate: 'Duplikat',
+      deleteTooltip: 'Hapus',
+      public: 'Publik',
+      addDescription: 'Tambah deskripsi strategi...',
+      unsaved: 'Belum Disimpan',
+      discardChanges: 'Buang',
+      selectOrCreate: 'Pilih atau buat strategi',
+      customPromptDesc:
+        'Prompt tambahan di akhir System Prompt untuk gaya trading personal',
+      customPromptPlaceholder: 'Masukkan prompt kustom...',
+      generatePromptPreview: 'Klik untuk generate pratinjau prompt',
+      runAiTestHint: 'Klik untuk menjalankan uji AI',
+      tokenEstimate: 'Estimasi Token',
+      tokenExceedWarning:
+        'Estimasi token melebihi 128K. Permintaan AI mungkin gagal untuk beberapa model.',
+      tokenEstimating: 'Mengestimasi...',
+      tokenTooltip: 'Berdasarkan konteks 200K',
+    },
+
+    // Metric Tooltip
+    metricTooltip: {
+      formula: 'Formula',
+    },
+
+    // Login Required Overlay
+    loginRequired: {
+      title: 'AKSES SISTEM DITOLAK',
+      accessDenied: 'AKSES DITOLAK',
+      subtitleWithFeature:
+        'Modul "{featureName}" memerlukan hak akses lebih tinggi',
+      subtitleDefault: 'Otorisasi diperlukan untuk modul ini',
+      description:
+        'Inisialisasi protokol autentikasi untuk membuka kemampuan sistem penuh: konfigurasi Trader AI dan aliran data Pasar Strategi.',
+      benefit1: 'Kontrol Trader AI',
+      benefit2: 'Pasar Strategi HFT',
+      benefit4: 'Visualisasi Sistem Penuh',
+      loginButton: 'JALANKAN LOGIN',
+      registerButton: 'DAFTAR ID BARU',
+      abort: 'BATALKAN',
+    },
+
+    // Advanced Chart
+    advancedChart: {
+      updating: 'Memperbarui...',
+      indicators: 'Indikator',
+      orderMarkers: 'Penanda Order',
+      technicalIndicators: 'Indikator Teknikal',
+      clickToToggle: 'Klik untuk beralih indikator',
+      shares: 'lembar',
+      units: 'unit',
+    },
+
+    // Chart With Orders
+    chartWithOrders: {
+      failedToLoad: 'Gagal memuat data grafik',
+      loading: 'Memuat...',
+      buy: 'BELI',
+      sell: 'JUAL',
+    },
+
+    // Comparison Chart
+    comparisonChart: {
+      '1d': '1H',
+      '3d': '3H',
+      '7d': '7H',
+      '30d': '30H',
+      all: 'Semua',
+    },
+
+    traderDashboard: {
+      connectionFailed: 'Koneksi Gagal',
+      connectionFailedDesc: 'Silakan periksa apakah layanan backend berjalan.',
+      retry: 'Coba Lagi',
+      confirmClosePosition: 'Yakin ingin menutup posisi {symbol} {side}?',
+      confirmClose: 'Konfirmasi Tutup',
+      confirm: 'Konfirmasi',
+      cancel: 'Batal',
+      positionClosed: 'Posisi berhasil ditutup',
+      closeFailed: 'Gagal menutup posisi',
+      hideAddress: 'Sembunyikan alamat',
+      showFullAddress: 'Tampilkan alamat lengkap',
+      copyAddress: 'Salin alamat',
+      noAddressConfigured: 'Alamat belum dikonfigurasi',
+      action: 'Aksi',
+      entry: 'Entry',
+      mark: 'Mark',
+      qty: 'Qty',
+      value: 'Nilai',
+      lev: 'Lev.',
+      uPnL: 'uPnL',
+      liq: 'Liq.',
+      closePosition: 'Tutup Posisi',
+      close: 'Tutup',
+      showingPositions: 'Menampilkan {shown} dari {total} posisi',
+      perPage: 'Per halaman',
+      accountFetchFailed:
+        'DATA_FETCH::FAILED — Data akun tidak tersedia, periksa koneksi',
+      positionsFetchFailed: 'Data posisi tidak tersedia',
+      decisionsFetchFailed: 'Data keputusan tidak tersedia',
+    },
+
+    aiTradersToast: {
+      creating: 'Membuat...',
+      created: 'Berhasil dibuat',
+      createFailed: 'Gagal membuat',
+      saving: 'Menyimpan...',
+      saved: 'Berhasil disimpan',
+      saveFailed: 'Gagal menyimpan',
+      deleting: 'Menghapus...',
+      deleted: 'Berhasil dihapus',
+      deleteFailed: 'Gagal menghapus',
+      stopping: 'Menghentikan...',
+      stopped: 'Dihentikan',
+      stopFailed: 'Gagal menghentikan',
+      starting: 'Memulai...',
+      started: 'Dimulai',
+      startFailed: 'Gagal memulai',
+      updating: 'Memperbarui...',
+      updatingConfig: 'Memperbarui konfigurasi...',
+      configUpdated: 'Konfigurasi diperbarui',
+      configUpdateFailed: 'Gagal memperbarui konfigurasi',
+      showInCompetition: 'Ditampilkan di kompetisi',
+      hideInCompetition: 'Disembunyikan dari kompetisi',
+      updateFailed: 'Gagal memperbarui',
+      updatingModelConfig: 'Memperbarui konfigurasi model...',
+      modelConfigUpdated: 'Konfigurasi model diperbarui',
+      modelConfigUpdateFailed: 'Gagal memperbarui konfigurasi model',
+      deletingExchange: 'Menghapus akun exchange...',
+      exchangeDeleted: 'Akun exchange dihapus',
+      exchangeDeleteFailed: 'Gagal menghapus akun exchange',
+      updatingExchangeConfig: 'Memperbarui konfigurasi exchange...',
+      exchangeConfigUpdated: 'Konfigurasi exchange diperbarui',
+      exchangeConfigUpdateFailed: 'Gagal memperbarui konfigurasi exchange',
+      creatingExchange: 'Membuat akun exchange...',
+      exchangeCreated: 'Akun exchange dibuat',
+      exchangeCreateFailed: 'Gagal membuat akun exchange',
+    },
+
+    modelConfig: {
+      selectModel: 'Pilih Model',
+      configure: 'Konfigurasi',
+      configureApi: 'Konfigurasi API',
+      configureWallet: 'Konfigurasi Wallet',
+      chooseProvider: 'Pilih Penyedia AI Anda',
+      claw402EntryDesc:
+        'Jalur default yang direkomendasikan. Gunakan Base USDC bayar per panggilan tanpa mengelola API key.',
+      otherApiEntry: 'Penyedia API Lain',
+      otherApiEntryDesc:
+        'Gunakan API key Anda sendiri untuk OpenAI, Claude, Gemini, DeepSeek, dan lainnya.',
+      payPerCall: 'Bayar per panggilan USDC · Semua Model AI · Tanpa API Key',
+      recommended: 'Terbaik',
+      allModelsClaw:
+        'Bayar per panggilan dengan USDC — mendukung semua model AI utama',
+      selectAiModel: 'Pilih Model AI',
+      allModelsUnified:
+        'Semua model terpadu via Claw402. Ganti kapan saja setelah setup.',
+      setupWallet: 'Setup Wallet',
+      walletInfo:
+        'Claw402 menggunakan USDC di Base chain. Anda memerlukan wallet EVM.',
+      exportKey: 'Ekspor private key dari MetaMask, Rabby, dll.',
+      dedicatedWallet: 'Disarankan: buat wallet khusus dengan saldo USDC kecil',
+      walletPrivateKey: 'Private Key Wallet (Base Chain EVM)',
+      privateKeyNote:
+        'Private key hanya digunakan untuk signing lokal. Tidak pernah diunggah. Tidak perlu ETH atau gas.',
+      howToFundUsdc: 'Cara Mengisi USDC',
+      fundStep1:
+        'Tarik USDC dari exchange (Binance/OKX/Coinbase) ke wallet Anda',
+      fundStep2: 'Pilih jaringan Base (biaya sangat rendah)',
+      fundStep3: '$5-10 USDC cukup untuk waktu lama (~$0.003/panggilan)',
+      back: 'Kembali',
+      startTrading: 'Mulai Trading',
+      modelsConfigured: 'Model dengan lencana emas sudah dikonfigurasi',
+      getStarted: 'Mulai',
+      getApiKey: 'Dapatkan API Key',
+      walletPrivateKeyLabel: 'Private Key Wallet *',
+      selectModelLabel: 'Pilih Model',
+      validating: 'Memvalidasi...',
+      walletAddress: 'Alamat Wallet',
+      usdcBalance: 'Saldo Base USDC',
+      claw402Connected: 'claw402 Terhubung',
+      claw402Unreachable: 'claw402 Tidak Dapat Dijangkau',
+      depositUsdc: 'Deposit USDC ke alamat ini di Base chain',
+      invalidKeyPrefix: 'Tambahkan 0x di awal',
+      invalidKeyLength: 'Harus 66 karakter, saat ini',
+      invalidKeyChars: 'Mengandung karakter tidak valid',
+      testConnection: 'Tes Koneksi',
+      testingConnection: 'Menguji...',
+    },
+
+    exchangeConfig: {
+      selectExchange: 'Pilih Exchange',
+      configure: 'Konfigurasi',
+      chooseExchange: 'Pilih Exchange Anda',
+      centralizedExchanges: 'Exchange Tersentralisasi',
+      decentralizedExchanges: 'Exchange Terdesentralisasi',
+      register: 'Daftar',
+      bonus: 'Bonus',
+      accountName: 'Nama Akun',
+      accountNamePlaceholder: 'mis., Akun Utama',
+      pleaseEnterAccountName: 'Silakan masukkan nama akun',
+      useBinanceFuturesApi: 'Gunakan API "Spot & Futures Trading"',
+      viewTutorial: 'Lihat Tutorial',
+      lighterApiKeySetup: 'Setup API Key Lighter',
+      lighterApiKeyDesc: 'Buat API Key di situs Lighter',
+      apiKeyIndex: 'Indeks API Key',
+      apiKeyIndexTooltip: 'Indeks API Key dimulai dari 0',
+      back: 'Kembali',
+    },
+
+    telegram: {
+      botSetup: 'Setup Telegram Bot',
+      createBot: 'Buat Bot',
+      bindAccount: 'Hubungkan Akun',
+      done: 'Selesai',
+      invalidTokenFormat:
+        'Format Bot Token tidak valid. Seharusnya "angka:alfanumerik"',
+      tokenSaved: 'Bot Token tersimpan, menunggu binding',
+      saveFailed: 'Gagal menyimpan, silakan periksa token',
+      unbound: 'Akun Telegram terputus',
+      unbindFailed: 'Gagal memutuskan',
+      step1Title: 'Langkah 1: Buat Bot di Telegram',
+      step1Desc1: 'Buka Telegram, cari',
+      step1Desc2: 'Kirim',
+      step1Desc2Suffix: 'perintah',
+      step1Desc3: 'Ikuti petunjuk untuk mengatur nama dan username bot',
+      step1Desc4: 'BotFather akan mengembalikan Token, salin itu',
+      openBotFather: 'Buka @BotFather',
+      pasteToken: 'Tempel Bot Token',
+      tokenFormat: 'Format: angka:alfanumerik, mis. 123456789:ABCdef...',
+      selectAiModel: 'Pilih Model AI (opsional)',
+      noEnabledModels:
+        'Belum ada model aktif. Konfigurasi di AI Models terlebih dahulu.',
+      autoSelect: '— Pilih otomatis (disarankan)',
+      autoUseEnabled: 'Kosongkan untuk otomatis menggunakan model aktif',
+      savingToken: 'Menyimpan...',
+      saveAndContinue: 'Simpan & Lanjut',
+      step2Title: 'Langkah 2: Kirim /start ke Bot Anda',
+      step2Desc1: 'Cari Bot yang baru dibuat di Telegram',
+      step2Desc2: 'Klik Start atau kirim',
+      step2Desc3: 'Bot akan otomatis terhubung ke akun Anda',
+      currentToken: 'Token Saat Ini',
+      waitingForStart:
+        'Menunggu Anda mengirim /start... Refresh halaman setelah mengirim',
+      reconfigureToken: 'Konfigurasi Ulang Token',
+      bindSuccess: 'Berhasil terhubung!',
+      noStartReceived:
+        'Belum menerima /start. Silakan kirim /start ke Bot Anda terlebih dahulu',
+      checkFailed: 'Pemeriksaan gagal',
+      checkStatus: 'Periksa Status',
+      botActive: 'Telegram Bot Aktif!',
+      botActiveDesc:
+        'Anda sekarang dapat mengontrol sistem trading melalui bahasa alami di Telegram',
+      supportedCommands: 'Perintah yang Didukung',
+      cmdHelp: 'Tampilkan semua perintah',
+      cmdStatus: 'Tampilkan status trader',
+      cmdNaturalLang: 'Bahasa alami',
+      cmdStartStop: 'Mulai/hentikan trader',
+      cmdControl: 'Kontrol bahasa alami',
+      cmdPositions: 'Lihat posisi',
+      cmdPositionsDesc: 'Kueri posisi real-time',
+      cmdStrategy: 'Konfigurasi strategi',
+      cmdStrategyDesc: 'Ubah strategi trading',
+      unbinding: 'Memutuskan...',
+      unbindAccount: 'Putuskan Akun',
+      aiModelLabel: 'Model AI (untuk bahasa alami)',
+      aiModelAutoSelect: '— Pilih otomatis',
+      modelUpdated: 'Model AI diperbarui',
+      modelUpdateFailed: 'Gagal memperbarui',
+      save: 'Simpan',
+      loading: 'Memuat...',
+    },
+
+    traderConfigView: {
+      traderConfig: 'Konfigurasi Trader',
+      configInfo: 'Detail konfigurasi {name}',
+      running: 'Berjalan',
+      stopped: 'Berhenti',
+      basicInfo: 'Informasi Dasar',
+      traderName: 'Nama Trader',
+      aiModel: 'Model AI',
+      exchange: 'Exchange',
+      initialBalance: 'Saldo Awal',
+      marginMode: 'Mode Margin',
+      crossMargin: 'Cross',
+      isolatedMargin: 'Isolated',
+      scanInterval: '{minutes} menit',
+      scanIntervalLabel: 'Interval Scan',
+      strategyUsed: 'Strategi Digunakan',
+      strategyName: 'Nama Strategi',
+      close: 'Tutup',
+      yes: 'Ya',
+      no: 'Tidak',
+    },
+  },
+}
+
+export function t(
+  key: string,
+  lang: Language,
+  params?: Record<string, string | number>
+): string {
+  // Handle nested keys like 'twoStageKey.title'
+  const keys = key.split('.')
+  let value: any = translations[lang]
+
+  for (const k of keys) {
+    value = value?.[k]
+  }
+
+  let text = typeof value === 'string' ? value : key
+
+  // Replace parameters like {count}, {gap}, etc.
+  if (params) {
+    Object.entries(params).forEach(([param, value]) => {
+      text = text.replace(`{${param}}`, String(value))
+    })
+  }
+
+  return text
+}

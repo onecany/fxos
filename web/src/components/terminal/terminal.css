@@ -1,0 +1,155 @@
+/*
+ * FXOS orchestration terminal theme.
+ * Tokens are wired to the global theme variables, so the terminal flips
+ * dark/light with the rest of the app while keeping its own typography
+ * and pixel accents.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
+
+.fxos-terminal {
+  /* surfaces — follow the global dark/light palette */
+  --tm-paper: var(--fxos-bg);
+  --tm-panel: var(--fxos-bg-deeper);
+  --tm-ink: var(--fxos-text);
+  --tm-ink-2: var(--fxos-text-muted);
+  --tm-muted: var(--fxos-text-tertiary);
+  --tm-hair: rgba(140, 160, 180, 0.16); /* fallback for browsers without color-mix */
+  --tm-hair: color-mix(in srgb, var(--fxos-text) 8%, transparent);
+  --tm-rule: var(--fxos-border);
+  --tm-head: var(--fxos-bg-lighter);
+
+  /* brand + semantic — trading colors flip with the theme too */
+  --tm-red: var(--binance-red);
+  --tm-red-soft: rgba(251, 113, 133, 0.16); /* fallback for browsers without color-mix */
+  --tm-red-soft: color-mix(in srgb, var(--binance-red) 16%, transparent);
+  --tm-up: var(--binance-green);
+  --tm-dn: var(--binance-red);
+
+  --tm-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --tm-px: 'Silkscreen', 'IBM Plex Mono', monospace;
+
+  background: var(--tm-paper);
+  color: var(--tm-ink);
+  font-family: var(--tm-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.fxos-terminal,
+.fxos-terminal * {
+  box-sizing: border-box;
+}
+
+/* pixel display numbers (hero P/L, big counters) */
+.tm-px {
+  font-family: var(--tm-px);
+  letter-spacing: 0.02em;
+}
+
+/* small-caps label, the workhorse meta text */
+.tm-sc {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--tm-muted);
+}
+
+.tm-mono {
+  font-family: var(--tm-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* order-book per-row flash — each row is keyed by PRICE and the flash overlay
+   is keyed by SIZE, so only the levels whose size actually changed flash, and
+   they flash independently (green = size grew / red = size shrank). */
+@keyframes ob-up {
+  0% {
+    background: rgba(46, 139, 87, 0.34);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes ob-dn {
+  0% {
+    background: rgba(214, 67, 58, 0.34);
+  }
+  100% {
+    background: transparent;
+  }
+}
+.ob-up {
+  animation: ob-up 0.45s ease-out;
+}
+.ob-dn {
+  animation: ob-dn 0.45s ease-out;
+}
+
+.tm-red {
+  color: var(--tm-red);
+}
+.tm-up {
+  color: var(--tm-up);
+}
+.tm-dn {
+  color: var(--tm-dn);
+}
+
+.tm-rule {
+  height: 1px;
+  background: var(--tm-rule);
+}
+.tm-hair {
+  height: 1px;
+  background: var(--tm-hair);
+}
+
+/* bordered cell — the basic terminal box */
+.tm-box {
+  border: 1px solid var(--tm-ink);
+}
+
+/* radar ping + beam motion for the topology */
+@keyframes tm-ping {
+  0% {
+    r: 30;
+    opacity: 0.6;
+  }
+  100% {
+    r: 52;
+    opacity: 0;
+  }
+}
+
+@keyframes tm-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.tm-blink {
+  animation: tm-pulse 1.6s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+  .fxos-terminal {
+    font-size: 13px;
+  }
+  .tm-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .tm-grid-5 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .tm-row1 {
+    height: auto !important;
+    max-height: 400px;
+  }
+  .tm-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

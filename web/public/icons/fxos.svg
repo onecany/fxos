@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A1628"/>
+      <stop offset="100%" stop-color="#07111F"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E0483B"/>
+      <stop offset="50%" stop-color="#F2C94C"/>
+      <stop offset="100%" stop-color="#2DD4BF"/>
+    </linearGradient>
+    <linearGradient id="xGrad" x1="118" y1="72" x2="180" y2="184" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD0C8"/>
+      <stop offset="35%" stop-color="#FF8A7A"/>
+      <stop offset="70%" stop-color="#FF5C4D"/>
+      <stop offset="100%" stop-color="#FF3D2E"/>
+    </linearGradient>
+    <linearGradient id="fxGlow" x1="128" y1="64" x2="128" y2="196" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#2DD4BF" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="16" cy="16" r="0.75" fill="#2DD4BF" opacity="0.14"/>
+    </pattern>
+    <filter id="xGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#grid)"/>
+  <ellipse cx="128" cy="128" rx="96" ry="56" fill="url(#fxGlow)"/>
+
+  <!-- X backlight -->
+  <ellipse cx="158" cy="128" rx="36" ry="52" fill="#FF6B5E" opacity="0.18"/>
+
+  <!-- Corner brackets -->
+  <g stroke="#2DD4BF" stroke-width="2.5" fill="none" opacity="0.7" stroke-linecap="square">
+    <path d="M44 64h22M44 64v22"/>
+    <path d="M212 64h-22M212 64v22"/>
+    <path d="M44 192h22M44 192v-22"/>
+    <path d="M212 192h-22M212 192v-22"/>
+  </g>
+
+  <!-- Circuit trace: F → X -->
+  <g stroke="#2DD4BF" stroke-width="1.5" fill="none" opacity="0.35" stroke-linecap="round">
+    <path d="M110 128h12"/>
+    <circle cx="122" cy="128" r="2.5" fill="#2DD4BF" stroke="none" opacity="0.55"/>
+    <path d="M126 128h8" stroke-dasharray="3 4"/>
+  </g>
+
+  <!-- Scan line -->
+  <rect x="36" y="127" width="184" height="1" fill="#2DD4BF" opacity="0.2"/>
+
+  <!-- FX letterforms -->
+  <g filter="url(#softGlow)">
+    <!-- F (thicker) -->
+    <path
+      d="M46 66v124h16V134h38v-14H62V82h42V66H46z"
+      fill="#F8FAFC"
+    />
+    <!-- X (brighter) -->
+    <g filter="url(#xGlow)">
+      <path
+        d="M120 66l70 124"
+        stroke="url(#xGrad)"
+        stroke-width="13"
+        stroke-linecap="square"
+      />
+      <path
+        d="M190 66l-70 124"
+        stroke="url(#xGrad)"
+        stroke-width="13"
+        stroke-linecap="square"
+      />
+      <path
+        d="M120 66l70 124"
+        stroke="#FFE8E4"
+        stroke-width="4"
+        stroke-linecap="square"
+        opacity="0.45"
+      />
+      <path
+        d="M190 66l-70 124"
+        stroke="#FFE8E4"
+        stroke-width="4"
+        stroke-linecap="square"
+        opacity="0.45"
+      />
+    </g>
+  </g>
+
+  <!-- Node dots on letter joints -->
+  <circle cx="62" cy="82" r="3" fill="#2DD4BF" opacity="0.85"/>
+  <circle cx="62" cy="134" r="3" fill="#F2C94C" opacity="0.85"/>
+  <circle cx="155" cy="128" r="3.5" fill="#FF8A7A" opacity="0.95"/>
+  <circle cx="120" cy="66" r="2.5" fill="#FFD0C8" opacity="0.75"/>
+  <circle cx="190" cy="66" r="2.5" fill="#FFD0C8" opacity="0.75"/>
+  <circle cx="120" cy="190" r="2.5" fill="#FFD0C8" opacity="0.75"/>
+  <circle cx="190" cy="190" r="2.5" fill="#FFD0C8" opacity="0.75"/>
+
+  <!-- OS sublabel -->
+  <text
+    x="204"
+    y="198"
+    text-anchor="end"
+    font-family="'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace"
+    font-weight="600"
+    font-size="24"
+    fill="#2DD4BF"
+    opacity="0.58"
+    letter-spacing="4"
+  >OS</text>
+
+  <!-- Accent bar -->
+  <rect x="48" y="200" width="160" height="3" rx="1.5" fill="url(#accent)" opacity="0.9"/>
+
+  <!-- Data ticks -->
+  <g stroke="#F8FAFC" stroke-width="1.5" opacity="0.16" stroke-linecap="round">
+    <line x1="64" y1="208" x2="64" y2="214"/>
+    <line x1="88" y1="208" x2="88" y2="212"/>
+    <line x1="112" y1="208" x2="112" y2="214"/>
+    <line x1="144" y1="208" x2="144" y2="212"/>
+    <line x1="168" y1="208" x2="168" y2="214"/>
+    <line x1="192" y1="208" x2="192" y2="212"/>
+  </g>
+</svg>

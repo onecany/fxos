@@ -413,17 +413,24 @@ func writeVergexOutputFormat(sb *strings.Builder, accountEquity float64, riskCon
 	sb.WriteString("Briefly state whether Claw402 ranking, Signal Lab, heatmap and candles agree; if data is missing or conflicting, explain why you wait.\n")
 	sb.WriteString("</reasoning>\n\n")
 	sb.WriteString("<decision>\n")
+	sb.WriteString("// NOTE: Example prices below are FORMAT ILLUSTRATIONS only.\n")
+	sb.WriteString("// Replace with actual current market prices in your decisions.\n")
 	sb.WriteString("```json\n[\n")
-	// Use realistic SL/TP examples (never 0) so AI learns the correct pattern
+	// Use realistic SL/TP examples (never 0) so AI learns the correct pattern.
+	// Prices are template values — the model must calculate real SL/TP from data.
 	exampleSL1 := 97000.0
 	exampleTP1 := 103000.0
 	exampleSL2 := 3600.0
 	exampleTP2 := 3300.0
+	exampleRisk := accountEquity * 0.01 // 1% of equity as example risk
+	if exampleRisk < 10 {
+		exampleRisk = 10
+	}
 	if singleSymbol {
-		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_short\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": 0}\n", exampleSymbol, leverage, positionSize, exampleSL1, exampleTP1))
+		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_short\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": %.0f}\n", exampleSymbol, leverage, positionSize, exampleSL1, exampleTP1, exampleRisk))
 	} else {
-		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_long\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": 0},\n", exampleSymbol, leverage, positionSize, exampleSL1, exampleTP1))
-		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_short\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": 0}\n", secondSymbol, leverage, positionSize, exampleSL2, exampleTP2))
+		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_long\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": %.0f},\n", exampleSymbol, leverage, positionSize, exampleSL1, exampleTP1, exampleRisk))
+		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_short\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": %.0f, \"take_profit\": %.0f, \"confidence\": 85, \"risk_usd\": %.0f}\n", secondSymbol, leverage, positionSize, exampleSL2, exampleTP2, exampleRisk))
 	}
 	sb.WriteString("]\n```\n")
 	sb.WriteString("</decision>\n\n")
@@ -627,7 +634,11 @@ func writeOutputFormat(sb *strings.Builder, accountEquity, btcEthPosValueRatio f
 		}
 		ratio := btcEthPosValueRatio // already chosen as the larger above when single-symbol
 		size := accountEquity * ratio
-		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_long\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": 97000, \"take_profit\": 103000, \"confidence\": 85, \"risk_usd\": 0},\n", primarySymbol, lev, size))
+		exampleRisk := size * 0.01 // 1% of position value as example risk
+		if exampleRisk < 10 {
+			exampleRisk = 10
+		}
+		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"open_long\", \"leverage\": %d, \"position_size_usd\": %.0f, \"stop_loss\": 97000, \"take_profit\": 103000, \"confidence\": 85, \"risk_usd\": %.0f},\n", primarySymbol, lev, size, exampleRisk))
 		sb.WriteString(fmt.Sprintf("  {\"symbol\": \"%s\", \"action\": \"wait\"}\n", primarySymbol))
 	} else {
 		examplePositionSize := accountEquity * btcEthPosValueRatio
@@ -859,15 +870,51 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 		}
 		recentWins := 0
 		var recentPnL float64
+		var longWins, longTrades, shortWins, shortTrades int
+		var longPnL, shortPnL float64
 		for i := 0; i < recentN; i++ {
-			recentPnL += ctx.RecentOrders[i].RealizedPnL
-			if ctx.RecentOrders[i].RealizedPnL > 0 {
+			order := ctx.RecentOrders[i]
+			recentPnL += order.RealizedPnL
+			if order.RealizedPnL > 0 {
 				recentWins++
+			}
+			if order.Side == "long" {
+				longTrades++
+				longPnL += order.RealizedPnL
+				if order.RealizedPnL > 0 {
+					longWins++
+				}
+			} else {
+				shortTrades++
+				shortPnL += order.RealizedPnL
+				if order.RealizedPnL > 0 {
+					shortWins++
+				}
 			}
 		}
 		sb.WriteString(fmt.Sprintf("Last %d trades: %dW/%dL (%.0f%% win) | Net: %+.2f USDT\n",
 			recentN, recentWins, recentN-recentWins,
 			float64(recentWins)/float64(recentN)*100, recentPnL))
+		if longTrades > 0 {
+			sb.WriteString(fmt.Sprintf("  Long:  %dW/%dL (%.0f%%) | Net: %+.2f USDT\n",
+				longWins, longTrades-longWins,
+				float64(longWins)/float64(longTrades)*100, longPnL))
+		}
+		if shortTrades > 0 {
+			sb.WriteString(fmt.Sprintf("  Short: %dW/%dL (%.0f%%) | Net: %+.2f USDT\n",
+				shortWins, shortTrades-shortWins,
+				float64(shortWins)/float64(shortTrades)*100, shortPnL))
+		}
+		// Direction skew warning: if one side is significantly worse, flag it.
+		if longTrades >= 3 && shortTrades >= 3 {
+			longWR := float64(longWins) / float64(longTrades) * 100
+			shortWR := float64(shortWins) / float64(shortTrades) * 100
+			if longWR-shortWR > 25 {
+				sb.WriteString("⚠️ Short entries significantly underperforming — review short-only criteria\n")
+			} else if shortWR-longWR > 25 {
+				sb.WriteString("⚠️ Long entries significantly underperforming — review long-only criteria\n")
+			}
+		}
 		if recentN < 10 {
 			sb.WriteString("(sample size small, interpret with caution)\n")
 		}
@@ -944,7 +991,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 
 	sb.WriteString(fmt.Sprintf("## Candidate Coins (%d coins)\n\n", len(ctx.MarketDataMap)))
 	displayedCount := 0
-	const compactThreshold = 8 // After this many candidates, use compact mode for remaining
+	const compactThreshold = 5 // After this many candidates, compact mode: only recent 5 candles
 	for _, coin := range ctx.CandidateCoins {
 		// Skip if this coin is already a position (data already shown in positions section)
 		normalizedCoinSymbol := market.Normalize(coin.Symbol)
@@ -1151,9 +1198,28 @@ func (e *StrategyEngine) formatMarketData(data *market.Data, compact bool) strin
 
 	sb.WriteString("\n\n")
 
-	// Compact mode: skip detailed K-line tables, only provide summary
+	// Compact mode: only show price summary + OI/FR + last 5 candles.
 	if compact {
-		sb.WriteString("(compact mode: detailed K-line data omitted to save tokens)\n\n")
+		sb.WriteString("(compact: last 5 candles only — preceding data omitted to save tokens)\n\n")
+		if indicators.EnableOI || indicators.EnableFundingRate {
+			sb.WriteString(fmt.Sprintf("Additional data for %s:\n\n", data.Symbol))
+			if indicators.EnableOI && data.OpenInterest != nil {
+				sb.WriteString(fmt.Sprintf("Open Interest: Latest: %.2f Average: %.2f\n\n",
+					data.OpenInterest.Latest, data.OpenInterest.Average))
+			}
+			if indicators.EnableFundingRate {
+				sb.WriteString(fmt.Sprintf("Funding Rate: %.2e\n\n", data.FundingRate))
+			}
+		}
+		if len(data.TimeframeData) > 0 {
+			timeframeOrder := []string{"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w"}
+			for _, tf := range timeframeOrder {
+				if tfData, ok := data.TimeframeData[tf]; ok {
+					sb.WriteString(fmt.Sprintf("=== %s Timeframe (last 5, oldest → latest) ===\n\n", strings.ToUpper(tf)))
+					e.formatTimeframeSeriesData(&sb, tfData, indicators, true)
+				}
+			}
+		}
 		return sb.String()
 	}
 
@@ -1175,7 +1241,7 @@ func (e *StrategyEngine) formatMarketData(data *market.Data, compact bool) strin
 		for _, tf := range timeframeOrder {
 			if tfData, ok := data.TimeframeData[tf]; ok {
 				sb.WriteString(fmt.Sprintf("=== %s Timeframe (oldest → latest) ===\n\n", strings.ToUpper(tf)))
-				e.formatTimeframeSeriesData(&sb, tfData, indicators)
+				e.formatTimeframeSeriesData(&sb, tfData, indicators, false)
 			}
 		}
 	} else {
@@ -1245,14 +1311,25 @@ func (e *StrategyEngine) formatMarketData(data *market.Data, compact bool) strin
 	return sb.String()
 }
 
-func (e *StrategyEngine) formatTimeframeSeriesData(sb *strings.Builder, data *market.TimeframeSeriesData, indicators store.IndicatorConfig) {
+func (e *StrategyEngine) formatTimeframeSeriesData(sb *strings.Builder, data *market.TimeframeSeriesData, indicators store.IndicatorConfig, compact bool) {
+	maxItems := len(data.Klines)
+	if compact && maxItems > 5 {
+		maxItems = 5
+	}
 	if len(data.Klines) > 0 {
+		klines := data.Klines
+		if compact && len(klines) > 5 {
+			klines = klines[len(klines)-5:]
+		}
+		if compact {
+			sb.WriteString(fmt.Sprintf("(showing last %d of %d candles)\n", len(klines), len(data.Klines)))
+		}
 		sb.WriteString("Time(UTC)      Open      High      Low       Close     Volume\n")
-		for i, k := range data.Klines {
+		for i, k := range klines {
 			t := time.Unix(k.Time/1000, 0).UTC()
 			timeStr := t.Format("01-02 15:04")
 			marker := ""
-			if i == len(data.Klines)-1 {
+			if i == len(klines)-1 {
 				marker = "  <- current"
 			}
 			sb.WriteString(fmt.Sprintf("%-14s %-9.4f %-9.4f %-9.4f %-9.4f %-12.2f%s\n",
@@ -1260,31 +1337,59 @@ func (e *StrategyEngine) formatTimeframeSeriesData(sb *strings.Builder, data *ma
 		}
 		sb.WriteString("\n")
 	} else if len(data.MidPrices) > 0 {
-		sb.WriteString(fmt.Sprintf("Mid prices: %s\n\n", formatFloatSlice(data.MidPrices)))
+		prices := data.MidPrices
+		if compact && len(prices) > 5 {
+			prices = prices[len(prices)-5:]
+		}
+		sb.WriteString(fmt.Sprintf("Mid prices: %s\n\n", formatFloatSlice(prices)))
 		if indicators.EnableVolume && len(data.Volume) > 0 {
-			sb.WriteString(fmt.Sprintf("Volume: %s\n\n", formatFloatSlice(data.Volume)))
+			vols := data.Volume
+			if compact && len(vols) > 5 {
+				vols = vols[len(vols)-5:]
+			}
+			sb.WriteString(fmt.Sprintf("Volume: %s\n\n", formatFloatSlice(vols)))
 		}
 	}
 
 	if indicators.EnableEMA {
 		if len(data.EMA20Values) > 0 {
-			sb.WriteString(fmt.Sprintf("EMA20: %s\n", formatFloatSlice(data.EMA20Values)))
+			vals := data.EMA20Values
+			if compact && len(vals) > 5 {
+				vals = vals[len(vals)-5:]
+			}
+			sb.WriteString(fmt.Sprintf("EMA20: %s\n", formatFloatSlice(vals)))
 		}
 		if len(data.EMA50Values) > 0 {
-			sb.WriteString(fmt.Sprintf("EMA50: %s\n", formatFloatSlice(data.EMA50Values)))
+			vals := data.EMA50Values
+			if compact && len(vals) > 5 {
+				vals = vals[len(vals)-5:]
+			}
+			sb.WriteString(fmt.Sprintf("EMA50: %s\n", formatFloatSlice(vals)))
 		}
 	}
 
 	if indicators.EnableMACD && len(data.MACDValues) > 0 {
-		sb.WriteString(fmt.Sprintf("MACD: %s\n", formatFloatSlice(data.MACDValues)))
+		vals := data.MACDValues
+		if compact && len(vals) > 5 {
+			vals = vals[len(vals)-5:]
+		}
+		sb.WriteString(fmt.Sprintf("MACD: %s\n", formatFloatSlice(vals)))
 	}
 
 	if indicators.EnableRSI {
 		if len(data.RSI7Values) > 0 {
-			sb.WriteString(fmt.Sprintf("RSI7: %s\n", formatFloatSlice(data.RSI7Values)))
+			vals := data.RSI7Values
+			if compact && len(vals) > 5 {
+				vals = vals[len(vals)-5:]
+			}
+			sb.WriteString(fmt.Sprintf("RSI7: %s\n", formatFloatSlice(vals)))
 		}
 		if len(data.RSI14Values) > 0 {
-			sb.WriteString(fmt.Sprintf("RSI14: %s\n", formatFloatSlice(data.RSI14Values)))
+			vals := data.RSI14Values
+			if compact && len(vals) > 5 {
+				vals = vals[len(vals)-5:]
+			}
+			sb.WriteString(fmt.Sprintf("RSI14: %s\n", formatFloatSlice(vals)))
 		}
 	}
 

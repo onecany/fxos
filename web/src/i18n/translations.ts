@@ -1635,7 +1635,7 @@ export const translations = {
       variantBalanced: 'Balanced',
       variantActive: 'Active',
       englishOnly:
-        'System prompts are English-only for a stable model contract. Chinese or legacy directional sections may be ignored by the backend.',
+        'Your edited sections are sent to the model verbatim. Built-in sections (data, risk, output format) stay English for a stable model contract.',
       backToStrategy: '← Back to Strategy Studio',
       charCount: '{count} chars',
     },
@@ -3166,7 +3166,7 @@ export const translations = {
       variantBalanced: '均衡',
       variantActive: '积极',
       englishOnly:
-        '系统提示词仅使用英文以保持模型契约稳定;中文或旧版方向性分节可能被后端忽略。',
+        '您编辑的分节将原样发送给模型;内置分节(数据、风控、输出格式)保持英文以维持模型契约稳定。',
       backToStrategy: '← 返回策略工作室',
       charCount: '{count} 字符',
     },
@@ -4422,7 +4422,7 @@ export const translations = {
       variantBalanced: 'Seimbang',
       variantActive: 'Aktif',
       englishOnly:
-        'System prompt hanya dalam bahasa Inggris agar kontrak model stabil; bagian berbahasa Mandarin atau direktif lama dapat diabaikan oleh backend.',
+        'Bagian yang Anda edit dikirim ke model apa adanya; bagian bawaan (data, risiko, format output) tetap bahasa Inggris agar kontrak model stabil.',
       backToStrategy: '← Kembali ke Strategy Studio',
       charCount: '{count} karakter',
     },

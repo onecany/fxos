@@ -38,6 +38,7 @@ interface TokenEstimate {
 interface PreviewResponse {
   system_prompt: string
   prompt_variant: string
+  lint_warnings?: string[]
 }
 
 const EMPTY_SECTIONS: PromptSections = {
@@ -82,6 +83,7 @@ export function PromptStudioPage() {
   const [equity, setEquity] = useState(1000)
   const [variant, setVariant] = useState<Variant>('balanced')
   const [preview, setPreview] = useState('')
+  const [lintWarnings, setLintWarnings] = useState<string[]>([])
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState('')
   const [estimate, setEstimate] = useState<TokenEstimate | null>(null)
@@ -167,6 +169,7 @@ export function PromptStudioPage() {
       )
       if (result.success && result.data) {
         setPreview(result.data.system_prompt || '')
+        setLintWarnings(result.data.lint_warnings || [])
       } else {
         setPreviewError(
           result.message || t('promptStudio.previewFailed', language)
@@ -535,6 +538,20 @@ export function PromptStudioPage() {
                 {previewError && (
                   <div className="mb-3 rounded-lg border border-fxos-danger/30 bg-fxos-danger/10 px-3 py-2 text-xs text-fxos-danger">
                     {previewError}
+                  </div>
+                )}
+
+                {lintWarnings.length > 0 && (
+                  <div className="mb-3 rounded-lg border border-fxos-gold/30 bg-fxos-gold/10 px-3 py-2 text-xs">
+                    <div className="mb-1 font-semibold text-fxos-gold">
+                      {t('promptStudio.lintWarnings', language) ||
+                        'Prompt Lint Warnings'}
+                    </div>
+                    <ul className="list-inside list-disc space-y-0.5 text-fxos-text/80">
+                      {lintWarnings.map((w, i) => (
+                        <li key={i}>{w}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 

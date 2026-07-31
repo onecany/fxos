@@ -1692,6 +1692,7 @@ export const translations = {
         'Your edited sections are sent to the model verbatim. Built-in sections (data, risk, output format) stay English for a stable model contract.',
       backToStrategy: '← Back to Strategy Studio',
       charCount: '{count} chars',
+      lintWarnings: 'Prompt Lint Warnings',
     },
   },
   zh: {
@@ -3275,6 +3276,7 @@ export const translations = {
         '您编辑的分节将原样发送给模型;内置分节(数据、风控、输出格式)保持英文以维持模型契约稳定。',
       backToStrategy: '← 返回策略工作室',
       charCount: '{count} 字符',
+      lintWarnings: '提示词 Lint 警告',
     },
   },
   id: {
@@ -4583,6 +4585,7 @@ export const translations = {
         'Bagian yang Anda edit dikirim ke model apa adanya; bagian bawaan (data, risiko, format output) tetap bahasa Inggris agar kontrak model stabil.',
       backToStrategy: '← Kembali ke Strategy Studio',
       charCount: '{count} karakter',
+      lintWarnings: 'Prompt Lint Warnings',
     },
   },
 }

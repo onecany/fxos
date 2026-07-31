@@ -536,6 +536,7 @@ func (s *Server) handlePreviewPrompt(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"system_prompt":  systemPrompt,
 		"prompt_variant": req.PromptVariant,
+		"lint_warnings":  kernel.LintPrompt(systemPrompt),
 		"config_summary": gin.H{
 			"coin_source":      req.Config.CoinSource.SourceType,
 			"primary_tf":       req.Config.Indicators.Klines.PrimaryTimeframe,

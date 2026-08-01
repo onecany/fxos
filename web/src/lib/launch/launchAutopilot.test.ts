@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { launchAutopilot } from './launchAutopilot'
+import { ensureClaw402Strategy, launchAutopilot } from './launchAutopilot'
 import { ApiError } from '../httpClient'
 import type { LaunchPreflightResult } from './types'
 
@@ -9,6 +9,10 @@ const mocks = vi.hoisted(() => ({
     createTrader: vi.fn(),
     updateTrader: vi.fn(),
     startTrader: vi.fn(),
+    getStrategies: vi.fn(),
+    activateStrategy: vi.fn(),
+    createStrategy: vi.fn(),
+    getDefaultStrategyConfig: vi.fn(),
   },
   runLaunchPreflight: vi.fn(),
   resolveLaunchModel: vi.fn(),
@@ -195,5 +199,50 @@ describe('launchAutopilot', () => {
       })
     )
     expect(mocks.runLaunchPreflight).not.toHaveBeenCalled()
+  })
+})
+
+describe('ensureClaw402Strategy', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.api.getStrategies.mockResolvedValue([])
+    mocks.api.activateStrategy.mockResolvedValue(undefined)
+    mocks.api.createStrategy.mockResolvedValue({
+      id: 'created-1',
+    })
+    mocks.api.getDefaultStrategyConfig.mockResolvedValue({})
+  })
+
+  it('reuses the active strategy regardless of its coin source', async () => {
+    mocks.api.getStrategies.mockResolvedValue([
+      { id: 'pinned-1', name: 'Pinned Universe', is_active: true },
+      { id: 'vergex-1', name: 'Claw402 Auto', is_active: false },
+    ])
+
+    const strategyId = await ensureClaw402Strategy()
+
+    expect(strategyId).toBe('pinned-1')
+    expect(mocks.api.activateStrategy).not.toHaveBeenCalled()
+    expect(mocks.api.createStrategy).not.toHaveBeenCalled()
+  })
+
+  it('activates and reuses a Claw402 strategy when nothing is active', async () => {
+    mocks.api.getStrategies.mockResolvedValue([
+      { id: 'vergex-1', name: 'Claw402 Auto', is_active: false },
+    ])
+
+    const strategyId = await ensureClaw402Strategy()
+
+    expect(strategyId).toBe('vergex-1')
+    expect(mocks.api.activateStrategy).toHaveBeenCalledWith('vergex-1')
+    expect(mocks.api.createStrategy).not.toHaveBeenCalled()
+  })
+
+  it('creates and activates a default strategy when none exists', async () => {
+    const strategyId = await ensureClaw402Strategy()
+
+    expect(strategyId).toBe('created-1')
+    expect(mocks.api.createStrategy).toHaveBeenCalledTimes(1)
+    expect(mocks.api.activateStrategy).toHaveBeenCalledWith('created-1')
   })
 })

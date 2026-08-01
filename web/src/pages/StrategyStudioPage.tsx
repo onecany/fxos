@@ -1392,10 +1392,22 @@ export function StrategyStudioPage() {
   const buildUnifiedClaw402Config = (): StrategyConfig => {
     const base = simplifyConfig(editingConfig)
     base.language = language as 'zh' | 'en'
+    const currentCoinSource = base.ai_config?.coin_source
+    const pinnedCoins = currentCoinSource?.static_coins || []
+
+    // Pinned universe wins: when the operator pinned coins, launch with their
+    // config untouched so the user prompt is built around those symbols
+    // (defaultCoinSource already yields source_type='static' when coins exist).
+    // Only fall back to the unified Claw402 board template when nothing is
+    // pinned — never wipe a user-selected coin list at launch time.
+    if (pinnedCoins.length > 0) {
+      return base
+    }
+
     base.ai_config = {
       ...base.ai_config!,
       coin_source: defaultCoinSource({
-        ...base.ai_config?.coin_source,
+        ...currentCoinSource,
         static_coins: [],
         hyper_rank_category: 'all',
         vergex_limit: 10,

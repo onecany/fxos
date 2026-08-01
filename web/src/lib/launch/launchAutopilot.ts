@@ -146,20 +146,25 @@ export async function launchAutopilot(
 }
 
 /**
- * Default strategy provisioning for the guided panel: reuse the active
- * Claw402 strategy, otherwise create and activate it.
+ * Default strategy provisioning for the guided panel: reuse the currently
+ * active strategy (whatever its coin source — pinned universe, OI top, etc.),
+ * otherwise reuse a Claw402 strategy, otherwise create and activate it.
  */
 export async function ensureClaw402Strategy(): Promise<string> {
   const strategies = await api.getStrategies()
-  const existing =
-    strategies.find(
-      (strategy) =>
-        strategy.is_active &&
-        strategy.config?.ai_config?.coin_source?.source_type === 'vergex_signal'
-    ) ||
-    strategies.find((strategy) =>
-      strategy.name.toLowerCase().includes('claw402')
-    )
+
+  // The operator's active strategy wins regardless of source_type: launching
+  // must keep using the coins the operator actually selected (pinned universe
+  // included). Only fall back to a Claw402-named strategy when nothing is
+  // active, and to a fresh default config when neither exists.
+  const active = strategies.find((strategy) => strategy.is_active)
+  if (active) {
+    return active.id
+  }
+
+  const existing = strategies.find((strategy) =>
+    strategy.name.toLowerCase().includes('claw402')
+  )
 
   if (existing) {
     if (!existing.is_active) {

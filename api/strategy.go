@@ -769,13 +769,17 @@ func (s *Server) runRealAITest(userID, modelID, systemPrompt, userPrompt string)
 		return "", fmt.Errorf("AI model %s is missing API Key", model.Name)
 	}
 
-	// Create AI client via registry
+	// Create AI client via registry. Test-run must return the FULL
+	// model response (reasoning + decision JSON for multiple symbols);
+	// the default max_tokens (2000) truncates long outputs mid-JSON.
+	// Use 8000 so real analysis is not cut off. Trading loop behavior
+	// is unchanged — it creates its own client with default tokens.
 	provider := model.Provider
 	apiKey := string(model.APIKey)
 
-	aiClient := mcp.NewAIClientByProvider(provider)
+	aiClient := mcp.NewAIClientByProvider(provider, mcp.WithMaxTokens(8000))
 	if aiClient == nil {
-		aiClient = mcp.NewClient()
+		aiClient = mcp.NewClient(mcp.WithMaxTokens(8000))
 	}
 
 	// Payment providers ignore custom URL

@@ -131,7 +131,17 @@ export function PromptStudioPage() {
       const list = await strategyApi.getStrategies()
       setStrategies(list)
       if (list.length > 0 && !selectedId) {
-        setSelectedId(list[0].id)
+        // Prefer a strategy with a pinned (static) coin universe — the
+        // user most likely wants to preview the coins they selected
+        // manually. Fall back to the first strategy otherwise.
+        const staticStrategy =
+          list.find((s) => {
+            const cs = (s.config as StrategyConfig)?.ai_config?.coin_source
+            return (
+              cs?.source_type === 'static' && (cs.static_coins?.length || 0) > 0
+            )
+          }) || list[0]
+        setSelectedId(staticStrategy.id)
       }
     } catch {
       setLoadError(t('promptStudio.loadFailed', language))
@@ -439,11 +449,24 @@ export function PromptStudioPage() {
               ) : strategies.length === 0 ? (
                 <option>{t('promptStudio.noStrategy', language)}</option>
               ) : (
-                strategies.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))
+                strategies.map((s) => {
+                  const cs = (s.config as StrategyConfig)?.ai_config
+                    ?.coin_source
+                  const tag =
+                    cs?.source_type === 'static'
+                      ? ` · ${t('promptStudio.sourceStatic', language)} (${
+                          cs.static_coins?.length || 0
+                        })`
+                      : cs?.source_type === 'vergex_signal'
+                        ? ` · ${t('promptStudio.sourceVergex', language)}`
+                        : ` · ${cs?.source_type || ''}`
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                      {tag}
+                    </option>
+                  )
+                })
               )}
             </select>
             <button

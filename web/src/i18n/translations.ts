@@ -1703,6 +1703,8 @@ export const translations = {
       candidateCount: 'Candidates',
       aiResponse: 'AI response',
       noResponse: 'No response',
+      sourceStatic: 'Pinned coins',
+      sourceVergex: 'Claw402 board',
     },
   },
   zh: {
@@ -3297,6 +3299,8 @@ export const translations = {
       candidateCount: '候选币种',
       aiResponse: 'AI 返回内容',
       noResponse: '无返回内容',
+      sourceStatic: '固定币种',
+      sourceVergex: 'Claw402 板',
     },
   },
   id: {
@@ -4616,6 +4620,8 @@ export const translations = {
       candidateCount: 'Kandidat',
       aiResponse: 'Respons AI',
       noResponse: 'Tidak ada respons',
+      sourceStatic: 'Koin pin',
+      sourceVergex: 'Papan Claw402',
     },
   },
 }

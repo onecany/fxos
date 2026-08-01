@@ -175,32 +175,58 @@ function defaultCoinSource(
   source?: Partial<CoinSourceConfig>
 ): CoinSourceConfig {
   const staticCoins = source?.static_coins || []
+  // Backend normalizeCoinSourceType also accepts legacy claw402 spellings;
+  // treat them as vergex here regardless of the frontend union type.
+  const sourceType = (source?.source_type as string | undefined) || ''
+  const isVergex =
+    sourceType === 'vergex_signal' ||
+    sourceType === 'claw402' ||
+    sourceType === 'claw402_vergex'
+  // Pinned universe wins; otherwise keep the operator's explicit source type;
+  // otherwise default to the exchange-direct hyper_main feed (no claw402).
+  const resolvedType: CoinSourceConfig['source_type'] =
+    staticCoins.length > 0
+      ? 'static'
+      : isVergex ||
+          sourceType === 'hyper_main' ||
+          sourceType === 'hyper_all' ||
+          sourceType === 'hyper_rank' ||
+          sourceType === 'ai500' ||
+          sourceType === 'oi_top' ||
+          sourceType === 'oi_low'
+        ? (sourceType as CoinSourceConfig['source_type'])
+        : 'hyper_main'
   const minVergexLimit =
     staticCoins.length > 0 ? Math.min(staticCoins.length, 10) : 10
-  const vergexLimit = Math.min(
-    Math.max(source?.vergex_limit || minVergexLimit, minVergexLimit),
-    10
-  )
+  const vergexLimit = isVergex
+    ? Math.min(
+        Math.max(source?.vergex_limit || minVergexLimit, minVergexLimit),
+        10
+      )
+    : 0
   return {
-    source_type: staticCoins.length > 0 ? 'static' : 'vergex_signal',
+    source_type: resolvedType,
     static_coins: staticCoins,
     excluded_coins: [],
-    use_ai500: false,
+    use_ai500: resolvedType === 'ai500',
     ai500_limit: 0,
-    use_oi_top: false,
+    use_oi_top: resolvedType === 'oi_top',
     oi_top_limit: 0,
-    use_oi_low: false,
+    use_oi_low: resolvedType === 'oi_low',
     oi_low_limit: 0,
-    use_hyper_all: false,
-    use_hyper_main: false,
-    hyper_main_limit: 0,
+    use_hyper_all: resolvedType === 'hyper_all',
+    use_hyper_main: resolvedType === 'hyper_main',
+    hyper_main_limit: resolvedType === 'hyper_main' ? 30 : 0,
     hyper_rank_category: source?.hyper_rank_category || 'all',
     hyper_rank_direction: 'gainers',
     hyper_rank_limit: 0,
+    // Vergex fields only when actually on the vergex path — leaving them set
+    // for hyper_main/static would make the backend pick the vergex prompt
+    // path (usesVergexSignalPrompt checks these fields, not just source_type).
     vergex_limit: vergexLimit,
-    vergex_market_type: source?.vergex_market_type || 'all',
-    vergex_chain: source?.vergex_chain || 'hyperliquid',
-    vergex_liq_band: source?.vergex_liq_band || '',
+    vergex_market_type: isVergex ? source?.vergex_market_type || 'all' : '',
+    vergex_chain: isVergex ? source?.vergex_chain || 'hyperliquid' : '',
+    vergex_liq_band: isVergex ? source?.vergex_liq_band || '' : '',
   }
 }
 
@@ -1394,13 +1420,19 @@ export function StrategyStudioPage() {
     base.language = language as 'zh' | 'en'
     const currentCoinSource = base.ai_config?.coin_source
     const pinnedCoins = currentCoinSource?.static_coins || []
+    const sourceType =
+      (currentCoinSource?.source_type as string | undefined) || ''
+    const isVergex =
+      sourceType === 'vergex_signal' ||
+      sourceType === 'claw402' ||
+      sourceType === 'claw402_vergex'
 
-    // Pinned universe wins: when the operator pinned coins, launch with their
-    // config untouched so the user prompt is built around those symbols
-    // (defaultCoinSource already yields source_type='static' when coins exist).
-    // Only fall back to the unified Claw402 board template when nothing is
-    // pinned — never wipe a user-selected coin list at launch time.
-    if (pinnedCoins.length > 0) {
+    // The operator's own coin source wins: pinned coins, or any explicit
+    // exchange-direct source (hyper_main/hyper_all/hyper_rank/ai500/oi_*).
+    // Only fall back to the unified Claw402 board template when the strategy
+    // is actually on the vergex path (or unset) — never rewrite a selected
+    // exchange feed into the claw402 board at launch time.
+    if (pinnedCoins.length > 0 || (sourceType !== '' && !isVergex)) {
       return base
     }
 

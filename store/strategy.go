@@ -233,28 +233,21 @@ func (c *StrategyConfig) NormalizeProductSchema() {
 			c.CoinSource.VergexChain = "hyperliquid"
 		}
 	default:
-		c.CoinSource.SourceType = "vergex_signal"
+		// Unknown/legacy source types fall back to the exchange-direct
+		// default (hyper_main) instead of the claw402 signal board.
+		c.CoinSource.SourceType = "hyper_main"
 		c.CoinSource.UseAI500 = false
 		c.CoinSource.UseOITop = false
 		c.CoinSource.UseOILow = false
 		c.CoinSource.UseHyperAll = false
-		c.CoinSource.UseHyperMain = false
-		minLimit := 10
-		if len(c.CoinSource.StaticCoins) > 0 {
-			minLimit = len(c.CoinSource.StaticCoins)
-			if minLimit > MaxCandidateCoins {
-				minLimit = MaxCandidateCoins
-			}
+		c.CoinSource.UseHyperMain = true
+		if c.CoinSource.HyperMainLimit <= 0 {
+			c.CoinSource.HyperMainLimit = 30
 		}
-		if c.CoinSource.VergexLimit < minLimit {
-			c.CoinSource.VergexLimit = minLimit
-		}
-		if c.CoinSource.VergexMarketType == "" {
-			c.CoinSource.VergexMarketType = "all"
-		}
-		if c.CoinSource.VergexChain == "" {
-			c.CoinSource.VergexChain = "hyperliquid"
-		}
+		c.CoinSource.VergexLimit = 0
+		c.CoinSource.VergexMarketType = ""
+		c.CoinSource.VergexChain = ""
+		c.CoinSource.VergexLiqBand = ""
 	}
 
 	c.Indicators.Klines.PrimaryTimeframe = normalizeTimeframe(c.Indicators.Klines.PrimaryTimeframe)
@@ -323,7 +316,7 @@ func inferCoinSourceType(source CoinSourceConfig) string {
 	case source.HyperRankCategory != "" || source.HyperRankDirection != "" || source.HyperRankLimit > 0:
 		return "hyper_rank"
 	default:
-		return "vergex_signal"
+		return "hyper_main"
 	}
 }
 
@@ -960,7 +953,9 @@ func GetDefaultStrategyConfig(lang string) StrategyConfig {
 	config := StrategyConfig{
 		Language: normalizedLang,
 		CoinSource: CoinSourceConfig{
-			SourceType:        "vergex_signal",
+			// Default data source: Hyperliquid exchange top markets by 24h
+			// volume (direct exchange feed, no claw402 wallet required).
+			SourceType:        "hyper_main",
 			UseAI500:          false,
 			AI500Limit:        3,
 			UseOITop:          false,
@@ -968,12 +963,9 @@ func GetDefaultStrategyConfig(lang string) StrategyConfig {
 			UseOILow:          false,
 			OILowLimit:        3,
 			UseHyperAll:       false,
-			UseHyperMain:      false,
+			UseHyperMain:      true,
 			HyperMainLimit:    30,
 			HyperRankCategory: "all",
-			VergexLimit:       10,
-			VergexMarketType:  "all",
-			VergexChain:       "hyperliquid",
 		},
 		Indicators: IndicatorConfig{
 			Klines: KlineConfig{

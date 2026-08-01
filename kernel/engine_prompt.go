@@ -198,7 +198,7 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	riskControl := e.config.RiskControl
 
 	writeVergexSchemaPrompt(&sb)
-	sb.WriteString("\n\n---\n\n")
+	sb.WriteString("\n\n")
 
 	// Role identity: the built-in Claw402 role, OR the operator's edited
 	// role_definition — never both. Two conflicting "you are" statements

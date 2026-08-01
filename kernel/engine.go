@@ -531,72 +531,76 @@ func (e *StrategyEngine) filterExcludedCoins(candidates []CandidateCoin) []Candi
 	return filtered
 }
 
+// getAI500Coins returns the top AI500 candidates sourced directly from the
+// Hyperliquid exchange. The AI500 label is kept for compatibility with the
+// prompt/UI naming, but the underlying feed is the native 24h-volume ranking
+// (no fxos client, no claw402 wallet, no third-party gateway).
 func (e *StrategyEngine) getAI500Coins(limit int) ([]CandidateCoin, error) {
 	if limit <= 0 {
 		limit = 30
 	}
-
-	symbols, err := e.fxosClient.GetTopRatedCoins(limit)
+	ctx := context.Background()
+	coins, err := hyperliquid.GetPerpDexCoins(ctx, "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get Hyperliquid coins for AI500 feed: %w", err)
 	}
-
-	var candidates []CandidateCoin
-	for _, symbol := range symbols {
+	sort.SliceStable(coins, func(i, j int) bool {
+		return coins[i].Volume24h > coins[j].Volume24h
+	})
+	if len(coins) > limit {
+		coins = coins[:limit]
+	}
+	candidates := make([]CandidateCoin, 0, len(coins))
+	for _, coin := range coins {
 		candidates = append(candidates, CandidateCoin{
-			Symbol:  symbol,
+			Symbol:  market.Normalize(coin.Symbol + "USDT"),
 			Sources: []string{"ai500"},
 		})
 	}
 	return candidates, nil
 }
 
-func (e *StrategyEngine) getOITopCoins(limit int) ([]CandidateCoin, error) {
+// getHyperliquidCoinsByOI returns Hyperliquid coins sorted by open interest.
+// direction=true → highest OI first (oi_top), direction=false → lowest OI first
+// (oi_low). Exchange-direct replacement for the claw402-routed OI feeds.
+func (e *StrategyEngine) getHyperliquidCoinsByOI(limit int, direction bool) ([]CandidateCoin, error) {
 	if limit <= 0 {
 		limit = 10
 	}
-
-	positions, err := e.fxosClient.GetOITopPositions()
+	ctx := context.Background()
+	coins, err := hyperliquid.GetPerpDexCoins(ctx, "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get Hyperliquid coins by OI: %w", err)
 	}
-
-	var candidates []CandidateCoin
-	for i, pos := range positions {
-		if i >= limit {
-			break
+	sort.SliceStable(coins, func(i, j int) bool {
+		if direction {
+			return coins[i].OpenInterest > coins[j].OpenInterest
 		}
-		symbol := market.Normalize(pos.Symbol)
+		return coins[i].OpenInterest < coins[j].OpenInterest
+	})
+	if len(coins) > limit {
+		coins = coins[:limit]
+	}
+	source := "oi_top"
+	if !direction {
+		source = "oi_low"
+	}
+	candidates := make([]CandidateCoin, 0, len(coins))
+	for _, coin := range coins {
 		candidates = append(candidates, CandidateCoin{
-			Symbol:  symbol,
-			Sources: []string{"oi_top"},
+			Symbol:  market.Normalize(coin.Symbol + "USDT"),
+			Sources: []string{source},
 		})
 	}
 	return candidates, nil
 }
 
+func (e *StrategyEngine) getOITopCoins(limit int) ([]CandidateCoin, error) {
+	return e.getHyperliquidCoinsByOI(limit, true)
+}
+
 func (e *StrategyEngine) getOILowCoins(limit int) ([]CandidateCoin, error) {
-	if limit <= 0 {
-		limit = 10
-	}
-
-	positions, err := e.fxosClient.GetOILowPositions()
-	if err != nil {
-		return nil, err
-	}
-
-	var candidates []CandidateCoin
-	for i, pos := range positions {
-		if i >= limit {
-			break
-		}
-		symbol := market.Normalize(pos.Symbol)
-		candidates = append(candidates, CandidateCoin{
-			Symbol:  symbol,
-			Sources: []string{"oi_low"},
-		})
-	}
-	return candidates, nil
+	return e.getHyperliquidCoinsByOI(limit, false)
 }
 
 // getHyperAllCoins returns all available Hyperliquid perpetual coins

@@ -262,13 +262,17 @@ export function PromptStudioPage() {
     setTestError('')
     setTestResponse(null)
     try {
-      const result = await httpClient.post<TestRunResponse>(
+      const result = await httpClient.request<TestRunResponse>(
         `${API_BASE}/strategies/test-run`,
         {
-          config: previewConfig,
-          prompt_variant: variant,
-          ai_model_id: selectedModelId,
-          run_real_ai: true,
+          method: 'POST',
+          data: {
+            config: previewConfig,
+            prompt_variant: variant,
+            ai_model_id: selectedModelId,
+            run_real_ai: true,
+          },
+          timeout: 120000,
         }
       )
       if (result.success && result.data) {

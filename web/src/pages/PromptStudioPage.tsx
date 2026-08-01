@@ -41,6 +41,23 @@ interface PreviewResponse {
   lint_warnings?: string[]
 }
 
+interface TestRunResponse {
+  system_prompt?: string
+  user_prompt?: string
+  ai_response?: string
+  candidate_count?: number
+  prompt_variant?: string
+  note?: string
+  ai_error?: string
+}
+
+interface SafeModel {
+  id: string
+  name: string
+  provider: string
+  enabled: boolean
+}
+
 const EMPTY_SECTIONS: PromptSections = {
   role_definition: '',
   trading_frequency: '',
@@ -88,6 +105,13 @@ export function PromptStudioPage() {
   const [previewError, setPreviewError] = useState('')
   const [estimate, setEstimate] = useState<TokenEstimate | null>(null)
   const [estimateError, setEstimateError] = useState('')
+
+  // AI real-run test
+  const [models, setModels] = useState<SafeModel[]>([])
+  const [selectedModelId, setSelectedModelId] = useState('')
+  const [testResponse, setTestResponse] = useState<TestRunResponse | null>(null)
+  const [testLoading, setTestLoading] = useState(false)
+  const [testError, setTestError] = useState('')
 
   const [saving, setSaving] = useState(false)
   const [savedFlag, setSavedFlag] = useState(false)
@@ -203,6 +227,64 @@ export function PromptStudioPage() {
       setEstimateError(t('promptStudio.previewFailed', language))
     }
   }, [previewConfig, token, language])
+
+  // Load enabled AI models for the real-run test
+  const loadModels = useCallback(async () => {
+    if (!token) return
+    try {
+      const result = await httpClient.get<SafeModel[]>(`${API_BASE}/models`)
+      if (result.success && Array.isArray(result.data)) {
+        const enabled = result.data.filter((m) => m.enabled)
+        const pool = enabled.length > 0 ? enabled : result.data
+        setModels(pool)
+        setSelectedModelId((prev) => {
+          if (prev && pool.some((m) => m.id === prev)) return prev
+          return pool[0]?.id || ''
+        })
+      }
+    } catch {
+      // model list failure is non-fatal — user can still use preview
+    }
+  }, [token])
+
+  useEffect(() => {
+    void loadModels()
+  }, [loadModels])
+
+  // Run the real AI test: send the current prompt config to the backend,
+  // which fetches live market data and calls the selected model.
+  const runTest = useCallback(async () => {
+    if (!previewConfig || !token || !selectedModelId) {
+      setTestError(t('promptStudio.selectModelFirst', language))
+      return
+    }
+    setTestLoading(true)
+    setTestError('')
+    setTestResponse(null)
+    try {
+      const result = await httpClient.post<TestRunResponse>(
+        `${API_BASE}/strategies/test-run`,
+        {
+          config: previewConfig,
+          prompt_variant: variant,
+          ai_model_id: selectedModelId,
+          run_real_ai: true,
+        }
+      )
+      if (result.success && result.data) {
+        setTestResponse(result.data)
+        if (result.data.ai_error) {
+          setTestError(result.data.ai_error)
+        }
+      } else {
+        setTestError(result.message || t('promptStudio.testFailed', language))
+      }
+    } catch {
+      setTestError(t('promptStudio.testFailed', language))
+    } finally {
+      setTestLoading(false)
+    }
+  }, [previewConfig, token, selectedModelId, variant, language])
 
   // Debounced preview + estimate
   useEffect(() => {
@@ -632,6 +714,77 @@ export function PromptStudioPage() {
               <div className="rounded-lg border border-fxos-gold/25 bg-fxos-gold/5 px-3 py-2.5 text-xs leading-5 text-fxos-text-muted">
                 {t('promptStudio.englishOnly', language)}
               </div>
+
+              {/* AI real-run test */}
+              <section className="rounded-lg border border-[var(--panel-border)] bg-fxos-bg-lighter p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-sm font-semibold text-fxos-text">
+                    {t('promptStudio.aiTest', language)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void runTest()}
+                    disabled={testLoading || !selectedModelId}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-fxos-gold px-2.5 py-1.5 text-xs font-semibold text-fxos-bg transition-colors hover:bg-fxos-gold/90 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    {testLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
+                    {testLoading
+                      ? t('promptStudio.testRunning', language)
+                      : t('promptStudio.runTest', language)}
+                  </button>
+                </div>
+
+                <label className="space-y-1">
+                  <span className="text-xs text-fxos-text-muted">
+                    {t('promptStudio.aiModelLabel', language)}
+                  </span>
+                  <select
+                    value={selectedModelId}
+                    onChange={(e) => setSelectedModelId(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--panel-border)] bg-fxos-bg px-3 py-2 text-sm text-fxos-text"
+                  >
+                    {models.length === 0 ? (
+                      <option value="">
+                        {t('promptStudio.noModels', language)}
+                      </option>
+                    ) : (
+                      models.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} ({m.provider})
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+
+                {testError && (
+                  <div className="mt-3 rounded-lg border border-fxos-danger/30 bg-fxos-danger/10 px-3 py-2 text-xs text-fxos-danger">
+                    {testError}
+                  </div>
+                )}
+
+                {testResponse && (
+                  <div className="mt-3 space-y-2">
+                    {testResponse.candidate_count !== undefined && (
+                      <div className="text-xs text-fxos-text-muted">
+                        {t('promptStudio.candidateCount', language)}:{' '}
+                        {testResponse.candidate_count}
+                      </div>
+                    )}
+                    <div className="text-xs font-semibold text-fxos-text-muted">
+                      {t('promptStudio.aiResponse', language)}
+                    </div>
+                    <pre className="max-h-[320px] overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--panel-border)] bg-fxos-bg-deeper p-3 font-mono text-xs leading-5 text-fxos-text/90">
+                      {testResponse.ai_response ||
+                        t('promptStudio.noResponse', language)}
+                    </pre>
+                  </div>
+                )}
+              </section>
             </aside>
           </div>
         )}

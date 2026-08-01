@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"fxos/kernel"
 	"fxos/logger"
 	"fxos/market"
 	"fxos/mcp"
 	_ "fxos/mcp/payment"
 	_ "fxos/mcp/provider"
+	"fxos/provider/nofx"
 	"fxos/store"
 	"time"
 
@@ -620,17 +622,28 @@ func (s *Server) handleStrategyTestRun(c *gin.Context) {
 
 	fmt.Printf("📊 Using timeframes: %v, primary: %s, kline count: %d\n", timeframes, primaryTimeframe, klineCount)
 
-	// Get real market data (using multiple timeframes)
+	// Get real market data (using multiple timeframes) — concurrent
+	// per-symbol fetches: each symbol hits external APIs for K-lines,
+	// so serializing 10+ symbols is what made test-run take ~46s.
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	marketDataMap := make(map[string]*market.Data)
 	for _, coin := range candidates {
-		data, err := market.GetWithTimeframes(coin.Symbol, timeframes, primaryTimeframe, klineCount)
-		if err != nil {
-			// If getting data for a coin fails, log but continue
-			fmt.Printf("⚠️  Failed to get market data for %s: %v\n", coin.Symbol, err)
-			continue
-		}
-		marketDataMap[coin.Symbol] = data
+		wg.Add(1)
+		go func(symbol string) {
+			defer wg.Done()
+			data, err := market.GetWithTimeframes(symbol, timeframes, primaryTimeframe, klineCount)
+			if err != nil {
+				// If getting data for a coin fails, log but continue
+				fmt.Printf("⚠️  Failed to get market data for %s: %v\n", symbol, err)
+				return
+			}
+			mu.Lock()
+			marketDataMap[symbol] = data
+			mu.Unlock()
+		}(coin.Symbol)
 	}
+	wg.Wait()
 
 	// Fetch quantitative data for each candidate coin
 	symbols := make([]string, 0, len(candidates))
@@ -640,14 +653,32 @@ func (s *Server) handleStrategyTestRun(c *gin.Context) {
 	quantDataMap := engine.FetchQuantDataBatch(symbols)
 	vergexDataMap := engine.FetchVergexDataBatch(context.Background(), symbols)
 
-	// Fetch OI ranking data (market-wide position changes)
-	oiRankingData := engine.FetchOIRankingData()
-
-	// Fetch NetFlow ranking data (market-wide fund flow)
-	netFlowRankingData := engine.FetchNetFlowRankingData()
-
-	// Fetch Price ranking data (market-wide gainers/losers)
-	priceRankingData := engine.FetchPriceRankingData()
+	// Fetch OI ranking / NetFlow / Price ranking concurrently — three
+	// independent market-wide API calls.
+	type rankingResult struct {
+		oi      *nofx.OIRankingData
+		netflow *nofx.NetFlowRankingData
+		price   *nofx.PriceRankingData
+	}
+	var rank rankingResult
+	var rwg sync.WaitGroup
+	rwg.Add(3)
+	go func() {
+		defer rwg.Done()
+		rank.oi = engine.FetchOIRankingData()
+	}()
+	go func() {
+		defer rwg.Done()
+		rank.netflow = engine.FetchNetFlowRankingData()
+	}()
+	go func() {
+		defer rwg.Done()
+		rank.price = engine.FetchPriceRankingData()
+	}()
+	rwg.Wait()
+	oiRankingData := rank.oi
+	netFlowRankingData := rank.netflow
+	priceRankingData := rank.price
 
 	// Build real context (for generating User Prompt)
 	testContext := &kernel.Context{

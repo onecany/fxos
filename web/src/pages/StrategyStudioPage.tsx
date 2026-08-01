@@ -182,7 +182,7 @@ function defaultCoinSource(
     10
   )
   return {
-    source_type: 'vergex_signal',
+    source_type: staticCoins.length > 0 ? 'static' : 'vergex_signal',
     static_coins: staticCoins,
     excluded_coins: [],
     use_ai500: false,

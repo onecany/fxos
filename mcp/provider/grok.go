@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultGrokBaseURL = "https://api.x.ai/v1"
-	DefaultGrokModel   = "grok-3-latest"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderGrok, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewGrokClientWithOptions(opts...)
@@ -32,8 +27,8 @@ func NewGrokClient() mcp.AIClient {
 func NewGrokClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	grokOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderGrok),
-		mcp.WithModel(DefaultGrokModel),
-		mcp.WithBaseURL(DefaultGrokBaseURL),
+		mcp.WithModel(mcp.DefaultGrokModel),
+		mcp.WithBaseURL(mcp.DefaultGrokBaseURL),
 	}
 
 	allOpts := append(grokOpts, opts...)

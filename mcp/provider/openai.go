@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultOpenAIBaseURL = "https://api.openai.com/v1"
-	DefaultOpenAIModel   = "gpt-5.4"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderOpenAI, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewOpenAIClientWithOptions(opts...)
@@ -32,8 +27,8 @@ func NewOpenAIClient() mcp.AIClient {
 func NewOpenAIClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	openaiOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderOpenAI),
-		mcp.WithModel(DefaultOpenAIModel),
-		mcp.WithBaseURL(DefaultOpenAIBaseURL),
+		mcp.WithModel(mcp.DefaultOpenAIModel),
+		mcp.WithBaseURL(mcp.DefaultOpenAIBaseURL),
 	}
 
 	allOpts := append(openaiOpts, opts...)

@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultKimiBaseURL = "https://api.moonshot.ai/v1" // Global endpoint (use api.moonshot.cn for China)
-	DefaultKimiModel   = "moonshot-v1-auto"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderKimi, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewKimiClientWithOptions(opts...)
@@ -32,8 +27,8 @@ func NewKimiClient() mcp.AIClient {
 func NewKimiClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	kimiOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderKimi),
-		mcp.WithModel(DefaultKimiModel),
-		mcp.WithBaseURL(DefaultKimiBaseURL),
+		mcp.WithModel(mcp.DefaultKimiModel),
+		mcp.WithBaseURL(mcp.DefaultKimiBaseURL),
 		mcp.WithTemperature(1.0), // Kimi K2.5 only allows temperature=1
 	}
 

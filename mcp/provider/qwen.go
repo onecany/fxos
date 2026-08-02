@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultQwenBaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-	DefaultQwenModel   = "qwen3-max"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderQwen, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewQwenClientWithOptions(opts...)
@@ -34,8 +29,8 @@ func NewQwenClient() mcp.AIClient {
 func NewQwenClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	qwenOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderQwen),
-		mcp.WithModel(DefaultQwenModel),
-		mcp.WithBaseURL(DefaultQwenBaseURL),
+		mcp.WithModel(mcp.DefaultQwenModel),
+		mcp.WithBaseURL(mcp.DefaultQwenBaseURL),
 	}
 
 	allOpts := append(qwenOpts, opts...)

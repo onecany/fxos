@@ -24,11 +24,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultClaudeBaseURL = "https://api.anthropic.com/v1"
-	DefaultClaudeModel   = "claude-opus-4-6"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderClaude, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewClaudeClientWithOptions(opts...)
@@ -53,8 +48,8 @@ func NewClaudeClient() mcp.AIClient {
 func NewClaudeClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	baseClient := mcp.NewClient(append([]mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderClaude),
-		mcp.WithModel(DefaultClaudeModel),
-		mcp.WithBaseURL(DefaultClaudeBaseURL),
+		mcp.WithModel(mcp.DefaultClaudeModel),
+		mcp.WithBaseURL(mcp.DefaultClaudeBaseURL),
 	}, opts...)...).(*mcp.Client)
 
 	c := &ClaudeClient{Client: baseClient}

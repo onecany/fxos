@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultMiniMaxBaseURL = "https://api.minimax.io/v1"
-	DefaultMiniMaxModel   = "MiniMax-M2.7"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderMiniMax, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewMiniMaxClientWithOptions(opts...)
@@ -32,8 +27,8 @@ func NewMiniMaxClient() mcp.AIClient {
 func NewMiniMaxClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	minimaxOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderMiniMax),
-		mcp.WithModel(DefaultMiniMaxModel),
-		mcp.WithBaseURL(DefaultMiniMaxBaseURL),
+		mcp.WithModel(mcp.DefaultMiniMaxModel),
+		mcp.WithBaseURL(mcp.DefaultMiniMaxBaseURL),
 	}
 
 	allOpts := append(minimaxOpts, opts...)

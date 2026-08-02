@@ -6,11 +6,6 @@ import (
 	"fxos/mcp"
 )
 
-const (
-	DefaultGeminiBaseURL = "https://generativelanguage.googleapis.com/v1beta/openai"
-	DefaultGeminiModel   = "gemini-3.1-pro"
-)
-
 func init() {
 	mcp.RegisterProvider(mcp.ProviderGemini, func(opts ...mcp.ClientOption) mcp.AIClient {
 		return NewGeminiClientWithOptions(opts...)
@@ -32,8 +27,8 @@ func NewGeminiClient() mcp.AIClient {
 func NewGeminiClientWithOptions(opts ...mcp.ClientOption) mcp.AIClient {
 	geminiOpts := []mcp.ClientOption{
 		mcp.WithProvider(mcp.ProviderGemini),
-		mcp.WithModel(DefaultGeminiModel),
-		mcp.WithBaseURL(DefaultGeminiBaseURL),
+		mcp.WithModel(mcp.DefaultGeminiModel),
+		mcp.WithBaseURL(mcp.DefaultGeminiBaseURL),
 	}
 
 	allOpts := append(geminiOpts, opts...)

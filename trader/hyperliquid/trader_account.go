@@ -448,28 +448,21 @@ func (t *HyperliquidTrader) getXyzMarketPrice(coin string) (float64, error) {
 }
 
 // GetOrderStatus gets order status
-// Hyperliquid uses IOC orders, usually filled or cancelled immediately
-// For completed orders, need to query historical records
+// Hyperliquid uses IOC orders, usually filled or cancelled immediately.
+// The order id is matched against open orders (NEW) and the user fills
+// history (FILLED with real avg price / executed qty / commission). An
+// order in neither set is CANCELED (IOC orders that don't fill are
+// immediately cancelled by the exchange). Query failures return an error
+// instead of guessing FILLED, so network faults can never masquerade as
+// successful fills.
 func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
-	// Hyperliquid's IOC orders are completed almost immediately
-	// If order was placed through this system, returned status will be FILLED
-	// Try to query open orders to determine if still pending
 	coin := convertSymbolToHyperliquid(symbol)
 
 	// First check if in open orders
 	openOrders, err := t.exchange.Info().OpenOrders(t.ctx, t.walletAddr)
 	if err != nil {
-		// If query fails, assume order is completed
-		return map[string]interface{}{
-			"orderId":     orderID,
-			"status":      "FILLED",
-			"avgPrice":    0.0,
-			"executedQty": 0.0,
-			"commission":  0.0,
-		}, nil
+		return nil, fmt.Errorf("failed to query open orders: %w", err)
 	}
-
-	// Check if order is in open orders list
 	for _, order := range openOrders {
 		if order.Coin == coin && fmt.Sprintf("%d", order.Oid) == orderID {
 			// Order is still pending
@@ -483,12 +476,33 @@ func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (map[s
 		}
 	}
 
-	// Order not in open list, meaning completed or cancelled
-	// Hyperliquid IOC orders not in open list are usually filled
+	// Not in open orders: look for the order in the fills history. IOC
+	// orders fill or cancel immediately, so the last 24h window covers it.
+	fills, err := t.exchange.Info().UserFillsByTime(t.ctx, t.walletAddr, time.Now().Add(-24*time.Hour).UnixMilli(), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query fills history: %w", err)
+	}
+	for _, fill := range fills {
+		if fill.Oid != 0 && fmt.Sprintf("%d", fill.Oid) == orderID {
+			price, _ := strconv.ParseFloat(fill.Price, 64)
+			qty, _ := strconv.ParseFloat(fill.Size, 64)
+			fee, _ := strconv.ParseFloat(fill.Fee, 64)
+			return map[string]interface{}{
+				"orderId":     orderID,
+				"status":      "FILLED",
+				"avgPrice":    price,
+				"executedQty": qty,
+				"commission":  fee,
+			}, nil
+		}
+	}
+
+	// In neither set: an IOC order that did not fill was cancelled by the
+	// exchange at placement time.
 	return map[string]interface{}{
 		"orderId":     orderID,
-		"status":      "FILLED",
-		"avgPrice":    0.0, // Hyperliquid does not directly return execution price, need to get from position info
+		"status":      "CANCELED",
+		"avgPrice":    0.0,
 		"executedQty": 0.0,
 		"commission":  0.0,
 	}, nil
@@ -626,9 +640,14 @@ func (t *HyperliquidTrader) GetOpenOrders(symbol string) ([]types.OpenOrder, err
 		return nil, fmt.Errorf("failed to get open orders: %w", err)
 	}
 
+	// The caller passes the canonical symbol (e.g. "BTCUSDT") while the
+	// SDK's OpenOrder.Coin is the bare coin ("BTC"); normalize before
+	// comparing so coin-margined orders are not filtered out.
+	coin := convertSymbolToHyperliquid(symbol)
+
 	var result []types.OpenOrder
 	for _, order := range openOrders {
-		if order.Coin != symbol {
+		if order.Coin != coin {
 			continue
 		}
 
@@ -639,7 +658,7 @@ func (t *HyperliquidTrader) GetOpenOrders(symbol string) ([]types.OpenOrder, err
 
 		result = append(result, types.OpenOrder{
 			OrderID:      fmt.Sprintf("%d", order.Oid),
-			Symbol:       order.Coin,
+			Symbol:       symbol,
 			Side:         side,
 			PositionSide: "",
 			Type:         "LIMIT",

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -45,7 +46,23 @@ func (f *compactFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 	}
 
-	msg := fmt.Sprintf("%s [%s] %s %s\n", timestamp, level, caller, entry.Message)
+	msg := fmt.Sprintf("%s [%s] %s %s", timestamp, level, caller, entry.Message)
+
+	// Append structured fields (set via logger.WithFields/WithField) as
+	// key=value pairs after the message for greppability.
+	if len(entry.Data) > 0 {
+		keys := make([]string, 0, len(entry.Data))
+		for k := range entry.Data {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var sb strings.Builder
+		for _, k := range keys {
+			sb.WriteString(fmt.Sprintf(" %s=%v", k, entry.Data[k]))
+		}
+		msg += sb.String()
+	}
+	msg += "\n"
 	return []byte(msg), nil
 }
 

@@ -11,6 +11,7 @@ import (
 	"fxos/trader/types"
 	"fxos/wallet"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -27,17 +28,23 @@ func (at *AutoTrader) logTag() string {
 
 func (at *AutoTrader) logInfof(format string, args ...interface{}) {
 	values := append([]interface{}{at.logTag()}, args...)
-	logger.Infof("%s "+format, values...)
+	at.fields().Infof("%s "+format, values...)
 }
 
 func (at *AutoTrader) logWarnf(format string, args ...interface{}) {
 	values := append([]interface{}{at.logTag()}, args...)
-	logger.Warnf("%s "+format, values...)
+	at.fields().Warnf("%s "+format, values...)
 }
 
 func (at *AutoTrader) logErrorf(format string, args ...interface{}) {
 	values := append([]interface{}{at.logTag()}, args...)
-	logger.Errorf("%s "+format, values...)
+	at.fields().Errorf("%s "+format, values...)
+}
+
+// fields returns a logger entry tagged with the trader identity so every
+// log line carries trader_id and exchange for filtering/grepping.
+func (at *AutoTrader) fields() *logrus.Entry {
+	return logger.WithField("trader_id", at.id).WithField("exchange", at.exchange)
 }
 
 // ExchangeCredentials holds per-exchange credentials and connection options.

@@ -3,7 +3,9 @@ package trader
 import (
 	"fmt"
 	"fxos/logger"
+	"fxos/store"
 	"fxos/trader/types"
+	"time"
 )
 
 // Re-export types for backward compatibility
@@ -16,6 +18,15 @@ type (
 	LimitOrderResult  = types.LimitOrderResult
 	GridTrader        = types.GridTrader
 )
+
+// OrderSyncer is implemented by exchange adapters that run a background
+// order/position sync loop (binance, bybit, okx, bitget, gate, kucoin,
+// hyperliquid, aster, lighter). Adapters without sync (indodax) simply do
+// not implement it, and AutoTrader.Run() skips them via a type assertion
+// instead of a per-exchange switch.
+type OrderSyncer interface {
+	StartOrderSync(traderID, exchangeID, exchangeType string, st *store.Store, interval time.Duration, stop <-chan struct{})
+}
 
 // GridTraderAdapter wraps a basic Trader to provide GridTrader interface
 // Uses stop orders as a fallback when limit orders aren't directly available

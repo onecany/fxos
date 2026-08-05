@@ -128,7 +128,7 @@ type AutoTraderConfig struct {
 	InitialBalance float64 // Initial balance (for P&L calculation, must be set manually)
 
 	// Risk control (only as hints, AI can make autonomous decisions)
-	MaxDailyLoss    float64       // Maximum daily loss percentage (hint)
+	MaxDailyLoss    float64       // Maximum daily loss, decimal ratio (0.10 = 10%). CODE ENFORCED since the daily-loss breaker: equity drawdown from day start reaching this stops trading for StopTradingTime (default 24h). 0 disables the breaker.
 	MaxDrawdown     float64       // Maximum drawdown percentage (hint)
 	StopTradingTime time.Duration // Pause duration after risk control triggers
 
@@ -159,8 +159,9 @@ type AutoTrader struct {
 	cycleNumber           int                    // Current cycle number
 	initialBalance        float64
 	dailyPnL              float64
-	customPrompt          string // Custom trading strategy prompt
-	overrideBasePrompt    bool   // Whether to override base prompt
+	dayStartEquity        float64 // Equity at the start of the current trading day (anchor for the daily-loss circuit breaker)
+	customPrompt          string  // Custom trading strategy prompt
+	overrideBasePrompt    bool    // Whether to override base prompt
 	lastResetTime         time.Time
 	stopUntil             time.Time
 	isRunning             bool
@@ -390,6 +391,7 @@ func NewAutoTrader(config AutoTraderConfig, st *store.Store, userID string) (*Au
 		strategyEngine:        strategyEngine,
 		cycleNumber:           cycleNumber,
 		initialBalance:        config.InitialBalance,
+		dayStartEquity:        0,
 		lastResetTime:         time.Now(),
 		startTime:             time.Now(),
 		callCount:             0,

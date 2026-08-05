@@ -62,6 +62,7 @@ func (at *AutoTrader) runCycle() error {
 	// 2. Reset daily P&L (reset every day)
 	if time.Since(at.lastResetTime) > 24*time.Hour {
 		at.dailyPnL = 0
+		at.dayStartEquity = 0 // re-anchor on the next cycle
 		at.lastResetTime = time.Now()
 		logger.Info("📅 Daily P&L reset")
 	}
@@ -81,6 +82,44 @@ func (at *AutoTrader) runCycle() error {
 	// Save equity snapshot independently (decoupled from AI decision, used for drawing profit curve)
 	// NOTE: Must be called BEFORE candidate coins check to ensure equity is always recorded
 	at.saveEquitySnapshot(ctx)
+
+	// Daily-loss circuit breaker (CODE ENFORCED). MaxDailyLoss used to be a
+	// prompt hint only; now it hard-stops trading for the rest of the pause
+	// window once the day's equity drawdown (anchored at the first cycle of
+	// the day) breaches the limit. Value is a decimal ratio (0.10 = 10%),
+	// matching the TradingRules fed to the AI. 0 disables the breaker.
+	if !at.IsGridStrategy() {
+		if at.dayStartEquity <= 0 {
+			at.dayStartEquity = ctx.Account.TotalEquity
+		}
+		at.dailyPnL = ctx.Account.TotalEquity - at.dayStartEquity
+		maxDailyLoss := at.config.MaxDailyLoss
+		if maxDailyLoss > 0 && at.dayStartEquity > 0 {
+			maxDailyLossUSD := at.dayStartEquity * maxDailyLoss
+			if at.dailyPnL <= -maxDailyLossUSD {
+				pauseDuration := at.config.StopTradingTime
+				if pauseDuration <= 0 {
+					pauseDuration = 24 * time.Hour // default: stop until the next daily reset
+				}
+				at.stopUntil = time.Now().Add(pauseDuration)
+				at.logErrorf("🚨 DAILY LOSS LIMIT HIT: day P&L %.2f USDT (%.2f%%) <= -%.2f%% of day-start equity %.2f. Trading paused for %v.",
+					at.dailyPnL, at.dailyPnL/at.dayStartEquity*100, maxDailyLoss*100, at.dayStartEquity, pauseDuration)
+				record.Success = false
+				record.ErrorMessage = fmt.Sprintf("Daily loss limit hit: %.2f%% (limit %.2f%%), trading paused", at.dailyPnL/at.dayStartEquity*100, maxDailyLoss*100)
+				record.AccountState = store.AccountSnapshot{
+					TotalBalance:          ctx.Account.TotalEquity,
+					AvailableBalance:      ctx.Account.AvailableBalance,
+					TotalUnrealizedProfit: ctx.Account.UnrealizedPnL,
+					PositionCount:         ctx.Account.PositionCount,
+					InitialBalance:        at.initialBalance,
+				}
+				if err := at.saveDecision(record); err != nil {
+					at.logWarnf("⚠ Failed to save decision record: %v", err)
+				}
+				return nil
+			}
+		}
+	}
 
 	// If no candidate coins available, log but do not error
 	if len(ctx.CandidateCoins) == 0 {

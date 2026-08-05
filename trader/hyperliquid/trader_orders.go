@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/logger"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -227,9 +227,9 @@ func (t *HyperliquidTrader) CloseLong(symbol string, quantity float64) (map[stri
 		}
 
 		for _, pos := range positions {
-			posSymbol, _ := types.SafeString(pos, "symbol")
-			if (posSymbol == symbol || posSymbol == searchSymbol) && pos["side"] == "long" {
-				quantity, _ = types.SafeFloat64(pos, "positionAmt")
+			posSymbol := pos.Symbol
+			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -316,9 +316,9 @@ func (t *HyperliquidTrader) CloseShort(symbol string, quantity float64) (map[str
 		}
 
 		for _, pos := range positions {
-			posSymbol, _ := types.SafeString(pos, "symbol")
-			if (posSymbol == symbol || posSymbol == searchSymbol) && pos["side"] == "short" {
-				quantity, _ = types.SafeFloat64(pos, "positionAmt")
+			posSymbol := pos.Symbol
+			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == "short" {
+				quantity = pos.Quantity
 				break
 			}
 		}

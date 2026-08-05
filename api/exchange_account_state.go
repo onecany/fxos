@@ -21,6 +21,7 @@ import (
 	"fxos/trader/kucoin"
 	"fxos/trader/lighter"
 	"fxos/trader/okx"
+	"fxos/trader/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -185,10 +186,21 @@ func probeExchangeAccountState(exchangeCfg *store.Exchange, userID string) Excha
 		return state
 	}
 
-	totalEquity, totalFound := extractFirstNumeric(balanceInfo,
-		"total_equity", "totalEquity", "totalWalletBalance", "wallet_balance", "totalEq", "balance")
-	availableBalance, availableFound := extractFirstNumeric(balanceInfo,
-		"available_balance", "availableBalance", "available")
+	totalEquity, totalFound := 0.0, false
+	if balanceInfo != nil {
+		totalEquity = balanceInfo.TotalEquity
+		if totalEquity > 0 {
+			totalFound = true
+		} else if balanceInfo.TotalWalletBalance > 0 {
+			totalEquity = balanceInfo.TotalWalletBalance + balanceInfo.TotalUnrealizedProfit
+			totalFound = true
+		}
+	}
+	availableBalance, availableFound := 0.0, false
+	if balanceInfo != nil {
+		availableBalance = balanceInfo.AvailableBalance
+		availableFound = true
+	}
 
 	if !totalFound && availableFound {
 		totalEquity = availableBalance
@@ -263,9 +275,17 @@ func buildExchangeProbeTrader(exchangeCfg *store.Exchange, userID string) (trade
 	}
 }
 
-func extractExchangeTotalEquity(balanceInfo map[string]interface{}) (float64, bool) {
-	return extractFirstNumeric(balanceInfo,
-		"total_equity", "totalEquity", "totalWalletBalance", "wallet_balance", "totalEq", "balance")
+func extractExchangeTotalEquity(balanceInfo *types.Account) (float64, bool) {
+	if balanceInfo == nil {
+		return 0, false
+	}
+	if balanceInfo.TotalEquity > 0 {
+		return balanceInfo.TotalEquity, true
+	}
+	if balanceInfo.TotalWalletBalance > 0 {
+		return balanceInfo.TotalWalletBalance + balanceInfo.TotalUnrealizedProfit, true
+	}
+	return 0, false
 }
 
 func extractFirstNumeric(values map[string]interface{}, keys ...string) (float64, bool) {

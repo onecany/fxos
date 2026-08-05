@@ -504,26 +504,13 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 		return nil, fmt.Errorf("failed to get account balance: %w", err)
 	}
 
-	// Get account fields
-	totalWalletBalance := 0.0
-	totalUnrealizedProfit := 0.0
-	availableBalance := 0.0
-	totalEquity := 0.0
-
-	if wallet, ok := balance["totalWalletBalance"].(float64); ok {
-		totalWalletBalance = wallet
-	}
-	if unrealized, ok := balance["totalUnrealizedProfit"].(float64); ok {
-		totalUnrealizedProfit = unrealized
-	}
-	if avail, ok := balance["availableBalance"].(float64); ok {
-		availableBalance = avail
-	}
-
-	// Use totalEquity directly if provided by trader (more accurate)
-	if eq, ok := balance["totalEquity"].(float64); ok && eq > 0 {
-		totalEquity = eq
-	} else {
+	// Get account fields (strongly typed; the exchange adapter converged the
+	// previously free-form map keys)
+	totalWalletBalance := balance.TotalWalletBalance
+	totalUnrealizedProfit := balance.TotalUnrealizedProfit
+	availableBalance := balance.AvailableBalance
+	totalEquity := balance.TotalEquity
+	if totalEquity <= 0 {
 		// Fallback: Total Equity = Wallet balance + Unrealized profit
 		totalEquity = totalWalletBalance + totalUnrealizedProfit
 	}
@@ -541,30 +528,17 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 	currentPositionKeys := make(map[string]bool)
 
 	for _, pos := range positions {
-		symbol, sErr := SafeString(pos, "symbol")
-		if sErr != nil {
-			at.logWarnf("⚠️ Position missing 'symbol', skipping: %v", sErr)
+		symbol := pos.Symbol
+		side := pos.Side
+		if symbol == "" || side == "" {
+			at.logWarnf("⚠️ Position missing symbol/side, skipping")
 			continue
 		}
-		side, sErr := SafeString(pos, "side")
-		if sErr != nil {
-			at.logWarnf("⚠️ Position %s missing 'side', skipping: %v", symbol, sErr)
-			continue
-		}
-		entryPrice, fErr := SafeFloat64(pos, "entryPrice")
-		if fErr != nil {
-			at.logWarnf("⚠️ Position %s %s has invalid 'entryPrice': %v", symbol, side, fErr)
-		}
-		markPrice, fErr := SafeFloat64(pos, "markPrice")
-		if fErr != nil {
-			at.logWarnf("⚠️ Position %s %s has invalid 'markPrice': %v", symbol, side, fErr)
-		}
-		quantity, fErr := SafeFloat64(pos, "positionAmt")
-		if fErr != nil {
-			at.logWarnf("⚠️ Position %s %s has invalid 'positionAmt': %v", symbol, side, fErr)
-		}
+		entryPrice := pos.EntryPrice
+		markPrice := pos.MarkPrice
+		quantity := pos.Quantity
 		if quantity < 0 {
-			quantity = -quantity // Short position quantity is negative, convert to positive
+			quantity = -quantity // defensive: adapters normalize to positive, but keep the guard
 		}
 
 		// Skip closed positions (quantity = 0), prevent "ghost positions" from being passed to AI
@@ -572,13 +546,13 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 			continue
 		}
 
-		unrealizedPnl, _ := SafeFloat64(pos, "unRealizedProfit")
-		liquidationPrice, _ := SafeFloat64(pos, "liquidationPrice")
+		unrealizedPnl := pos.UnrealizedPnL
+		liquidationPrice := pos.LiquidationPrice
 
 		// Calculate margin used (estimated)
-		leverage := 10 // Default value, should actually be fetched from position info
-		if lev, ok := pos["leverage"].(float64); ok {
-			leverage = int(lev)
+		leverage := pos.Leverage
+		if leverage <= 0 {
+			leverage = 10 // Default value, should actually be fetched from position info
 		}
 		marginUsed := (quantity * markPrice) / float64(leverage)
 		totalMarginUsed += marginUsed
@@ -600,10 +574,8 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 			}
 		}
 		// Priority 2: Get from exchange API (Bybit: createdTime, OKX: createdTime)
-		if updateTime == 0 {
-			if createdTime, ok := pos["createdTime"].(int64); ok && createdTime > 0 {
-				updateTime = createdTime
-			}
+		if updateTime == 0 && pos.CreatedTime > 0 {
+			updateTime = pos.CreatedTime
 		}
 		// Priority 3: Fallback to local tracking
 		if updateTime == 0 {

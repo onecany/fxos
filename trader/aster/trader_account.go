@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/logger"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"time"
 )
 
 // GetBalance Get account balance
-func (t *AsterTrader) GetBalance() (map[string]interface{}, error) {
+func (t *AsterTrader) GetBalance() (*types.Account, error) {
 	params := make(map[string]interface{})
 	body, err := t.request("GET", "/fapi/v3/balance", params)
 	if err != nil {
@@ -65,10 +65,10 @@ func (t *AsterTrader) GetBalance() (map[string]interface{}, error) {
 	if err != nil {
 		logger.Infof("⚠️  Failed to get position information: %v", err)
 		// fallback: use simple calculation when unable to get positions
-		return map[string]interface{}{
-			"totalWalletBalance":    crossWalletBalance,
-			"availableBalance":      availableBalance,
-			"totalUnrealizedProfit": crossUnPnl,
+		return &types.Account{
+			TotalWalletBalance:    crossWalletBalance,
+			AvailableBalance:      availableBalance,
+			TotalUnrealizedProfit: crossUnPnl,
 		}, nil
 	}
 
@@ -77,17 +77,14 @@ func (t *AsterTrader) GetBalance() (map[string]interface{}, error) {
 	totalMarginUsed := 0.0
 	realUnrealizedPnl := 0.0
 	for _, pos := range positions {
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
-		if quantity < 0 {
-			quantity = -quantity
-		}
-		unrealizedPnl := pos["unRealizedProfit"].(float64)
+		markPrice := pos.MarkPrice
+		quantity := pos.Quantity
+		unrealizedPnl := pos.UnrealizedPnL
 		realUnrealizedPnl += unrealizedPnl
 
 		leverage := 10
-		if lev, ok := pos["leverage"].(float64); ok {
-			leverage = int(lev)
+		if pos.Leverage > 0 {
+			leverage = pos.Leverage
 		}
 		marginUsed := (quantity * markPrice) / float64(leverage)
 		totalMarginUsed += marginUsed
@@ -100,10 +97,12 @@ func (t *AsterTrader) GetBalance() (map[string]interface{}, error) {
 	totalEquity := availableBalance + totalMarginUsed
 	totalWalletBalance := totalEquity - realUnrealizedPnl
 
-	return map[string]interface{}{
-		"totalWalletBalance":    totalWalletBalance, // Wallet balance (excluding unrealized PnL)
-		"availableBalance":      availableBalance,   // Available balance
-		"totalUnrealizedProfit": realUnrealizedPnl,  // Unrealized PnL (accumulated from positions)
+	return &types.Account{
+		TotalWalletBalance:    totalWalletBalance, // Wallet balance (excluding unrealized PnL)
+		AvailableBalance:      availableBalance,   // Available balance
+		TotalUnrealizedProfit: realUnrealizedPnl,  // Unrealized PnL (accumulated from positions)
+		TotalEquity:           totalEquity,        // Equity = available + margin used
+		TotalMarginUsed:       totalMarginUsed,
 	}, nil
 }
 

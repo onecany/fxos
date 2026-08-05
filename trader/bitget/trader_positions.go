@@ -9,7 +9,7 @@ import (
 )
 
 // GetPositions gets all positions
-func (t *BitgetTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *BitgetTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -47,7 +47,7 @@ func (t *BitgetTrader) GetPositions() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse position data: %w", err)
 	}
 
-	var result []map[string]interface{}
+	var result []types.Position
 	for _, pos := range positions {
 		total, _ := strconv.ParseFloat(pos.Total, 64)
 		if total == 0 {
@@ -60,7 +60,6 @@ func (t *BitgetTrader) GetPositions() ([]map[string]interface{}, error) {
 		leverage, _ := strconv.ParseFloat(pos.Leverage, 64)
 		liqPrice, _ := strconv.ParseFloat(pos.LiquidationPrice, 64)
 		cTime, _ := strconv.ParseInt(pos.CTime, 10, 64)
-		uTime, _ := strconv.ParseInt(pos.UTime, 10, 64)
 
 		// Normalize side
 		side := "long"
@@ -68,19 +67,22 @@ func (t *BitgetTrader) GetPositions() ([]map[string]interface{}, error) {
 			side = "short"
 		}
 
-		posMap := map[string]interface{}{
-			"symbol":           pos.Symbol,
-			"positionAmt":      total,
-			"entryPrice":       entryPrice,
-			"markPrice":        markPrice,
-			"unRealizedProfit": unrealizedPnL,
-			"leverage":         leverage,
-			"liquidationPrice": liqPrice,
-			"side":             side,
-			"createdTime":      cTime,
-			"updatedTime":      uTime,
+		// Quantity is always positive
+		if total < 0 {
+			total = -total
 		}
-		result = append(result, posMap)
+
+		result = append(result, types.Position{
+			Symbol:           pos.Symbol,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         total,
+			UnrealizedPnL:    unrealizedPnL,
+			Leverage:         int(leverage),
+			LiquidationPrice: liqPrice,
+			CreatedTime:      cTime,
+		})
 	}
 
 	// Update cache

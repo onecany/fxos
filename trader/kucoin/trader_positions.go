@@ -3,11 +3,12 @@ package kucoin
 import (
 	"encoding/json"
 	"fmt"
+	"fxos/trader/types"
 	"time"
 )
 
 // GetPositions gets all positions
-func (t *KuCoinTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *KuCoinTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -23,14 +24,14 @@ func (t *KuCoinTrader) GetPositions() ([]map[string]interface{}, error) {
 
 	var positions []struct {
 		Symbol           string  `json:"symbol"`
-		CurrentQty       int64   `json:"currentQty"`      // Position quantity (in lots, integer)
-		AvgEntryPrice    float64 `json:"avgEntryPrice"`   // Average entry price
-		MarkPrice        float64 `json:"markPrice"`       // Mark price
-		UnrealisedPnl    float64 `json:"unrealisedPnl"`   // Unrealized PnL
-		Leverage         float64 `json:"leverage"`        // Leverage setting
-		RealLeverage     float64 `json:"realLeverage"`    // Effective leverage (may be nil in cross mode)
-		LiquidationPrice float64 `json:"liquidationPrice"`// Liquidation price
-		Multiplier       float64 `json:"multiplier"`      // Contract multiplier
+		CurrentQty       int64   `json:"currentQty"`       // Position quantity (in lots, integer)
+		AvgEntryPrice    float64 `json:"avgEntryPrice"`    // Average entry price
+		MarkPrice        float64 `json:"markPrice"`        // Mark price
+		UnrealisedPnl    float64 `json:"unrealisedPnl"`    // Unrealized PnL
+		Leverage         float64 `json:"leverage"`         // Leverage setting
+		RealLeverage     float64 `json:"realLeverage"`     // Effective leverage (may be nil in cross mode)
+		LiquidationPrice float64 `json:"liquidationPrice"` // Liquidation price
+		Multiplier       float64 `json:"multiplier"`       // Contract multiplier
 		IsOpen           bool    `json:"isOpen"`
 		CrossMode        bool    `json:"crossMode"`
 		OpeningTimestamp int64   `json:"openingTimestamp"`
@@ -41,7 +42,7 @@ func (t *KuCoinTrader) GetPositions() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse position data: %w", err)
 	}
 
-	var result []map[string]interface{}
+	var result []types.Position
 	for _, pos := range positions {
 		if !pos.IsOpen || pos.CurrentQty == 0 {
 			continue
@@ -82,19 +83,18 @@ func (t *KuCoinTrader) GetPositions() ([]map[string]interface{}, error) {
 			leverage = 10 // Default leverage
 		}
 
-		posMap := map[string]interface{}{
-			"symbol":           symbol,
-			"positionAmt":      positionAmt,
-			"entryPrice":       pos.AvgEntryPrice,
-			"markPrice":        pos.MarkPrice,
-			"unRealizedProfit": pos.UnrealisedPnl,
-			"leverage":         leverage,
-			"liquidationPrice": pos.LiquidationPrice,
-			"side":             side,
-			"mgnMode":          mgnMode,
-			"createdTime":      pos.OpeningTimestamp,
-		}
-		result = append(result, posMap)
+		result = append(result, types.Position{
+			Symbol:           symbol,
+			Side:             side,
+			EntryPrice:       pos.AvgEntryPrice,
+			MarkPrice:        pos.MarkPrice,
+			Quantity:         positionAmt,
+			UnrealizedPnL:    pos.UnrealisedPnl,
+			Leverage:         int(leverage),
+			LiquidationPrice: pos.LiquidationPrice,
+			CreatedTime:      pos.OpeningTimestamp,
+			MarginMode:       mgnMode,
+		})
 	}
 
 	// Update cache

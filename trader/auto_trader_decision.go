@@ -2,12 +2,12 @@ package trader
 
 import (
 	"fmt"
-	"math"
 	"fxos/kernel"
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
 	"fxos/telemetry"
+	"math"
 	"time"
 )
 
@@ -114,26 +114,12 @@ func (at *AutoTrader) GetAccountInfo() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get balance: %w", err)
 	}
 
-	// Get account fields
-	totalWalletBalance := 0.0
-	totalUnrealizedProfit := 0.0
-	availableBalance := 0.0
-	totalEquity := 0.0
-
-	if wallet, ok := balance["totalWalletBalance"].(float64); ok {
-		totalWalletBalance = wallet
-	}
-	if unrealized, ok := balance["totalUnrealizedProfit"].(float64); ok {
-		totalUnrealizedProfit = unrealized
-	}
-	if avail, ok := balance["availableBalance"].(float64); ok {
-		availableBalance = avail
-	}
-
-	// Use totalEquity directly if provided by trader (more accurate)
-	if eq, ok := balance["totalEquity"].(float64); ok && eq > 0 {
-		totalEquity = eq
-	} else {
+	// Get account fields (strongly typed)
+	totalWalletBalance := balance.TotalWalletBalance
+	totalUnrealizedProfit := balance.TotalUnrealizedProfit
+	availableBalance := balance.AvailableBalance
+	totalEquity := balance.TotalEquity
+	if totalEquity <= 0 {
 		// Fallback: Total Equity = Wallet balance + Unrealized profit
 		totalEquity = totalWalletBalance + totalUnrealizedProfit
 	}
@@ -147,17 +133,17 @@ func (at *AutoTrader) GetAccountInfo() (map[string]interface{}, error) {
 	totalMarginUsed := 0.0
 	totalUnrealizedPnLCalculated := 0.0
 	for _, pos := range positions {
-		markPrice, _ := SafeFloat64(pos, "markPrice")
-		quantity, _ := SafeFloat64(pos, "positionAmt")
+		markPrice := pos.MarkPrice
+		quantity := pos.Quantity
 		if quantity < 0 {
 			quantity = -quantity
 		}
-		unrealizedPnl, _ := SafeFloat64(pos, "unRealizedProfit")
+		unrealizedPnl := pos.UnrealizedPnL
 		totalUnrealizedPnLCalculated += unrealizedPnl
 
-		leverage := 10
-		if lev, ok := pos["leverage"].(float64); ok {
-			leverage = int(lev)
+		leverage := pos.Leverage
+		if leverage <= 0 {
+			leverage = 10
 		}
 		marginUsed := (quantity * markPrice) / float64(leverage)
 		totalMarginUsed += marginUsed
@@ -213,20 +199,20 @@ func (at *AutoTrader) GetPositions() ([]map[string]interface{}, error) {
 
 	var result []map[string]interface{}
 	for _, pos := range positions {
-		symbol, _ := SafeString(pos, "symbol")
-		side, _ := SafeString(pos, "side")
-		entryPrice, _ := SafeFloat64(pos, "entryPrice")
-		markPrice, _ := SafeFloat64(pos, "markPrice")
-		quantity, _ := SafeFloat64(pos, "positionAmt")
+		symbol := pos.Symbol
+		side := pos.Side
+		entryPrice := pos.EntryPrice
+		markPrice := pos.MarkPrice
+		quantity := pos.Quantity
 		if quantity < 0 {
 			quantity = -quantity
 		}
-		unrealizedPnl, _ := SafeFloat64(pos, "unRealizedProfit")
-		liquidationPrice, _ := SafeFloat64(pos, "liquidationPrice")
+		unrealizedPnl := pos.UnrealizedPnL
+		liquidationPrice := pos.LiquidationPrice
 
-		leverage := 10
-		if lev, ok := pos["leverage"].(float64); ok {
-			leverage = int(lev)
+		leverage := pos.Leverage
+		if leverage <= 0 {
+			leverage = 10
 		}
 
 		// Calculate margin used
@@ -312,20 +298,18 @@ func (at *AutoTrader) recordAndConfirmOrder(orderResult map[string]interface{}, 
 	for i := 0; i < 5; i++ {
 		status, err := at.trader.GetOrderStatus(symbol, orderID)
 		if err == nil {
-			statusStr, _ := status["status"].(string)
+			statusStr := status.Status
 			if statusStr == "FILLED" {
 				// Get actual fill price
-				if avgPrice, ok := status["avgPrice"].(float64); ok && avgPrice > 0 {
-					actualPrice = avgPrice
+				if status.AvgPrice > 0 {
+					actualPrice = status.AvgPrice
 				}
 				// Get actual executed quantity
-				if execQty, ok := status["executedQty"].(float64); ok && execQty > 0 {
-					actualQty = execQty
+				if status.ExecutedQty > 0 {
+					actualQty = status.ExecutedQty
 				}
 				// Get commission/fee
-				if commission, ok := status["commission"].(float64); ok {
-					fee = commission
-				}
+				fee = status.Commission
 				logger.Infof("  ✅ Order filled: avgPrice=%.6f, qty=%.6f, fee=%.6f", actualPrice, actualQty, fee)
 
 				// Update order status to FILLED

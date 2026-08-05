@@ -3,25 +3,26 @@ package indodax
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"fxos/logger"
 	"fxos/trader/types"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// GetBalance gets account balance from Indodax
-func (t *IndodaxTrader) GetBalance() (map[string]interface{}, error) {
-	// Check cache
-	t.cacheMutex.RLock()
-	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
-		cached := t.cachedBalance
-		t.cacheMutex.RUnlock()
-		return cached, nil
-	}
-	t.cacheMutex.RUnlock()
+// indodaxBalanceData holds raw balance data parsed from the Indodax getInfo API.
+// Used internally to build strongly-typed results and to look up per-currency
+// available balances (e.g. CloseLong needs the available amount of a coin).
+type indodaxBalanceData struct {
+	balance     map[string]interface{}
+	balanceHold map[string]interface{}
+	userID      string
+	serverTime  int64
+}
 
+// fetchBalanceData fetches and parses raw balance data from the Indodax API.
+func (t *IndodaxTrader) fetchBalanceData() (*indodaxBalanceData, error) {
 	params := url.Values{}
 	params.Set("method", "getInfo")
 
@@ -43,34 +44,40 @@ func (t *IndodaxTrader) GetBalance() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse balance: %w", err)
 	}
 
+	return &indodaxBalanceData{
+		balance:     result.Balance,
+		balanceHold: result.BalanceHold,
+		userID:      result.UserID,
+		serverTime:  result.ServerTime,
+	}, nil
+}
+
+// GetBalance gets account balance from Indodax
+func (t *IndodaxTrader) GetBalance() (*types.Account, error) {
+	// Check cache
+	t.cacheMutex.RLock()
+	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
+		cached := t.cachedBalance
+		t.cacheMutex.RUnlock()
+		return cached, nil
+	}
+	t.cacheMutex.RUnlock()
+
+	result, err := t.fetchBalanceData()
+	if err != nil {
+		return nil, err
+	}
+
 	// Calculate total balance in IDR
-	idrBalance := parseFloat(result.Balance["idr"])
-	idrHold := parseFloat(result.BalanceHold["idr"])
+	idrBalance := parseFloat(result.balance["idr"])
+	idrHold := parseFloat(result.balanceHold["idr"])
 	totalIDR := idrBalance + idrHold
 
-	balance := map[string]interface{}{
-		"totalWalletBalance":    totalIDR,
-		"availableBalance":      idrBalance,
-		"totalUnrealizedProfit": 0.0,
-		"totalEquity":           totalIDR,
-		"balance":               totalIDR,
-		"idr_balance":           idrBalance,
-		"idr_hold":              idrHold,
-		"currency":              "IDR",
-		"user_id":               result.UserID,
-		"server_time":           result.ServerTime,
-	}
-
-	// Add individual crypto balances
-	for currency, amount := range result.Balance {
-		if currency != "idr" {
-			balance["balance_"+currency] = parseFloat(amount)
-		}
-	}
-	for currency, amount := range result.BalanceHold {
-		if currency != "idr" {
-			balance["hold_"+currency] = parseFloat(amount)
-		}
+	balance := &types.Account{
+		TotalWalletBalance:    totalIDR,
+		AvailableBalance:      idrBalance,
+		TotalUnrealizedProfit: 0.0,
+		TotalEquity:           totalIDR, // Spot: equity = wallet balance
 	}
 
 	// Update cache
@@ -84,7 +91,7 @@ func (t *IndodaxTrader) GetBalance() (map[string]interface{}, error) {
 
 // GetPositions returns currently held crypto balances as "positions"
 // Since Indodax is spot-only, each non-zero crypto balance is treated as a position
-func (t *IndodaxTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *IndodaxTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.cacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionCacheTime) < t.cacheDuration {
@@ -94,32 +101,20 @@ func (t *IndodaxTrader) GetPositions() ([]map[string]interface{}, error) {
 	}
 	t.cacheMutex.RUnlock()
 
-	params := url.Values{}
-	params.Set("method", "getInfo")
-
-	data, err := t.doPrivateRequest(params)
+	result, err := t.fetchBalanceData()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
-	var result struct {
-		Balance     map[string]interface{} `json:"balance"`
-		BalanceHold map[string]interface{} `json:"balance_hold"`
-	}
+	var positions []types.Position
 
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse positions: %w", err)
-	}
-
-	var positions []map[string]interface{}
-
-	for currency, amountRaw := range result.Balance {
+	for currency, amountRaw := range result.balance {
 		if currency == "idr" {
 			continue
 		}
 
 		amount := parseFloat(amountRaw)
-		holdAmount := parseFloat(result.BalanceHold[currency])
+		holdAmount := parseFloat(result.balanceHold[currency])
 		totalAmount := amount + holdAmount
 
 		if totalAmount <= 0 {
@@ -129,25 +124,15 @@ func (t *IndodaxTrader) GetPositions() ([]map[string]interface{}, error) {
 		// Get market price for this coin
 		markPrice, _ := t.GetMarketPrice(strings.ToUpper(currency) + "IDR")
 
-		// Calculate position value in IDR
-		notionalValue := totalAmount * markPrice
-
-		position := map[string]interface{}{
-			"symbol":           strings.ToUpper(currency) + "IDR",
-			"side":             "LONG",
-			"positionAmt":      totalAmount,
-			"entryPrice":       markPrice, // Spot doesn't track entry price
-			"markPrice":        markPrice,
-			"unRealizedProfit": 0.0, // Spot doesn't track unrealized PnL
-			"leverage":         1.0,
-			"mgnMode":          "spot",
-			"notionalValue":    notionalValue,
-			"currency":         currency,
-			"available":        amount,
-			"hold":             holdAmount,
-		}
-
-		positions = append(positions, position)
+		positions = append(positions, types.Position{
+			Symbol:     strings.ToUpper(currency) + "IDR",
+			Side:       "long",
+			EntryPrice: markPrice, // Spot doesn't track entry price
+			MarkPrice:  markPrice,
+			Quantity:   totalAmount,
+			Leverage:   1,
+			MarginMode: "spot",
+		})
 	}
 
 	// Update cache

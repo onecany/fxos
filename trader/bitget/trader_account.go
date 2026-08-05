@@ -11,7 +11,7 @@ import (
 )
 
 // GetBalance gets account balance
-func (t *BitgetTrader) GetBalance() (map[string]interface{}, error) {
+func (t *BitgetTrader) GetBalance() (*types.Account, error) {
 	// Check cache
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -58,11 +58,11 @@ func (t *BitgetTrader) GetBalance() (map[string]interface{}, error) {
 		}
 	}
 
-	result := map[string]interface{}{
-		"totalWalletBalance":    totalEquity - unrealizedPnL,
-		"availableBalance":      availableBalance,
-		"totalUnrealizedProfit": unrealizedPnL,
-		"total_equity":          totalEquity,
+	result := &types.Account{
+		TotalWalletBalance:    totalEquity - unrealizedPnL,
+		AvailableBalance:      availableBalance,
+		TotalUnrealizedProfit: unrealizedPnL,
+		TotalEquity:           totalEquity,
 	}
 
 	// Update cache

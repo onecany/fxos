@@ -10,7 +10,7 @@ import (
 )
 
 // GetBalance gets account balance (with cache)
-func (t *FuturesTrader) GetBalance() (map[string]interface{}, error) {
+func (t *FuturesTrader) GetBalance() (*types.Account, error) {
 	// First check if cache is valid
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -29,17 +29,25 @@ func (t *FuturesTrader) GetBalance() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get account info: %w", err)
 	}
 
-	result := make(map[string]interface{})
-	for field, value := range map[string]string{
-		"totalWalletBalance":    account.TotalWalletBalance,
-		"availableBalance":      account.AvailableBalance,
-		"totalUnrealizedProfit": account.TotalUnrealizedProfit,
-	} {
-		parsed, parseErr := types.ParseFloatField(field, value)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		result[field] = parsed
+	totalWalletBalance, err := types.ParseFloatField("totalWalletBalance", account.TotalWalletBalance)
+	if err != nil {
+		return nil, err
+	}
+	availableBalance, err := types.ParseFloatField("availableBalance", account.AvailableBalance)
+	if err != nil {
+		return nil, err
+	}
+	totalUnrealizedProfit, err := types.ParseFloatField("totalUnrealizedProfit", account.TotalUnrealizedProfit)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &types.Account{
+		TotalWalletBalance:    totalWalletBalance,
+		AvailableBalance:      availableBalance,
+		TotalUnrealizedProfit: totalUnrealizedProfit,
+		// Binance does not report totalEquity; derive from wallet balance + unrealized PnL
+		TotalEquity: totalWalletBalance + totalUnrealizedProfit,
 	}
 
 	logger.Infof("✓ Binance API returned: total balance=%s, available=%s, unrealized PnL=%s",

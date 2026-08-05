@@ -9,10 +9,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -52,12 +53,12 @@ type OKXTrader struct {
 	httpClient *http.Client
 
 	// Balance cache
-	cachedBalance     map[string]interface{}
+	cachedBalance     *types.Account
 	balanceCacheTime  time.Time
 	balanceCacheMutex sync.RWMutex
 
 	// Positions cache
-	cachedPositions     []map[string]interface{}
+	cachedPositions     []types.Position
 	positionsCacheTime  time.Time
 	positionsCacheMutex sync.RWMutex
 

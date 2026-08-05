@@ -3,10 +3,10 @@ package lighter
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/logger"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 )
@@ -83,7 +83,7 @@ func (t *LighterTraderV2) getFullAccountInfo() (*AccountInfo, error) {
 }
 
 // GetBalance Get account balance (implements Trader interface)
-func (t *LighterTraderV2) GetBalance() (map[string]interface{}, error) {
+func (t *LighterTraderV2) GetBalance() (*types.Account, error) {
 	balance, err := t.GetAccountBalance()
 	if err != nil {
 		return nil, err
@@ -93,15 +93,13 @@ func (t *LighterTraderV2) GetBalance() (map[string]interface{}, error) {
 	walletBalance := balance.TotalEquity - balance.UnrealizedPnL
 
 	// Return in standard format compatible with auto_types.go
-	// (totalEquity = totalWalletBalance + totalUnrealizedProfit)
-	return map[string]interface{}{
-		"totalWalletBalance":    walletBalance,           // Wallet balance (excluding unrealized PnL)
-		"totalUnrealizedProfit": balance.UnrealizedPnL,   // Unrealized PnL
-		"availableBalance":      balance.AvailableBalance, // Available balance
-		// Keep additional fields for reference
-		"total_equity":       balance.TotalEquity,
-		"margin_used":        balance.MarginUsed,
-		"maintenance_margin": balance.MaintenanceMargin,
+	// (TotalEquity = TotalWalletBalance + TotalUnrealizedProfit)
+	return &types.Account{
+		TotalWalletBalance:    walletBalance,            // Wallet balance (excluding unrealized PnL)
+		TotalUnrealizedProfit: balance.UnrealizedPnL,    // Unrealized PnL
+		AvailableBalance:      balance.AvailableBalance, // Available balance
+		TotalEquity:           balance.TotalEquity,
+		TotalMarginUsed:       balance.MarginUsed,
 	}, nil
 }
 
@@ -173,25 +171,24 @@ func (t *LighterTraderV2) GetAccountBalance() (*AccountBalance, error) {
 }
 
 // GetPositions Get all positions (implements Trader interface)
-func (t *LighterTraderV2) GetPositions() ([]map[string]interface{}, error) {
+func (t *LighterTraderV2) GetPositions() ([]types.Position, error) {
 	positions, err := t.GetPositionsRaw("")
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]map[string]interface{}, 0, len(positions))
+	result := make([]types.Position, 0, len(positions))
 	for _, pos := range positions {
 		// Return in standard format compatible with auto_types.go
-		result = append(result, map[string]interface{}{
-			"symbol":           pos.Symbol,
-			"side":             pos.Side,
-			"positionAmt":      pos.Size,             // Standard field name
-			"entryPrice":       pos.EntryPrice,       // Standard field name
-			"markPrice":        pos.MarkPrice,        // Standard field name
-			"liquidationPrice": pos.LiquidationPrice, // Standard field name
-			"unRealizedProfit": pos.UnrealizedPnL,    // Standard field name
-			"leverage":         pos.Leverage,
-			"marginUsed":       pos.MarginUsed,
+		result = append(result, types.Position{
+			Symbol:           pos.Symbol,
+			Side:             pos.Side,
+			Quantity:         pos.Size,             // Standard field name
+			EntryPrice:       pos.EntryPrice,       // Standard field name
+			MarkPrice:        pos.MarkPrice,        // Standard field name
+			LiquidationPrice: pos.LiquidationPrice, // Standard field name
+			UnrealizedPnL:    pos.UnrealizedPnL,    // Standard field name
+			Leverage:         int(pos.Leverage),
 		})
 	}
 
@@ -221,7 +218,7 @@ func (t *LighterTraderV2) GetPositionsRaw(symbol string) ([]Position, error) {
 		}
 
 		// Parse fields from Lighter API response
-		size, _ := strconv.ParseFloat(lPos.Position, 64)        // API returns "position" not "size"
+		size, _ := strconv.ParseFloat(lPos.Position, 64)            // API returns "position" not "size"
 		entryPrice, _ := strconv.ParseFloat(lPos.AvgEntryPrice, 64) // API returns "avg_entry_price"
 		positionValue, _ := strconv.ParseFloat(lPos.PositionValue, 64)
 		liqPrice, _ := strconv.ParseFloat(lPos.LiquidationPrice, 64)

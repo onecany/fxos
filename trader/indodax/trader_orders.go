@@ -3,10 +3,10 @@ package indodax
 import (
 	"encoding/json"
 	"fmt"
-	"math"
-	"net/url"
 	"fxos/logger"
 	"fxos/trader/types"
+	"math"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -68,11 +68,11 @@ func (t *IndodaxTrader) CloseLong(symbol string, quantity float64) (map[string]i
 
 	// If quantity is 0, sell all available balance
 	if quantity <= 0 {
-		balance, err := t.GetBalance()
+		data, err := t.fetchBalanceData()
 		if err != nil {
 			return nil, fmt.Errorf("failed to get balance for close all: %w", err)
 		}
-		available := parseFloat(balance["balance_"+coin])
+		available := parseFloat(data.balance[coin])
 		if available <= 0 {
 			return nil, fmt.Errorf("no %s balance to sell", coin)
 		}
@@ -246,7 +246,7 @@ func (t *IndodaxTrader) FormatQuantity(symbol string, quantity float64) (string,
 }
 
 // GetOrderStatus gets the status of a specific order
-func (t *IndodaxTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *IndodaxTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	pair := t.convertSymbol(symbol)
 
 	params := url.Values{}
@@ -288,12 +288,12 @@ func (t *IndodaxTrader) GetOrderStatus(symbol string, orderID string) (map[strin
 
 	price, _ := strconv.ParseFloat(result.Order.Price, 64)
 
-	return map[string]interface{}{
-		"status":      status,
-		"avgPrice":    price,
-		"executedQty": 0.0, // Indodax doesn't return executed qty in getOrder
-		"commission":  0.0,
-		"orderId":     result.Order.OrderID,
+	return &types.OrderStatus{
+		OrderID:     result.Order.OrderID,
+		Status:      status,
+		AvgPrice:    price,
+		ExecutedQty: 0.0, // Indodax doesn't return executed qty in getOrder
+		Commission:  0.0,
 	}, nil
 }
 

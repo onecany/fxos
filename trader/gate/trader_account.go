@@ -11,7 +11,7 @@ import (
 )
 
 // GetBalance retrieves account balance
-func (t *GateTrader) GetBalance() (map[string]interface{}, error) {
+func (t *GateTrader) GetBalance() (*types.Account, error) {
 	// Check cache
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -40,10 +40,12 @@ func (t *GateTrader) GetBalance() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result := map[string]interface{}{
-		"totalWalletBalance":    total,
-		"availableBalance":      available,
-		"totalUnrealizedProfit": unrealizedPnl,
+	result := &types.Account{
+		TotalWalletBalance:    total,
+		AvailableBalance:      available,
+		TotalUnrealizedProfit: unrealizedPnl,
+		// Gate does not report totalEquity; derive from wallet balance + unrealized PnL
+		TotalEquity: total + unrealizedPnl,
 	}
 
 	// Update cache
@@ -56,7 +58,7 @@ func (t *GateTrader) GetBalance() (map[string]interface{}, error) {
 }
 
 // GetPositions retrieves all open positions
-func (t *GateTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *GateTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -72,7 +74,7 @@ func (t *GateTrader) GetPositions() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
-	var result []map[string]interface{}
+	var result []types.Position
 	for _, pos := range positions {
 		if pos.Size == 0 {
 			continue // Skip empty positions
@@ -110,15 +112,15 @@ func (t *GateTrader) GetPositions() ([]map[string]interface{}, error) {
 			side = "short"
 		}
 
-		result = append(result, map[string]interface{}{
-			"symbol":           pos.Contract,
-			"positionAmt":      positionAmt,
-			"entryPrice":       entryPrice,
-			"markPrice":        markPrice,
-			"unRealizedProfit": unrealizedPnl,
-			"leverage":         int(leverage),
-			"liquidationPrice": liqPrice,
-			"side":             side,
+		result = append(result, types.Position{
+			Symbol:           pos.Contract,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         positionAmt,
+			UnrealizedPnL:    unrealizedPnl,
+			Leverage:         int(leverage),
+			LiquidationPrice: liqPrice,
 		})
 	}
 

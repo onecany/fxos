@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strconv"
 	"time"
 )
 
 // GetPositions gets all positions
-func (t *OKXTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *OKXTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -45,7 +46,7 @@ func (t *OKXTrader) GetPositions() ([]map[string]interface{}, error) {
 	}
 
 	logger.Infof("🔍 OKX raw positions response: %d positions", len(positions))
-	var result []map[string]interface{}
+	var result []types.Position
 	for _, pos := range positions {
 		logger.Infof("🔍 OKX raw position: instId=%s, posSide=%s, pos=%s, mgnMode=%s", pos.InstId, pos.PosSide, pos.Pos, pos.MgnMode)
 		contractCount, _ := strconv.ParseFloat(pos.Pos, 64)
@@ -84,7 +85,6 @@ func (t *OKXTrader) GetPositions() ([]map[string]interface{}, error) {
 
 		// Parse timestamps
 		cTime, _ := strconv.ParseInt(pos.CTime, 10, 64)
-		uTime, _ := strconv.ParseInt(pos.UTime, 10, 64)
 
 		// Default to cross margin mode if not specified
 		mgnMode := pos.MgnMode
@@ -92,20 +92,18 @@ func (t *OKXTrader) GetPositions() ([]map[string]interface{}, error) {
 			mgnMode = "cross"
 		}
 
-		posMap := map[string]interface{}{
-			"symbol":           symbol,
-			"positionAmt":      posAmt,
-			"entryPrice":       entryPrice,
-			"markPrice":        markPrice,
-			"unRealizedProfit": upl,
-			"leverage":         leverage,
-			"liquidationPrice": liqPrice,
-			"side":             side,
-			"mgnMode":          mgnMode, // Margin mode: "cross" or "isolated"
-			"createdTime":      cTime,   // Position open time (ms)
-			"updatedTime":      uTime,   // Position last update time (ms)
-		}
-		result = append(result, posMap)
+		result = append(result, types.Position{
+			Symbol:           symbol,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         posAmt,
+			UnrealizedPnL:    upl,
+			Leverage:         int(leverage),
+			LiquidationPrice: liqPrice,
+			CreatedTime:      cTime,
+			MarginMode:       mgnMode,
+		})
 	}
 
 	// Update cache

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strconv"
 	"strings"
 )
 
 // GetPositions Get position information
-func (t *AsterTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *AsterTrader) GetPositions() ([]types.Position, error) {
 	params := make(map[string]interface{})
 	body, err := t.request("GET", "/fapi/v3/positionRisk", params)
 	if err != nil {
@@ -21,7 +22,7 @@ func (t *AsterTrader) GetPositions() ([]map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result := []map[string]interface{}{}
+	result := []types.Position{}
 	for _, pos := range positions {
 		posAmtStr, ok := pos["positionAmt"].(string)
 		if !ok {
@@ -46,16 +47,18 @@ func (t *AsterTrader) GetPositions() ([]map[string]interface{}, error) {
 			posAmt = -posAmt
 		}
 
-		// Return same field names as Binance
-		result = append(result, map[string]interface{}{
-			"symbol":           pos["symbol"],
-			"side":             side,
-			"positionAmt":      posAmt,
-			"entryPrice":       entryPrice,
-			"markPrice":        markPrice,
-			"unRealizedProfit": unRealizedProfit,
-			"leverage":         leverageVal,
-			"liquidationPrice": liquidationPrice,
+		symbol, _ := pos["symbol"].(string)
+
+		// Return same fields as Binance
+		result = append(result, types.Position{
+			Symbol:           symbol,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         posAmt,
+			UnrealizedPnL:    unRealizedProfit,
+			Leverage:         int(leverageVal),
+			LiquidationPrice: liquidationPrice,
 		})
 	}
 

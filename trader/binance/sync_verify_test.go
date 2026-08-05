@@ -2,8 +2,8 @@ package binance
 
 import (
 	"context"
-	"math"
 	"fxos/store"
+	"math"
 	"os"
 	"sort"
 	"strings"
@@ -180,9 +180,9 @@ func TestBinanceSyncVerification(t *testing.T) {
 	t.Logf("%s", repeatStr("=", 60))
 
 	type DataMismatch struct {
-		TradeID string
-		Field   string
-		DB      float64
+		TradeID  string
+		Field    string
+		DB       float64
 		Exchange float64
 	}
 
@@ -246,12 +246,12 @@ func TestBinanceSyncVerification(t *testing.T) {
 	t.Logf("%s", repeatStr("=", 60))
 
 	type SymbolSummary struct {
-		Symbol          string
-		ExchangeCount   int
-		DBCount         int
-		TotalQty        float64
-		TotalFee        float64
-		TotalPnL        float64
+		Symbol           string
+		ExchangeCount    int
+		DBCount          int
+		TotalQty         float64
+		TotalFee         float64
+		TotalPnL         float64
 		ExchangeTotalQty float64
 		ExchangeTotalFee float64
 		ExchangeTotalPnL float64
@@ -320,8 +320,8 @@ func TestBinanceSyncVerification(t *testing.T) {
 		t.Logf("Active positions on exchange: %d", len(exchangePositions))
 		for _, pos := range exchangePositions {
 			t.Logf("   - %s %s qty=%.6f entry=%.4f pnl=%.4f",
-				pos["symbol"], pos["side"],
-				pos["positionAmt"], pos["entryPrice"], pos["unRealizedProfit"])
+				pos.Symbol, pos.Side,
+				pos.Quantity, pos.EntryPrice, pos.UnrealizedPnL)
 		}
 	}
 

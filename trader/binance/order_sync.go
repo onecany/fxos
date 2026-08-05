@@ -301,8 +301,8 @@ func (t *FuturesTrader) getPositionSymbols() []string {
 
 	var symbols []string
 	for _, pos := range positions {
-		if symbol, ok := pos["symbol"].(string); ok && symbol != "" {
-			symbols = append(symbols, symbol)
+		if pos.Symbol != "" {
+			symbols = append(symbols, pos.Symbol)
 		}
 	}
 	return symbols

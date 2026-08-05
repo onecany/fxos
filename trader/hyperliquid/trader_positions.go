@@ -3,19 +3,20 @@ package hyperliquid
 import (
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strconv"
 	"strings"
 )
 
 // GetPositions gets all positions (including xyz dex positions)
-func (t *HyperliquidTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *HyperliquidTrader) GetPositions() ([]types.Position, error) {
 	// Get account status
 	accountState, err := t.exchange.Info().UserState(t.ctx, t.walletAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
-	var result []map[string]interface{}
+	var result []types.Position
 
 	// Iterate through all perp positions
 	for _, assetPos := range accountState.AssetPositions {
@@ -28,19 +29,14 @@ func (t *HyperliquidTrader) GetPositions() ([]map[string]interface{}, error) {
 			continue // Skip positions with zero amount
 		}
 
-		posMap := make(map[string]interface{})
-
 		// Normalize symbol format (Hyperliquid uses "BTC", we convert to "BTCUSDT")
 		symbol := position.Coin + "USDT"
-		posMap["symbol"] = symbol
 
 		// Position amount and direction
-		if posAmt > 0 {
-			posMap["side"] = "long"
-			posMap["positionAmt"] = posAmt
-		} else {
-			posMap["side"] = "short"
-			posMap["positionAmt"] = -posAmt // Convert to positive number
+		side := "long"
+		if posAmt < 0 {
+			side = "short"
+			posAmt = -posAmt // Convert to positive number
 		}
 
 		// Price information (EntryPx and LiquidationPx are pointer types)
@@ -58,16 +54,19 @@ func (t *HyperliquidTrader) GetPositions() ([]map[string]interface{}, error) {
 		// Calculate mark price (positionValue / abs(posAmt))
 		var markPrice float64
 		if posAmt != 0 {
-			markPrice = positionValue / absFloat(posAmt)
+			markPrice = positionValue / posAmt
 		}
 
-		posMap["entryPrice"] = entryPrice
-		posMap["markPrice"] = markPrice
-		posMap["unRealizedProfit"] = unrealizedPnl
-		posMap["leverage"] = float64(position.Leverage.Value)
-		posMap["liquidationPrice"] = liquidationPx
-
-		result = append(result, posMap)
+		result = append(result, types.Position{
+			Symbol:           symbol,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         posAmt,
+			UnrealizedPnL:    unrealizedPnl,
+			Leverage:         position.Leverage.Value,
+			LiquidationPrice: liquidationPx,
+		})
 	}
 
 	// Also get xyz dex positions (stocks, forex, commodities)
@@ -82,22 +81,17 @@ func (t *HyperliquidTrader) GetPositions() ([]map[string]interface{}, error) {
 				continue
 			}
 
-			posMap := make(map[string]interface{})
-
 			// xyz dex positions - the API returns coin names with xyz: prefix (e.g., "xyz:SILVER")
 			// Only add prefix if not already present
 			symbol := pos.Position.Coin
 			if !strings.HasPrefix(symbol, "xyz:") {
 				symbol = "xyz:" + symbol
 			}
-			posMap["symbol"] = symbol
 
-			if posAmt > 0 {
-				posMap["side"] = "long"
-				posMap["positionAmt"] = posAmt
-			} else {
-				posMap["side"] = "short"
-				posMap["positionAmt"] = -posAmt
+			side := "long"
+			if posAmt < 0 {
+				side = "short"
+				posAmt = -posAmt
 			}
 
 			// Parse price information
@@ -115,23 +109,25 @@ func (t *HyperliquidTrader) GetPositions() ([]map[string]interface{}, error) {
 			// Calculate mark price from position value
 			var markPrice float64
 			if posAmt != 0 {
-				markPrice = positionValue / absFloat(posAmt)
+				markPrice = positionValue / posAmt
 			}
 
 			// Get leverage (default to 1 if not available)
-			leverage := float64(pos.Position.Leverage.Value)
+			leverage := pos.Position.Leverage.Value
 			if leverage == 0 {
-				leverage = 1.0
+				leverage = 1
 			}
 
-			posMap["entryPrice"] = entryPrice
-			posMap["markPrice"] = markPrice
-			posMap["unRealizedProfit"] = unrealizedPnl
-			posMap["leverage"] = leverage
-			posMap["liquidationPrice"] = liquidationPx
-			posMap["isXyzDex"] = true // Mark as xyz dex position
-
-			result = append(result, posMap)
+			result = append(result, types.Position{
+				Symbol:           symbol,
+				Side:             side,
+				EntryPrice:       entryPrice,
+				MarkPrice:        markPrice,
+				Quantity:         posAmt,
+				UnrealizedPnL:    unrealizedPnl,
+				Leverage:         leverage,
+				LiquidationPrice: liquidationPx,
+			})
 		}
 	}
 

@@ -37,10 +37,10 @@ func TestKuCoinConnection(t *testing.T) {
 	}
 
 	t.Logf("✅ Connection OK")
-	t.Logf("  totalWalletBalance: %v", balance["totalWalletBalance"])
-	t.Logf("  availableBalance: %v", balance["availableBalance"])
-	t.Logf("  totalUnrealizedProfit: %v", balance["totalUnrealizedProfit"])
-	t.Logf("  totalEquity: %v", balance["totalEquity"])
+	t.Logf("  totalWalletBalance: %v", balance.TotalWalletBalance)
+	t.Logf("  availableBalance: %v", balance.AvailableBalance)
+	t.Logf("  totalUnrealizedProfit: %v", balance.TotalUnrealizedProfit)
+	t.Logf("  totalEquity: %v", balance.TotalEquity)
 }
 
 // TestKuCoinGetPositions tests position retrieval
@@ -54,16 +54,16 @@ func TestKuCoinGetPositions(t *testing.T) {
 
 	t.Logf("📊 Found %d positions:", len(positions))
 	for i, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		posAmt := pos["positionAmt"].(float64)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		unrealizedPnl := pos["unRealizedProfit"].(float64)
-		leverage := pos["leverage"].(float64)
-		mgnMode := pos["mgnMode"].(string)
+		symbol := pos.Symbol
+		side := pos.Side
+		posAmt := pos.Quantity
+		entryPrice := pos.EntryPrice
+		markPrice := pos.MarkPrice
+		unrealizedPnl := pos.UnrealizedPnL
+		leverage := pos.Leverage
+		mgnMode := pos.MarginMode
 
-		t.Logf("  [%d] %s %s: qty=%.6f entry=%.4f mark=%.4f pnl=%.4f lev=%.0f mode=%s",
+		t.Logf("  [%d] %s %s: qty=%.6f entry=%.4f mark=%.4f pnl=%.4f lev=%d mode=%s",
 			i+1, symbol, side, posAmt, entryPrice, markPrice, unrealizedPnl, leverage, mgnMode)
 	}
 }
@@ -301,9 +301,9 @@ func TestKuCoinPositionBuilding(t *testing.T) {
 
 	t.Logf("\n📊 Actual positions from exchange:")
 	for _, pos := range actualPositions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		qty := pos["positionAmt"].(float64)
+		symbol := pos.Symbol
+		side := pos.Side
+		qty := pos.Quantity
 		t.Logf("  %s %s: qty=%.6f", symbol, side, qty)
 	}
 }
@@ -343,12 +343,12 @@ func TestKuCoinValueCalculation(t *testing.T) {
 
 	var rawResponse struct {
 		Items []struct {
-			Symbol    string `json:"symbol"`
-			TradeId   string `json:"tradeId"`
-			Price     string `json:"price"`
-			Size      int64  `json:"size"`
-			Value     string `json:"value"` // This is the actual USDT value from API
-			Side      string `json:"side"`
+			Symbol  string `json:"symbol"`
+			TradeId string `json:"tradeId"`
+			Price   string `json:"price"`
+			Size    int64  `json:"size"`
+			Value   string `json:"value"` // This is the actual USDT value from API
+			Side    string `json:"side"`
 		} `json:"items"`
 	}
 	if err := json.Unmarshal(data, &rawResponse); err != nil {
@@ -506,8 +506,8 @@ func TestKuCoinPnLCalculation(t *testing.T) {
 		t.Logf("Warning: Could not get balance: %v", err)
 	} else {
 		t.Logf("Current account balance:")
-		t.Logf("  Total equity: %v", balance["totalEquity"])
-		t.Logf("  Available: %v", balance["availableBalance"])
+		t.Logf("  Total equity: %v", balance.TotalEquity)
+		t.Logf("  Available: %v", balance.AvailableBalance)
 	}
 
 	trades, err := trader.GetTrades(time.Time{}, 50)
@@ -517,13 +517,13 @@ func TestKuCoinPnLCalculation(t *testing.T) {
 
 	// Group by symbol and calculate P&L
 	type SymbolPnL struct {
-		Symbol       string
-		TotalFees    float64
-		GrossPnL     float64 // From price difference
-		NetPnL       float64 // Gross - fees
-		OpenQty      float64
-		CloseQty     float64
-		AvgOpenPrice float64
+		Symbol        string
+		TotalFees     float64
+		GrossPnL      float64 // From price difference
+		NetPnL        float64 // Gross - fees
+		OpenQty       float64
+		CloseQty      float64
+		AvgOpenPrice  float64
 		AvgClosePrice float64
 	}
 	pnlBySymbol := make(map[string]*SymbolPnL)

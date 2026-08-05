@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strconv"
 	"strings"
 	"time"
 )
 
 // GetPositions retrieves all positions
-func (t *BybitTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *BybitTrader) GetPositions() ([]types.Position, error) {
 	// Check cache
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -42,13 +43,15 @@ func (t *BybitTrader) GetPositions() ([]map[string]interface{}, error) {
 
 	list, _ := resultData["list"].([]interface{})
 
-	var positions []map[string]interface{}
+	var positions []types.Position
 
 	for _, item := range list {
 		pos, ok := item.(map[string]interface{})
 		if !ok {
 			continue
 		}
+
+		symbol, _ := pos["symbol"].(string)
 
 		sizeStr, _ := pos["size"].(string)
 		size, _ := strconv.ParseFloat(sizeStr, 64)
@@ -75,41 +78,35 @@ func (t *BybitTrader) GetPositions() ([]map[string]interface{}, error) {
 		liqPriceStr, _ := pos["liqPrice"].(string)
 		liqPrice, _ := strconv.ParseFloat(liqPriceStr, 64)
 
-		// Position created/updated time (milliseconds timestamp)
+		// Position created time (milliseconds timestamp)
 		createdTimeStr, _ := pos["createdTime"].(string)
 		createdTime, _ := strconv.ParseInt(createdTimeStr, 10, 64)
-		updatedTimeStr, _ := pos["updatedTime"].(string)
-		updatedTime, _ := strconv.ParseInt(updatedTimeStr, 10, 64)
 
 		positionSide, _ := pos["side"].(string) // Buy = long, Sell = short
 
 		// Log raw position data for debugging
-		logger.Infof("[Bybit] GetPositions raw: symbol=%v, side=%s, size=%v", pos["symbol"], positionSide, sizeStr)
+		logger.Infof("[Bybit] GetPositions raw: symbol=%v, side=%s, size=%v", symbol, positionSide, sizeStr)
 
 		// Convert to unified format (use lowercase for consistency with other exchanges)
 		// Bybit returns "Buy" for long, "Sell" for short
 		side := "long"
-		positionAmt := size
 		positionSideLower := strings.ToLower(positionSide)
 		if positionSideLower == "sell" {
 			side = "short"
-			positionAmt = -size
 		}
 
-		logger.Infof("[Bybit] GetPositions converted: symbol=%v, rawSide=%s -> side=%s", pos["symbol"], positionSide, side)
+		logger.Infof("[Bybit] GetPositions converted: symbol=%v, rawSide=%s -> side=%s", symbol, positionSide, side)
 
-		position := map[string]interface{}{
-			"symbol":           pos["symbol"],
-			"side":             side,
-			"positionAmt":      positionAmt,
-			"entryPrice":       entryPrice,
-			"markPrice":        markPrice,
-			"unRealizedProfit": unrealisedPnl,
-			"unrealizedPnL":    unrealisedPnl,
-			"liquidationPrice": liqPrice,
-			"leverage":         leverage,
-			"createdTime":      createdTime, // Position open time (ms)
-			"updatedTime":      updatedTime, // Position last update time (ms)
+		position := types.Position{
+			Symbol:           symbol,
+			Side:             side,
+			Quantity:         size, // Always positive (short positions normalized to positive)
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			UnrealizedPnL:    unrealisedPnl,
+			Leverage:         int(leverage),
+			LiquidationPrice: liqPrice,
+			CreatedTime:      createdTime, // Position open time (ms)
 		}
 
 		positions = append(positions, position)

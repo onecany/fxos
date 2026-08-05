@@ -15,7 +15,7 @@ import (
 
 // mockTrader implements just enough of the Trader interface to test dynamic SL
 type mockTrader struct {
-	positions     []map[string]interface{}
+	positions     []types.Position
 	slOrders      map[string]float64 // symbol -> stop price
 	tpOrders      map[string]float64 // symbol -> take profit price
 	cancelledSL   []string           // symbols where SL was cancelled
@@ -31,7 +31,7 @@ func newMockTrader() *mockTrader {
 	}
 }
 
-func (m *mockTrader) GetPositions() ([]map[string]interface{}, error) {
+func (m *mockTrader) GetPositions() ([]types.Position, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.positions, nil
@@ -82,8 +82,8 @@ func (m *mockTrader) CloseShort(symbol string, quantity float64) (map[string]int
 }
 
 // Stub implementations for remaining Trader interface methods
-func (m *mockTrader) GetBalance() (map[string]interface{}, error) {
-	return map[string]interface{}{"total": 10000.0, "available": 5000.0}, nil
+func (m *mockTrader) GetBalance() (*types.Account, error) {
+	return &types.Account{TotalWalletBalance: 10000.0, AvailableBalance: 5000.0, TotalEquity: 10000.0}, nil
 }
 func (m *mockTrader) OpenLong(symbol string, quantity float64, leverage int) (map[string]interface{}, error) {
 	return map[string]interface{}{"orderId": int64(1)}, nil
@@ -91,16 +91,16 @@ func (m *mockTrader) OpenLong(symbol string, quantity float64, leverage int) (ma
 func (m *mockTrader) OpenShort(symbol string, quantity float64, leverage int) (map[string]interface{}, error) {
 	return map[string]interface{}{"orderId": int64(2)}, nil
 }
-func (m *mockTrader) SetLeverage(symbol string, leverage int) error            { return nil }
-func (m *mockTrader) SetMarginMode(symbol string, isCrossMargin bool) error    { return nil }
-func (m *mockTrader) GetMarketPrice(symbol string) (float64, error)            { return 50000.0, nil }
-func (m *mockTrader) CancelAllOrders(symbol string) error                      { return nil }
-func (m *mockTrader) CancelStopOrders(symbol string) error                     { return nil }
+func (m *mockTrader) SetLeverage(symbol string, leverage int) error         { return nil }
+func (m *mockTrader) SetMarginMode(symbol string, isCrossMargin bool) error { return nil }
+func (m *mockTrader) GetMarketPrice(symbol string) (float64, error)         { return 50000.0, nil }
+func (m *mockTrader) CancelAllOrders(symbol string) error                   { return nil }
+func (m *mockTrader) CancelStopOrders(symbol string) error                  { return nil }
 func (m *mockTrader) FormatQuantity(symbol string, quantity float64) (string, error) {
 	return fmt.Sprintf("%.4f", quantity), nil
 }
-func (m *mockTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
-	return map[string]interface{}{"status": "filled"}, nil
+func (m *mockTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
+	return &types.OrderStatus{OrderID: orderID, Status: "FILLED"}, nil
 }
 func (m *mockTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.ClosedPnLRecord, error) {
 	return nil, nil
@@ -126,14 +126,14 @@ func (m *mockTrader) GetOrderBook(symbol string, depth int) (bids, asks [][]floa
 // position exists → profit reaches threshold → SL moved to breakeven
 func TestBreakevenStopLiveFlow(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "BTCUSDT",
-			"side":         "long",
-			"entryPrice":   50000.0,
-			"markPrice":    50750.0, // +1.5% profit → triggers breakeven
-			"positionAmt":  0.1,
-			"leverage":     10.0,
+			Symbol:     "BTCUSDT",
+			Side:       "long",
+			EntryPrice: 50000.0,
+			MarkPrice:  50750.0, // +1.5% profit → triggers breakeven
+			Quantity:   0.1,
+			Leverage:   10,
 		},
 	}
 
@@ -166,14 +166,14 @@ func TestBreakevenStopLiveFlow(t *testing.T) {
 // profit peaks then retraces → SL trails at 50% from peak
 func TestTrailingStopLiveFlow(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "ETHUSDT",
-			"side":         "long",
-			"entryPrice":   3000.0,
-			"markPrice":    3090.0, // +3% profit → above trailing threshold
-			"positionAmt":  1.0,
-			"leverage":     10.0,
+			Symbol:     "ETHUSDT",
+			Side:       "long",
+			EntryPrice: 3000.0,
+			MarkPrice:  3090.0, // +3% profit → above trailing threshold
+			Quantity:   1.0,
+			Leverage:   10,
 		},
 	}
 
@@ -196,14 +196,14 @@ func TestTrailingStopLiveFlow(t *testing.T) {
 	// Simulate price retracing: mark price drops to 3060 (+2% profit)
 	// Peak was 3%, now at 2% → 33% drawdown from peak
 	mock.mu.Lock()
-	mock.positions[0]["markPrice"] = 3060.0
+	mock.positions[0].MarkPrice = 3060.0
 	mock.mu.Unlock()
 
 	// Second check: trailing should trigger (profit 2% < peak 3%, but profit 2% < trailingThreshold 3%)
 	// Actually, for ETH (BTC/ETH), trailingThreshold is 3%, so 2% won't trigger trailing
 	// Let me adjust: mark price to 3120 (+4% profit, above 3% threshold, below peak)
 	mock.mu.Lock()
-	mock.positions[0]["markPrice"] = 3120.0
+	mock.positions[0].MarkPrice = 3120.0
 	mock.mu.Unlock()
 
 	at.checkPositionDrawdown()
@@ -256,22 +256,22 @@ func TestBreakevenCacheClearedOnClose(t *testing.T) {
 // TestMultiplePositionsIndependentSl verifies each position has independent SL
 func TestMultiplePositionsIndependentSl(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "BTCUSDT",
-			"side":         "long",
-			"entryPrice":   50000.0,
-			"markPrice":    50750.0, // +1.5% → breakeven
-			"positionAmt":  0.1,
-			"leverage":     10.0,
+			Symbol:     "BTCUSDT",
+			Side:       "long",
+			EntryPrice: 50000.0,
+			MarkPrice:  50750.0, // +1.5% → breakeven
+			Quantity:   0.1,
+			Leverage:   10,
 		},
 		{
-			"symbol":       "SOLUSDT",
-			"side":         "long",
-			"entryPrice":   100.0,
-			"markPrice":    102.0, // +2% → below altcoin threshold (2.5%)
-			"positionAmt":  10.0,
-			"leverage":     10.0,
+			Symbol:     "SOLUSDT",
+			Side:       "long",
+			EntryPrice: 100.0,
+			MarkPrice:  102.0, // +2% → below altcoin threshold (2.5%)
+			Quantity:   10.0,
+			Leverage:   10,
 		},
 	}
 
@@ -314,10 +314,10 @@ func TestPnLCalculation(t *testing.T) {
 		leverage       int
 		expectedPnLPct float64
 	}{
-		{"Long profit", "long", 100, 102, 10, 20.0},    // +2% price * 10x = +20%
-		{"Long loss", "long", 100, 98, 10, -20.0},      // -2% price * 10x = -20%
-		{"Short profit", "short", 100, 98, 10, 20.0},    // -2% price * 10x = +20% for short
-		{"Short loss", "short", 100, 102, 10, -20.0},    // +2% price * 10x = -20% for short
+		{"Long profit", "long", 100, 102, 10, 20.0},  // +2% price * 10x = +20%
+		{"Long loss", "long", 100, 98, 10, -20.0},    // -2% price * 10x = -20%
+		{"Short profit", "short", 100, 98, 10, 20.0}, // -2% price * 10x = +20% for short
+		{"Short loss", "short", 100, 102, 10, -20.0}, // +2% price * 10x = -20% for short
 	}
 
 	for _, tt := range tests {
@@ -357,14 +357,14 @@ func TestDrawdownCalculation(t *testing.T) {
 // TestEdgeCaseZeroQuantity verifies zero quantity doesn't cause issues
 func TestEdgeCaseZeroQuantity(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "BTCUSDT",
-			"side":         "long",
-			"entryPrice":   50000.0,
-			"markPrice":    50750.0,
-			"positionAmt":  0.0, // Zero quantity
-			"leverage":     10.0,
+			Symbol:     "BTCUSDT",
+			Side:       "long",
+			EntryPrice: 50000.0,
+			MarkPrice:  50750.0,
+			Quantity:   0.0, // Zero quantity
+			Leverage:   10,
 		},
 	}
 
@@ -380,14 +380,14 @@ func TestEdgeCaseZeroQuantity(t *testing.T) {
 // TestEdgeCaseZeroLeverage verifies zero leverage defaults to 10
 func TestEdgeCaseZeroLeverage(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "BTCUSDT",
-			"side":         "long",
-			"entryPrice":   50000.0,
-			"markPrice":    50750.0,
-			"positionAmt":  0.1,
-			"leverage":     0.0, // Zero leverage → should default to 10
+			Symbol:     "BTCUSDT",
+			Side:       "long",
+			EntryPrice: 50000.0,
+			MarkPrice:  50750.0,
+			Quantity:   0.1,
+			Leverage:   0, // Zero leverage → should default to 10
 		},
 	}
 
@@ -403,14 +403,14 @@ func TestEdgeCaseZeroLeverage(t *testing.T) {
 // TestShortPositionPnL verifies correct PnL for short positions
 func TestShortPositionPnL(t *testing.T) {
 	mock := newMockTrader()
-	mock.positions = []map[string]interface{}{
+	mock.positions = []types.Position{
 		{
-			"symbol":       "BTCUSDT",
-			"side":         "short",
-			"entryPrice":   50000.0,
-			"markPrice":    49250.0, // -1.5% price → +1.5% profit for short
-			"positionAmt":  -0.1,    // Negative for short
-			"leverage":     10.0,
+			Symbol:     "BTCUSDT",
+			Side:       "short",
+			EntryPrice: 50000.0,
+			MarkPrice:  49250.0, // -1.5% price → +1.5% profit for short
+			Quantity:   -0.1,    // Negative for short
+			Leverage:   10,
 		},
 	}
 

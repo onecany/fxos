@@ -20,10 +20,10 @@ type GateTrader struct {
 	ctx       context.Context
 
 	// Cache fields
-	cachedBalance       map[string]interface{}
+	cachedBalance       *types.Account
 	balanceCacheTime    time.Time
 	balanceCacheMutex   sync.RWMutex
-	cachedPositions     []map[string]interface{}
+	cachedPositions     []types.Position
 	positionsCacheTime  time.Time
 	positionsCacheMutex sync.RWMutex
 	contractsCache      map[string]*gateapi.Contract

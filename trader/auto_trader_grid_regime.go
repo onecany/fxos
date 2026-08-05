@@ -2,7 +2,6 @@ package trader
 
 import (
 	"fmt"
-	"math"
 	"fxos/logger"
 	"fxos/market"
 	"time"
@@ -245,11 +244,13 @@ func (at *AutoTrader) GetGridRiskInfo() *GridRiskInfo {
 	var currentPositionValue float64
 	var currentPositionSize float64
 	for _, pos := range positions {
-		if sym, _ := pos["symbol"].(string); sym == gridConfig.Symbol {
-			size, _ := pos["positionAmt"].(float64)
-			entry, _ := pos["entryPrice"].(float64)
-			currentPositionValue = math.Abs(size * entry)
-			currentPositionSize = size
+		if pos.Symbol == gridConfig.Symbol {
+			currentPositionValue = pos.Quantity * pos.EntryPrice
+			if pos.Side == "short" {
+				currentPositionSize = -pos.Quantity
+			} else {
+				currentPositionSize = pos.Quantity
+			}
 			break
 		}
 	}

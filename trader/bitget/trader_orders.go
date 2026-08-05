@@ -132,8 +132,8 @@ func (t *BitgetTrader) CloseLong(symbol string, quantity float64) (map[string]in
 			return nil, err
 		}
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "long" {
-				quantity = pos["positionAmt"].(float64)
+			if pos.Symbol == symbol && pos.Side == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -195,8 +195,8 @@ func (t *BitgetTrader) CloseShort(symbol string, quantity float64) (map[string]i
 			return nil, err
 		}
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "short" {
-				quantity = pos["positionAmt"].(float64)
+			if pos.Symbol == symbol && pos.Side == "short" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -431,7 +431,7 @@ func (t *BitgetTrader) CancelStopOrders(symbol string) error {
 }
 
 // GetOrderStatus gets order status
-func (t *BitgetTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *BitgetTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	symbol = t.convertSymbol(symbol)
 
 	params := map[string]interface{}{
@@ -446,15 +446,15 @@ func (t *BitgetTrader) GetOrderStatus(symbol string, orderID string) (map[string
 	}
 
 	var order struct {
-		OrderId      string `json:"orderId"`
-		State        string `json:"state"`        // filled, canceled, partially_filled, new
-		PriceAvg     string `json:"priceAvg"`     // Average fill price
-		BaseVolume   string `json:"baseVolume"`   // Filled quantity
-		Fee          string `json:"fee"`          // Fee
-		Side         string `json:"side"`
-		OrderType    string `json:"orderType"`
-		CTime        string `json:"cTime"`
-		UTime        string `json:"uTime"`
+		OrderId    string `json:"orderId"`
+		State      string `json:"state"`      // filled, canceled, partially_filled, new
+		PriceAvg   string `json:"priceAvg"`   // Average fill price
+		BaseVolume string `json:"baseVolume"` // Filled quantity
+		Fee        string `json:"fee"`        // Fee
+		Side       string `json:"side"`
+		OrderType  string `json:"orderType"`
+		CTime      string `json:"cTime"`
+		UTime      string `json:"uTime"`
 	}
 
 	if err := json.Unmarshal(data, &order); err != nil {
@@ -464,8 +464,6 @@ func (t *BitgetTrader) GetOrderStatus(symbol string, orderID string) (map[string
 	avgPrice, _ := strconv.ParseFloat(order.PriceAvg, 64)
 	fillQty, _ := strconv.ParseFloat(order.BaseVolume, 64)
 	fee, _ := strconv.ParseFloat(order.Fee, 64)
-	cTime, _ := strconv.ParseInt(order.CTime, 10, 64)
-	uTime, _ := strconv.ParseInt(order.UTime, 10, 64)
 
 	// Status mapping
 	statusMap := map[string]string{
@@ -480,17 +478,12 @@ func (t *BitgetTrader) GetOrderStatus(symbol string, orderID string) (map[string
 		status = order.State
 	}
 
-	return map[string]interface{}{
-		"orderId":     order.OrderId,
-		"symbol":      symbol,
-		"status":      status,
-		"avgPrice":    avgPrice,
-		"executedQty": fillQty,
-		"side":        order.Side,
-		"type":        order.OrderType,
-		"time":        cTime,
-		"updateTime":  uTime,
-		"commission":  -fee,
+	return &types.OrderStatus{
+		OrderID:     order.OrderId,
+		Status:      status,
+		AvgPrice:    avgPrice,
+		ExecutedQty: fillQty,
+		Commission:  -fee,
 	}, nil
 }
 
@@ -512,15 +505,15 @@ func (t *BitgetTrader) GetOpenOrders(symbol string) ([]types.OpenOrder, error) {
 	if err == nil && data != nil {
 		var orders struct {
 			EntrustedList []struct {
-				OrderId      string `json:"orderId"`
-				Symbol       string `json:"symbol"`
-				Side         string `json:"side"`         // buy/sell
-				TradeSide    string `json:"tradeSide"`    // open/close
-				PosSide      string `json:"posSide"`      // long/short
-				OrderType    string `json:"orderType"`    // limit/market
-				Price        string `json:"price"`
-				Size         string `json:"size"`
-				State        string `json:"state"`
+				OrderId   string `json:"orderId"`
+				Symbol    string `json:"symbol"`
+				Side      string `json:"side"`      // buy/sell
+				TradeSide string `json:"tradeSide"` // open/close
+				PosSide   string `json:"posSide"`   // long/short
+				OrderType string `json:"orderType"` // limit/market
+				Price     string `json:"price"`
+				Size      string `json:"size"`
+				State     string `json:"state"`
 			} `json:"entrustedList"`
 		}
 		if err := json.Unmarshal(data, &orders); err == nil {

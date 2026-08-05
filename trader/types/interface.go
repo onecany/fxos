@@ -8,19 +8,19 @@ import (
 
 // ClosedPnLRecord represents a single closed position record from exchange
 type ClosedPnLRecord struct {
-	Symbol       string    // Trading pair (e.g., "BTCUSDT")
-	Side         string    // "long" or "short"
-	EntryPrice   float64   // Entry price
-	ExitPrice    float64   // Exit/close price
-	Quantity     float64   // Position size
-	RealizedPnL  float64   // Realized profit/loss
-	Fee          float64   // Trading fee/commission
-	Leverage     int       // Leverage used
-	EntryTime    time.Time // Position open time
-	ExitTime     time.Time // Position close time
-	OrderID      string    // Close order ID
-	CloseType    string    // "manual", "stop_loss", "take_profit", "liquidation", "unknown"
-	ExchangeID   string    // Exchange-specific position ID
+	Symbol      string    // Trading pair (e.g., "BTCUSDT")
+	Side        string    // "long" or "short"
+	EntryPrice  float64   // Entry price
+	ExitPrice   float64   // Exit/close price
+	Quantity    float64   // Position size
+	RealizedPnL float64   // Realized profit/loss
+	Fee         float64   // Trading fee/commission
+	Leverage    int       // Leverage used
+	EntryTime   time.Time // Position open time
+	ExitTime    time.Time // Position close time
+	OrderID     string    // Close order ID
+	CloseType   string    // "manual", "stop_loss", "take_profit", "liquidation", "unknown"
+	ExchangeID  string    // Exchange-specific position ID
 }
 
 // TradeRecord represents a single trade/fill from exchange
@@ -38,14 +38,50 @@ type TradeRecord struct {
 	Time         time.Time // Trade execution time
 }
 
+// Account is the strongly-typed result of Trader.GetBalance. It converges
+// the previously free-form map keys (totalWalletBalance / total_equity /
+// totalEq / balance / ...) that each exchange adapter produced differently.
+type Account struct {
+	TotalWalletBalance    float64 // Wallet balance excluding unrealized PnL
+	TotalUnrealizedProfit float64 // Unrealized PnL
+	AvailableBalance      float64 // Available balance
+	TotalEquity           float64 // Total equity (wallet + unrealized). Exchange-provided when available, else derived.
+	TotalMarginUsed       float64 // Used margin (0 when the exchange does not report it)
+	SpotBalance           float64 // Spot balance (Hyperliquid unified account; 0 elsewhere)
+	XYZDexBalance         float64 // Hyperliquid xyz dex equity (0 elsewhere)
+}
+
+// Position is the strongly-typed result of Trader.GetPositions.
+type Position struct {
+	Symbol           string  // Trading pair (e.g. "BTCUSDT")
+	Side             string  // "long" or "short"
+	EntryPrice       float64 // Average entry price
+	MarkPrice        float64 // Current mark price
+	Quantity         float64 // Position size, always positive
+	UnrealizedPnL    float64 // Unrealized profit/loss
+	Leverage         int     // Position leverage (0 when unknown)
+	LiquidationPrice float64 // Liquidation price (0 when unknown)
+	CreatedTime      int64   // Position open time in milliseconds (0 when unknown)
+	MarginMode       string  // "cross"/"isolated" (exchange-specific, may be empty)
+}
+
+// OrderStatus is the strongly-typed result of Trader.GetOrderStatus.
+type OrderStatus struct {
+	OrderID     string
+	Status      string // FILLED / NEW / CANCELED / PARTIALLY_FILLED
+	AvgPrice    float64
+	ExecutedQty float64
+	Commission  float64
+}
+
 // Trader Unified trader interface
 // Supports multiple trading platforms (Binance, Hyperliquid, etc.)
 type Trader interface {
 	// GetBalance Get account balance
-	GetBalance() (map[string]interface{}, error)
+	GetBalance() (*Account, error)
 
 	// GetPositions Get all positions
-	GetPositions() ([]map[string]interface{}, error)
+	GetPositions() ([]Position, error)
 
 	// OpenLong Open long position
 	OpenLong(symbol string, quantity float64, leverage int) (map[string]interface{}, error)
@@ -91,7 +127,7 @@ type Trader interface {
 
 	// GetOrderStatus Get order status
 	// Returns: status(FILLED/NEW/CANCELED), avgPrice, executedQty, commission
-	GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error)
+	GetOrderStatus(symbol string, orderID string) (*OrderStatus, error)
 
 	// GetClosedPnL Get closed position PnL records from exchange
 	// startTime: start time for query (usually last sync time)
@@ -125,9 +161,9 @@ type LimitOrderRequest struct {
 	Price        float64 `json:"price"`         // Limit price
 	Quantity     float64 `json:"quantity"`
 	Leverage     int     `json:"leverage"`
-	PostOnly     bool    `json:"post_only"`     // Maker only order
-	ReduceOnly   bool    `json:"reduce_only"`   // Reduce position only
-	ClientID     string  `json:"client_id"`     // Client order ID for tracking
+	PostOnly     bool    `json:"post_only"`   // Maker only order
+	ReduceOnly   bool    `json:"reduce_only"` // Reduce position only
+	ClientID     string  `json:"client_id"`   // Client order ID for tracking
 }
 
 // LimitOrderResult represents the result of placing a limit order

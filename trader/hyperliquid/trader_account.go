@@ -4,18 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/logger"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
 // GetBalance gets account balance
-func (t *HyperliquidTrader) GetBalance() (map[string]interface{}, error) {
+func (t *HyperliquidTrader) GetBalance() (*types.Account, error) {
 	logger.Infof("🔄 Calling Hyperliquid API to get account balance...")
 
 	// Step 1: Query Spot account balance
@@ -41,7 +41,7 @@ func (t *HyperliquidTrader) GetBalance() (map[string]interface{}, error) {
 	}
 
 	// Parse balance information (MarginSummary fields are all strings)
-	result := make(map[string]interface{})
+	result := &types.Account{}
 
 	// Step 3: Dynamically select correct summary based on margin mode (CrossMarginSummary or MarginSummary)
 	var accountValue, totalMarginUsed float64
@@ -159,15 +159,13 @@ func (t *HyperliquidTrader) GetBalance() (map[string]interface{}, error) {
 	// Suppress unused variable warning
 	_ = totalUnrealizedPnlAll
 
-	result["totalWalletBalance"] = totalWalletBalance       // Total assets (Perp + Spot + xyz) - unrealized
-	result["totalEquity"] = totalEquityCalculated           // Total equity = Perp AV + Spot + xyz AV
-	result["availableBalance"] = availableBalance           // Available balance (Perp + Spot if unified)
-	result["totalUnrealizedProfit"] = totalUnrealizedPnlAll // Unrealized PnL (Perpetuals + xyz)
-	result["spotBalance"] = spotUSDCBalance                 // Spot balance
-	result["xyzDexBalance"] = xyzAccountValue               // xyz dex equity (stock perps, forex, commodities)
-	result["xyzDexUnrealizedPnl"] = xyzUnrealizedPnl        // xyz dex unrealized PnL
-	result["perpAccountValue"] = accountValue               // Perp account value for debugging
-	result["totalMarginUsed"] = balanceBreakdown.TotalMarginUsed
+	result.TotalWalletBalance = totalWalletBalance       // Total assets (Perp + Spot + xyz) - unrealized
+	result.TotalEquity = totalEquityCalculated           // Total equity = Perp AV + Spot + xyz AV
+	result.AvailableBalance = availableBalance           // Available balance (Perp + Spot if unified)
+	result.TotalUnrealizedProfit = totalUnrealizedPnlAll // Unrealized PnL (Perpetuals + xyz)
+	result.SpotBalance = spotUSDCBalance                 // Spot balance
+	result.XYZDexBalance = xyzAccountValue               // xyz dex equity (stock perps, forex, commodities)
+	result.TotalMarginUsed = balanceBreakdown.TotalMarginUsed
 
 	logger.Infof("✓ Hyperliquid complete account:")
 	logger.Infof("  • Spot balance: %.2f USDC", spotUSDCBalance)
@@ -455,7 +453,7 @@ func (t *HyperliquidTrader) getXyzMarketPrice(coin string) (float64, error) {
 // immediately cancelled by the exchange). Query failures return an error
 // instead of guessing FILLED, so network faults can never masquerade as
 // successful fills.
-func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	coin := convertSymbolToHyperliquid(symbol)
 
 	// First check if in open orders
@@ -466,12 +464,12 @@ func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (map[s
 	for _, order := range openOrders {
 		if order.Coin == coin && fmt.Sprintf("%d", order.Oid) == orderID {
 			// Order is still pending
-			return map[string]interface{}{
-				"orderId":     orderID,
-				"status":      "NEW",
-				"avgPrice":    0.0,
-				"executedQty": 0.0,
-				"commission":  0.0,
+			return &types.OrderStatus{
+				OrderID:     orderID,
+				Status:      "NEW",
+				AvgPrice:    0.0,
+				ExecutedQty: 0.0,
+				Commission:  0.0,
 			}, nil
 		}
 	}
@@ -487,24 +485,24 @@ func (t *HyperliquidTrader) GetOrderStatus(symbol string, orderID string) (map[s
 			price, _ := strconv.ParseFloat(fill.Price, 64)
 			qty, _ := strconv.ParseFloat(fill.Size, 64)
 			fee, _ := strconv.ParseFloat(fill.Fee, 64)
-			return map[string]interface{}{
-				"orderId":     orderID,
-				"status":      "FILLED",
-				"avgPrice":    price,
-				"executedQty": qty,
-				"commission":  fee,
+			return &types.OrderStatus{
+				OrderID:     orderID,
+				Status:      "FILLED",
+				AvgPrice:    price,
+				ExecutedQty: qty,
+				Commission:  fee,
 			}, nil
 		}
 	}
 
 	// In neither set: an IOC order that did not fill was cancelled by the
 	// exchange at placement time.
-	return map[string]interface{}{
-		"orderId":     orderID,
-		"status":      "CANCELED",
-		"avgPrice":    0.0,
-		"executedQty": 0.0,
-		"commission":  0.0,
+	return &types.OrderStatus{
+		OrderID:     orderID,
+		Status:      "CANCELED",
+		AvgPrice:    0.0,
+		ExecutedQty: 0.0,
+		Commission:  0.0,
 	}, nil
 }
 

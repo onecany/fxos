@@ -43,15 +43,14 @@ func CreatePositionSnapshot(traderID, exchangeID, exchangeType string, trader Tr
 	nowMs := time.Now().UnixMilli()
 	createdCount := 0
 
-	for _, posMap := range positions {
-		// Parse position data
-		rawSymbol, _ := posMap["symbol"].(string)
-		symbol := market.Normalize(rawSymbol)
-		sideStr, _ := posMap["side"].(string)
-		positionAmt, _ := posMap["positionAmt"].(float64)
-		entryPrice, _ := posMap["entryPrice"].(float64)
-		markPrice, _ := posMap["markPrice"].(float64)
-		leverage, _ := posMap["leverage"].(float64)
+	for _, pos := range positions {
+		// Parse position data (strongly typed Position from the adapter)
+		symbol := market.Normalize(pos.Symbol)
+		sideStr := pos.Side
+		positionAmt := pos.Quantity
+		entryPrice := pos.EntryPrice
+		markPrice := pos.MarkPrice
+		leverage := pos.Leverage
 
 		// Skip positions with 0 quantity
 		if positionAmt == 0 {
@@ -81,7 +80,7 @@ func CreatePositionSnapshot(traderID, exchangeID, exchangeType string, trader Tr
 			EntryPrice:         entryPrice,
 			EntryOrderID:       "snapshot", // Mark as snapshot
 			EntryTime:          nowMs,
-			Leverage:           int(leverage),
+			Leverage:           leverage,
 			Status:             "OPEN",
 			Source:             "snapshot", // Mark source as snapshot
 			CreatedAt:          nowMs,

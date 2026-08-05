@@ -6,6 +6,7 @@ import (
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actio
 
 	// Check if there's already a position in the same symbol and direction
 	for _, pos := range positions {
-		if pos["symbol"] == decision.Symbol && pos["side"] == "long" {
+		if pos.Symbol == decision.Symbol && pos.Side == "long" {
 			return fmt.Errorf("❌ %s already has long position, close it first", decision.Symbol)
 		}
 	}
@@ -77,18 +78,14 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actio
 	if err != nil {
 		return fmt.Errorf("failed to get account balance: %w", err)
 	}
-	availableBalance := 0.0
-	if avail, ok := balance["availableBalance"].(float64); ok {
-		availableBalance = avail
-	}
+	availableBalance := balance.AvailableBalance
 
 	// Get equity for position value ratio check
-	equity := 0.0
-	if eq, ok := balance["totalEquity"].(float64); ok && eq > 0 {
-		equity = eq
-	} else if eq, ok := balance["totalWalletBalance"].(float64); ok && eq > 0 {
-		equity = eq
-	} else {
+	equity := balance.TotalEquity
+	if equity <= 0 {
+		equity = balance.TotalWalletBalance
+	}
+	if equity <= 0 {
 		equity = availableBalance // Fallback to available balance
 	}
 
@@ -177,7 +174,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, acti
 
 	// Check if there's already a position in the same symbol and direction
 	for _, pos := range positions {
-		if pos["symbol"] == decision.Symbol && pos["side"] == "short" {
+		if pos.Symbol == decision.Symbol && pos.Side == "short" {
 			return fmt.Errorf("❌ %s already has short position, close it first", decision.Symbol)
 		}
 	}
@@ -193,18 +190,14 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, acti
 	if err != nil {
 		return fmt.Errorf("failed to get account balance: %w", err)
 	}
-	availableBalance := 0.0
-	if avail, ok := balance["availableBalance"].(float64); ok {
-		availableBalance = avail
-	}
+	availableBalance := balance.AvailableBalance
 
 	// Get equity for position value ratio check
-	equity := 0.0
-	if eq, ok := balance["totalEquity"].(float64); ok && eq > 0 {
-		equity = eq
-	} else if eq, ok := balance["totalWalletBalance"].(float64); ok && eq > 0 {
-		equity = eq
-	} else {
+	equity := balance.TotalEquity
+	if equity <= 0 {
+		equity = balance.TotalWalletBalance
+	}
+	if equity <= 0 {
 		equity = availableBalance // Fallback to available balance
 	}
 
@@ -308,12 +301,12 @@ func (at *AutoTrader) executeCloseLongWithRecord(decision *kernel.Decision, acti
 		positions, err := at.trader.GetPositions()
 		if err == nil {
 			for _, pos := range positions {
-				if pos["symbol"] == decision.Symbol && pos["side"] == "long" {
-					if ep, ok := pos["entryPrice"].(float64); ok {
-						entryPrice = ep
+				if pos.Symbol == decision.Symbol && pos.Side == "long" {
+					if pos.EntryPrice > 0 {
+						entryPrice = pos.EntryPrice
 					}
-					if amt, ok := pos["positionAmt"].(float64); ok && amt > 0 {
-						quantity = amt
+					if pos.Quantity > 0 {
+						quantity = pos.Quantity
 					}
 					break
 				}
@@ -376,12 +369,12 @@ func (at *AutoTrader) executeCloseShortWithRecord(decision *kernel.Decision, act
 		positions, err := at.trader.GetPositions()
 		if err == nil {
 			for _, pos := range positions {
-				if pos["symbol"] == decision.Symbol && pos["side"] == "short" {
-					if ep, ok := pos["entryPrice"].(float64); ok {
-						entryPrice = ep
+				if pos.Symbol == decision.Symbol && pos.Side == "short" {
+					if pos.EntryPrice > 0 {
+						entryPrice = pos.EntryPrice
 					}
-					if amt, ok := pos["positionAmt"].(float64); ok {
-						quantity = -amt // positionAmt is negative for short
+					if pos.Quantity > 0 {
+						quantity = pos.Quantity
 					}
 					break
 				}
@@ -422,10 +415,10 @@ func (at *AutoTrader) executeModifyWithRecord(decision *kernel.Decision, actionR
 		return fmt.Errorf("failed to get positions for modify: %w", err)
 	}
 
-	var targetPos map[string]interface{}
-	for _, pos := range positions {
-		if pos["symbol"].(string) == decision.Symbol {
-			targetPos = pos
+	var targetPos *types.Position
+	for i := range positions {
+		if positions[i].Symbol == decision.Symbol {
+			targetPos = &positions[i]
 			break
 		}
 	}
@@ -434,8 +427,8 @@ func (at *AutoTrader) executeModifyWithRecord(decision *kernel.Decision, actionR
 		return fmt.Errorf("no open position found for %s to modify", decision.Symbol)
 	}
 
-	side := targetPos["side"].(string)
-	quantity := targetPos["positionAmt"].(float64)
+	side := targetPos.Side
+	quantity := targetPos.Quantity
 	if quantity < 0 {
 		quantity = -quantity
 	}

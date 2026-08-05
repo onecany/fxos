@@ -6,6 +6,7 @@ import (
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
 	"strings"
 	"time"
 )
@@ -43,28 +44,15 @@ func (at *AutoTrader) checkPositionDrawdown() {
 	}
 
 	for _, pos := range positions {
-		symbol, sErr := SafeString(pos, "symbol")
-		if sErr != nil {
-			logger.Warnf("⚠️ Drawdown monitoring: position missing 'symbol', skipping: %v", sErr)
+		symbol := pos.Symbol
+		side := pos.Side
+		if symbol == "" || side == "" {
+			logger.Warnf("⚠️ Drawdown monitoring: position missing symbol/side, skipping")
 			continue
 		}
-		side, sErr := SafeString(pos, "side")
-		if sErr != nil {
-			logger.Warnf("⚠️ Drawdown monitoring: position %s missing 'side', skipping: %v", symbol, sErr)
-			continue
-		}
-		entryPrice, fErr := SafeFloat64(pos, "entryPrice")
-		if fErr != nil {
-			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'entryPrice': %v", symbol, side, fErr)
-		}
-		markPrice, fErr := SafeFloat64(pos, "markPrice")
-		if fErr != nil {
-			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'markPrice': %v", symbol, side, fErr)
-		}
-		quantity, fErr := SafeFloat64(pos, "positionAmt")
-		if fErr != nil {
-			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'positionAmt': %v", symbol, side, fErr)
-		}
+		entryPrice := pos.EntryPrice
+		markPrice := pos.MarkPrice
+		quantity := pos.Quantity
 		if quantity < 0 {
 			quantity = -quantity // Short position quantity is negative, convert to positive
 		}
@@ -76,9 +64,9 @@ func (at *AutoTrader) checkPositionDrawdown() {
 		}
 
 		// Calculate current P&L percentage
-		leverage := 10 // Default value
-		if lev, ok := pos["leverage"].(float64); ok {
-			leverage = int(lev)
+		leverage := pos.Leverage
+		if leverage <= 0 {
+			leverage = 10 // Default value
 		}
 
 		var currentPnLPct float64
@@ -305,10 +293,10 @@ func (at *AutoTrader) applyTrailingStop(symbol, side string, quantity, stopPrice
 	logger.Infof("✅ %s stop applied: %s %s | New SL: %.4f", reason, symbol, side, stopPrice)
 }
 
-// getLeverage extracts leverage from position data (returns default 10 if unavailable)
-func (at *AutoTrader) getLeverage(pos map[string]interface{}) int {
-	if lev, ok := pos["leverage"].(float64); ok && lev > 0 {
-		return int(lev)
+// getLeverage extracts leverage from a position (returns default 10 if unavailable)
+func (at *AutoTrader) getLeverage(pos types.Position) int {
+	if pos.Leverage > 0 {
+		return pos.Leverage
 	}
 	return 10
 }

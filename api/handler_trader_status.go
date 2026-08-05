@@ -232,16 +232,12 @@ func (s *Server) handleClosePosition(c *gin.Context) {
 	var posQty float64
 	var entryPrice float64
 	for _, pos := range positions {
-		if pos["symbol"] == req.Symbol && pos["side"] == strings.ToLower(req.Side) {
-			if amt, ok := pos["positionAmt"].(float64); ok {
-				posQty = amt
-				if posQty < 0 {
-					posQty = -posQty // Make positive
-				}
+		if pos.Symbol == req.Symbol && pos.Side == strings.ToLower(req.Side) {
+			posQty = pos.Quantity
+			if posQty < 0 {
+				posQty = -posQty // Make positive
 			}
-			if price, ok := pos["entryPrice"].(float64); ok {
-				entryPrice = price
-			}
+			entryPrice = pos.EntryPrice
 			break
 		}
 	}
@@ -456,20 +452,18 @@ func (s *Server) pollAndUpdateOrderStatus(orderRecordID int64, traderID, exchang
 			continue
 		}
 		if err == nil {
-			statusStr, _ := status["status"].(string)
+			statusStr := status.Status
 			if statusStr == "FILLED" {
 				// Get actual fill price
-				if avgPrice, ok := status["avgPrice"].(float64); ok && avgPrice > 0 {
-					actualPrice = avgPrice
+				if status.AvgPrice > 0 {
+					actualPrice = status.AvgPrice
 				}
 				// Get actual executed quantity
-				if execQty, ok := status["executedQty"].(float64); ok && execQty > 0 {
-					actualQty = execQty
+				if status.ExecutedQty > 0 {
+					actualQty = status.ExecutedQty
 				}
 				// Get commission/fee
-				if commission, ok := status["commission"].(float64); ok {
-					fee = commission
-				}
+				fee = status.Commission
 
 				logger.Infof("  ✅ Order filled: avgPrice=%.6f, qty=%.6f, fee=%.6f", actualPrice, actualQty, fee)
 

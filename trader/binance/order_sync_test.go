@@ -53,11 +53,11 @@ func TestBinanceGetPositions(t *testing.T) {
 
 	t.Logf("📊 Found %d positions with non-zero amount:", len(positions))
 	for i, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		posAmt := pos["positionAmt"].(float64)
-		entryPrice := pos["entryPrice"].(float64)
-		unrealizedPnl := pos["unRealizedProfit"].(float64)
+		symbol := pos.Symbol
+		side := pos.Side
+		posAmt := pos.Quantity
+		entryPrice := pos.EntryPrice
+		unrealizedPnl := pos.UnrealizedPnL
 
 		t.Logf("  [%d] %s %s: qty=%.6f entry=%.4f pnl=%.4f",
 			i+1, symbol, side, posAmt, entryPrice, unrealizedPnl)
@@ -233,7 +233,7 @@ func TestBinanceTimestampFormats(t *testing.T) {
 
 	// Test what happens when we parse a time stored in DB
 	// Simulate old DB value stored in local time
-	oldLocalTime := time.Date(2026, 1, 6, 18, 0, 0, 0, time.Local) // 18:00 local
+	oldLocalTime := time.Date(2026, 1, 6, 18, 0, 0, 0, time.Local)    // 18:00 local
 	oldLocalTimeAsUTC := time.Date(2026, 1, 6, 18, 0, 0, 0, time.UTC) // Same numbers but UTC
 
 	t.Logf("\n🔍 Timezone mismatch scenario:")
@@ -278,9 +278,9 @@ func TestBinanceFullSyncSimulation(t *testing.T) {
 	} else {
 		var posSymbols []string
 		for _, pos := range positions {
-			if symbol, ok := pos["symbol"].(string); ok && symbol != "" {
-				posSymbols = append(posSymbols, symbol)
-				symbolMap[symbol] = true
+			if pos.Symbol != "" {
+				posSymbols = append(posSymbols, pos.Symbol)
+				symbolMap[pos.Symbol] = true
 			}
 		}
 		t.Logf("  📋 Position symbols: %d - %v", len(posSymbols), posSymbols)
@@ -386,7 +386,7 @@ func TestBinanceTradeIDRange(t *testing.T) {
 			continue
 		}
 
-		var minID, maxID int64 = 1<<62, 0
+		var minID, maxID int64 = 1 << 62, 0
 		for _, trade := range trades {
 			var id int64
 			fmt.Sscanf(trade.TradeID, "%d", &id)

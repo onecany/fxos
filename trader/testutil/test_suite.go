@@ -3,9 +3,9 @@ package testutil
 import (
 	"testing"
 
+	"fxos/trader/types"
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/assert"
-	"fxos/trader/types"
 )
 
 // TraderTestSuite Generic Trader interface test suite (base suite)
@@ -72,15 +72,16 @@ func (s *TraderTestSuite) TestGetBalance() {
 	tests := []struct {
 		name      string
 		wantError bool
-		validate  func(*testing.T, map[string]interface{})
+		validate  func(*testing.T, *types.Account)
 	}{
 		{
 			name:      "Successfully get balance",
 			wantError: false,
-			validate: func(t *testing.T, result map[string]interface{}) {
+			validate: func(t *testing.T, result *types.Account) {
 				assert.NotNil(t, result)
-				assert.Contains(t, result, "totalWalletBalance")
-				assert.Contains(t, result, "availableBalance")
+				assert.True(t, result.TotalWalletBalance > 0 || result.TotalEquity > 0,
+					"expected positive wallet balance or equity")
+				assert.True(t, result.AvailableBalance >= 0)
 			},
 		},
 	}
@@ -105,18 +106,18 @@ func (s *TraderTestSuite) TestGetPositions() {
 	tests := []struct {
 		name      string
 		wantError bool
-		validate  func(*testing.T, []map[string]interface{})
+		validate  func(*testing.T, []types.Position)
 	}{
 		{
 			name:      "Successfully get position list",
 			wantError: false,
-			validate: func(t *testing.T, positions []map[string]interface{}) {
+			validate: func(t *testing.T, positions []types.Position) {
 				assert.NotNil(t, positions)
 				// Positions can be empty array
 				for _, pos := range positions {
-					assert.Contains(t, pos, "symbol")
-					assert.Contains(t, pos, "side")
-					assert.Contains(t, pos, "positionAmt")
+					assert.NotEmpty(t, pos.Symbol)
+					assert.NotEmpty(t, pos.Side)
+					assert.True(t, pos.Quantity > 0)
 				}
 			},
 		},

@@ -2,9 +2,9 @@ package gate
 
 import (
 	"fmt"
-	"math"
 	"fxos/logger"
 	"fxos/trader/types"
+	"math"
 	"strconv"
 	"strings"
 
@@ -169,9 +169,9 @@ func (t *GateTrader) CloseLong(symbol string, quantity float64) (map[string]inte
 			return nil, err
 		}
 		for _, pos := range positions {
-			posSymbol := t.convertSymbol(pos["symbol"].(string))
-			if posSymbol == symbol && pos["side"] == "long" {
-				quantity = pos["positionAmt"].(float64)
+			posSymbol := t.convertSymbol(pos.Symbol)
+			if posSymbol == symbol && pos.Side == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -237,9 +237,9 @@ func (t *GateTrader) CloseShort(symbol string, quantity float64) (map[string]int
 			return nil, err
 		}
 		for _, pos := range positions {
-			posSymbol := t.convertSymbol(pos["symbol"].(string))
-			if posSymbol == symbol && pos["side"] == "short" {
-				quantity = pos["positionAmt"].(float64)
+			posSymbol := t.convertSymbol(pos.Symbol)
+			if posSymbol == symbol && pos.Side == "short" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -528,7 +528,7 @@ func (t *GateTrader) FormatQuantity(symbol string, quantity float64) (string, er
 }
 
 // GetOrderStatus gets the status of an order
-func (t *GateTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *GateTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	symbol = t.convertSymbol(symbol)
 
 	order, _, err := t.client.FuturesApi.GetFuturesOrder(t.ctx, "usdt", orderID)
@@ -566,25 +566,15 @@ func (t *GateTrader) GetOrderStatus(symbol string, orderID string) (map[string]i
 		status = "NEW"
 	}
 
-	side := "BUY"
-	if order.Size < 0 {
-		side = "SELL"
-	}
-
 	// Convert contract count to actual token quantity
 	executedQty := math.Abs(float64(order.Size-order.Left)) * quantoMultiplier
 
-	return map[string]interface{}{
-		"orderId":     orderID,
-		"symbol":      t.revertSymbol(symbol),
-		"status":      status,
-		"avgPrice":    fillPrice,
-		"executedQty": executedQty,
-		"side":        side,
-		"type":        order.Tif,
-		"time":        int64(order.CreateTime * 1000),
-		"updateTime":  int64(order.FinishTime * 1000),
-		"commission":  totalFee,
+	return &types.OrderStatus{
+		OrderID:     orderID,
+		Status:      status,
+		AvgPrice:    fillPrice,
+		ExecutedQty: executedQty,
+		Commission:  totalFee,
 	}, nil
 }
 

@@ -143,12 +143,10 @@ func (at *AutoTrader) checkMaxDrawdown() (bool, float64) {
 	}
 
 	currentEquity := 0.0
-	if equity, ok := balance["total_equity"].(float64); ok {
-		currentEquity = equity
-	} else if total, ok := balance["totalWalletBalance"].(float64); ok {
-		if unrealized, ok := balance["totalUnrealizedProfit"].(float64); ok {
-			currentEquity = total + unrealized
-		}
+	if balance.TotalEquity > 0 {
+		currentEquity = balance.TotalEquity
+	} else if balance.TotalWalletBalance > 0 {
+		currentEquity = balance.TotalWalletBalance + balance.TotalUnrealizedProfit
 	}
 
 	if currentEquity <= 0 {
@@ -231,13 +229,11 @@ func (at *AutoTrader) emergencyExit(reason string) error {
 	positions, err := at.trader.GetPositions()
 	if err == nil {
 		for _, pos := range positions {
-			if sym, ok := pos["symbol"].(string); ok && sym == gridConfig.Symbol {
-				if size, ok := pos["positionAmt"].(float64); ok && size != 0 {
-					if size > 0 {
-						at.trader.CloseLong(gridConfig.Symbol, size)
-					} else {
-						at.trader.CloseShort(gridConfig.Symbol, -size)
-					}
+			if pos.Symbol == gridConfig.Symbol && pos.Quantity != 0 {
+				if pos.Side == "short" {
+					at.trader.CloseShort(gridConfig.Symbol, pos.Quantity)
+				} else {
+					at.trader.CloseLong(gridConfig.Symbol, pos.Quantity)
 				}
 			}
 		}
@@ -500,25 +496,17 @@ func (at *AutoTrader) buildGridContext() (*kernel.GridContext, error) {
 	// Get account info
 	balance, err := at.trader.GetBalance()
 	if err == nil {
-		if equity, ok := balance["total_equity"].(float64); ok {
-			ctx.TotalEquity = equity
-		}
-		if available, ok := balance["availableBalance"].(float64); ok {
-			ctx.AvailableBalance = available
-		}
-		if unrealized, ok := balance["totalUnrealizedProfit"].(float64); ok {
-			ctx.UnrealizedPnL = unrealized
-		}
+		ctx.TotalEquity = balance.TotalEquity
+		ctx.AvailableBalance = balance.AvailableBalance
+		ctx.UnrealizedPnL = balance.TotalUnrealizedProfit
 	}
 
 	// Get current position
 	positions, err := at.trader.GetPositions()
 	if err == nil {
 		for _, pos := range positions {
-			if sym, ok := pos["symbol"].(string); ok && sym == gridConfig.Symbol {
-				if size, ok := pos["positionAmt"].(float64); ok {
-					ctx.CurrentPosition = size
-				}
+			if pos.Symbol == gridConfig.Symbol {
+				ctx.CurrentPosition = pos.Quantity
 			}
 		}
 	}

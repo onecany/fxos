@@ -194,23 +194,16 @@ func (t *OKXTrader) CloseLong(symbol string, quantity float64) (map[string]inter
 	var posMgnMode string = "cross" // Default to cross margin
 	logger.Infof("🔍 OKX CloseLong: searching for symbol=%s in %d positions", symbol, len(positions))
 	for _, pos := range positions {
-		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v", pos["symbol"], pos["side"], pos["positionAmt"], pos["mgnMode"])
-		if pos["symbol"] == symbol {
-			side, sErr := types.SafeString(pos, "side")
-			if sErr != nil {
-				continue
-			}
+		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v", pos.Symbol, pos.Side, pos.Quantity, pos.MarginMode)
+		if pos.Symbol == symbol {
+			side := pos.Side
 			// In net_mode, "long" means positive position
 			// In dual mode, check explicit "long" side
 			if side == "long" || (t.positionMode == "net_mode" && side == "long") {
-				actualQty, fErr := types.SafeFloat64(pos, "positionAmt")
-				if fErr != nil {
-					logger.Infof("🔍 OKX CloseLong: position %s has invalid positionAmt: %v", symbol, fErr)
-					continue
-				}
+				actualQty = pos.Quantity
 				posFound = true
-				if mgnMode, ok := pos["mgnMode"].(string); ok && mgnMode != "" {
-					posMgnMode = mgnMode
+				if pos.MarginMode != "" {
+					posMgnMode = pos.MarginMode
 				}
 				logger.Infof("🔍 OKX CloseLong: found matching position! qty=%.6f, mgnMode=%s", actualQty, posMgnMode)
 				break
@@ -315,16 +308,12 @@ func (t *OKXTrader) CloseShort(symbol string, quantity float64) (map[string]inte
 	logger.Infof("🔍 OKX CloseShort searching positions: symbol=%s, current position count=%d", symbol, len(positions))
 	for _, pos := range positions {
 		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v",
-			pos["symbol"], pos["side"], pos["positionAmt"], pos["mgnMode"])
-		if pos["symbol"] == symbol && pos["side"] == "short" {
-			actualQty, fErr := types.SafeFloat64(pos, "positionAmt")
-			if fErr != nil {
-				logger.Infof("🔍 OKX CloseShort: position %s has invalid positionAmt: %v", symbol, fErr)
-				continue
-			}
+			pos.Symbol, pos.Side, pos.Quantity, pos.MarginMode)
+		if pos.Symbol == symbol && pos.Side == "short" {
+			actualQty = pos.Quantity
 			posFound = true
-			if mgnMode, ok := pos["mgnMode"].(string); ok && mgnMode != "" {
-				posMgnMode = mgnMode
+			if pos.MarginMode != "" {
+				posMgnMode = pos.MarginMode
 			}
 			logger.Infof("🔍 OKX found short position: quantity=%f (base asset), mgnMode=%s", actualQty, posMgnMode)
 			break
@@ -610,7 +599,7 @@ func (t *OKXTrader) CancelStopOrders(symbol string) error {
 }
 
 // GetOrderStatus gets order status
-func (t *OKXTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *OKXTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	instId := t.convertSymbol(symbol)
 	if instId == "" {
 		return nil, fmt.Errorf("symbol %q is not tradeable on OKX", symbol)
@@ -646,8 +635,6 @@ func (t *OKXTrader) GetOrderStatus(symbol string, orderID string) (map[string]in
 	avgPrice, _ := strconv.ParseFloat(order.AvgPx, 64)
 	fillSz, _ := strconv.ParseFloat(order.AccFillSz, 64) // This is in contracts
 	fee, _ := strconv.ParseFloat(order.Fee, 64)
-	cTime, _ := strconv.ParseInt(order.CTime, 10, 64)
-	uTime, _ := strconv.ParseInt(order.UTime, 10, 64)
 
 	// Convert contract count to base asset quantity
 	// executedQty = contracts * ctVal
@@ -671,17 +658,12 @@ func (t *OKXTrader) GetOrderStatus(symbol string, orderID string) (map[string]in
 		status = order.State
 	}
 
-	return map[string]interface{}{
-		"orderId":     order.OrdId,
-		"symbol":      symbol,
-		"status":      status,
-		"avgPrice":    avgPrice,
-		"executedQty": executedQty,
-		"side":        order.Side,
-		"type":        order.OrdType,
-		"time":        cTime,
-		"updateTime":  uTime,
-		"commission":  -fee, // OKX returns negative value
+	return &types.OrderStatus{
+		OrderID:     order.OrdId,
+		Status:      status,
+		AvgPrice:    avgPrice,
+		ExecutedQty: executedQty,
+		Commission:  -fee, // OKX returns negative value
 	}, nil
 }
 

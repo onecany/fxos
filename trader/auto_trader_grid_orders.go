@@ -2,9 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"math"
 	"fxos/kernel"
 	"fxos/logger"
+	"math"
 	"time"
 )
 
@@ -26,13 +26,13 @@ func (at *AutoTrader) checkTotalPositionLimit(symbol string, additionalValue flo
 	positions, err := at.trader.GetPositions()
 	if err == nil {
 		for _, pos := range positions {
-			if sym, ok := pos["symbol"].(string); ok && sym == symbol {
-				if size, ok := pos["positionAmt"].(float64); ok {
-					if price, ok := pos["markPrice"].(float64); ok {
-						currentPositionValue = math.Abs(size) * price
-					} else if entryPrice, ok := pos["entryPrice"].(float64); ok {
-						currentPositionValue = math.Abs(size) * entryPrice
-					}
+			if pos.Symbol == symbol {
+				price := pos.MarkPrice
+				if price <= 0 {
+					price = pos.EntryPrice
+				}
+				if price > 0 {
+					currentPositionValue = pos.Quantity * price
 				}
 			}
 		}
@@ -267,9 +267,11 @@ func (at *AutoTrader) syncGridState() {
 		logger.Warnf("[Grid] Failed to get positions for state sync: %v", err)
 	} else {
 		for _, pos := range positions {
-			if sym, ok := pos["symbol"].(string); ok && sym == gridConfig.Symbol {
-				if size, ok := pos["positionAmt"].(float64); ok {
-					currentPositionSize = size
+			if pos.Symbol == gridConfig.Symbol {
+				if pos.Side == "short" {
+					currentPositionSize = -pos.Quantity
+				} else {
+					currentPositionSize = pos.Quantity
 				}
 			}
 		}
@@ -333,20 +335,18 @@ func (at *AutoTrader) closeAllPositions() error {
 	}
 
 	for _, pos := range positions {
-		symbol, _ := pos["symbol"].(string)
-		if symbol != gridConfig.Symbol {
+		if pos.Symbol != gridConfig.Symbol {
 			continue
 		}
 
-		size, _ := pos["positionAmt"].(float64)
-		if size == 0 {
+		if pos.Quantity == 0 {
 			continue
 		}
 
-		if size > 0 {
-			_, err = at.trader.CloseLong(symbol, size)
+		if pos.Side == "short" {
+			_, err = at.trader.CloseShort(pos.Symbol, pos.Quantity)
 		} else {
-			_, err = at.trader.CloseShort(symbol, -size)
+			_, err = at.trader.CloseLong(pos.Symbol, pos.Quantity)
 		}
 		if err != nil {
 			logger.Infof("Failed to close position: %v", err)

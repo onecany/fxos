@@ -157,9 +157,9 @@ func (t *HyperliquidTrader) reconcilePositions(exchangeID string, positionStore 
 
 	liveQty := make(map[string]float64, len(livePositions))
 	for _, pos := range livePositions {
-		symbol, _ := pos["symbol"].(string)
-		side, _ := pos["side"].(string)
-		qty, _ := pos["positionAmt"].(float64)
+		symbol := pos.Symbol
+		side := pos.Side
+		qty := pos.Quantity
 		if symbol == "" || qty <= 0 {
 			continue
 		}

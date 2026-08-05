@@ -241,8 +241,8 @@ func TestIndodaxTrader_ClearCache(t *testing.T) {
 	trader := NewIndodaxTrader("test", "test")
 
 	// Set some cached data
-	trader.cachedBalance = map[string]interface{}{"test": "data"}
-	trader.cachedPositions = []map[string]interface{}{{"test": "data"}}
+	trader.cachedBalance = &types.Account{TotalEquity: 123.45}
+	trader.cachedPositions = []types.Position{{Symbol: "BTCIDR"}}
 
 	// Clear cache
 	trader.clearCache()
@@ -269,11 +269,9 @@ func TestIndodaxConnection(t *testing.T) {
 	}
 
 	t.Logf("✅ Connection OK")
-	t.Logf("  totalWalletBalance: %v", balance["totalWalletBalance"])
-	t.Logf("  availableBalance: %v", balance["availableBalance"])
-	t.Logf("  totalEquity: %v", balance["totalEquity"])
-	t.Logf("  currency: %v", balance["currency"])
-	t.Logf("  user_id: %v", balance["user_id"])
+	t.Logf("  totalWalletBalance: %v", balance.TotalWalletBalance)
+	t.Logf("  availableBalance: %v", balance.AvailableBalance)
+	t.Logf("  totalEquity: %v", balance.TotalEquity)
 }
 
 // TestIndodaxGetPositions tests position retrieval
@@ -289,10 +287,10 @@ func TestIndodaxGetPositions(t *testing.T) {
 	for i, pos := range positions {
 		t.Logf("  [%d] %s: qty=%.8f markPrice=%.0f value=%.0f IDR",
 			i+1,
-			pos["symbol"],
-			pos["positionAmt"],
-			pos["markPrice"],
-			pos["notionalValue"],
+			pos.Symbol,
+			pos.Quantity,
+			pos.MarkPrice,
+			pos.Quantity*pos.MarkPrice,
 		)
 	}
 }

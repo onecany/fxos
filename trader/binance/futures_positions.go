@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strconv"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // GetPositions gets all positions (with cache)
-func (t *FuturesTrader) GetPositions() ([]map[string]interface{}, error) {
+func (t *FuturesTrader) GetPositions() ([]types.Position, error) {
 	// First check if cache is valid
 	t.positionsCacheMutex.RLock()
 	if t.cachedPositions != nil && time.Since(t.positionsCacheTime) < t.cacheDuration {
@@ -29,31 +30,37 @@ func (t *FuturesTrader) GetPositions() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
-	var result []map[string]interface{}
+	var result []types.Position
 	for _, pos := range positions {
 		posAmt, _ := strconv.ParseFloat(pos.PositionAmt, 64)
 		if posAmt == 0 {
 			continue // Skip positions with zero amount
 		}
 
-		posMap := make(map[string]interface{})
-		posMap["symbol"] = pos.Symbol
-		posMap["positionAmt"], _ = strconv.ParseFloat(pos.PositionAmt, 64)
-		posMap["entryPrice"], _ = strconv.ParseFloat(pos.EntryPrice, 64)
-		posMap["markPrice"], _ = strconv.ParseFloat(pos.MarkPrice, 64)
-		posMap["unRealizedProfit"], _ = strconv.ParseFloat(pos.UnRealizedProfit, 64)
-		posMap["leverage"], _ = strconv.ParseFloat(pos.Leverage, 64)
-		posMap["liquidationPrice"], _ = strconv.ParseFloat(pos.LiquidationPrice, 64)
+		entryPrice, _ := strconv.ParseFloat(pos.EntryPrice, 64)
+		markPrice, _ := strconv.ParseFloat(pos.MarkPrice, 64)
+		unrealizedProfit, _ := strconv.ParseFloat(pos.UnRealizedProfit, 64)
+		leverage, _ := strconv.ParseFloat(pos.Leverage, 64)
+		liqPrice, _ := strconv.ParseFloat(pos.LiquidationPrice, 64)
 		// Note: Binance SDK doesn't expose updateTime field, will fallback to local tracking
 
 		// Determine direction
-		if posAmt > 0 {
-			posMap["side"] = "long"
-		} else {
-			posMap["side"] = "short"
+		side := "long"
+		if posAmt < 0 {
+			side = "short"
+			posAmt = -posAmt // Quantity is always positive
 		}
 
-		result = append(result, posMap)
+		result = append(result, types.Position{
+			Symbol:           pos.Symbol,
+			Side:             side,
+			EntryPrice:       entryPrice,
+			MarkPrice:        markPrice,
+			Quantity:         posAmt,
+			UnrealizedPnL:    unrealizedProfit,
+			Leverage:         int(leverage),
+			LiquidationPrice: liqPrice,
+		})
 	}
 
 	// Update cache
@@ -123,9 +130,9 @@ func (t *FuturesTrader) SetLeverage(symbol string, leverage int) error {
 	positions, err := t.GetPositions()
 	if err == nil {
 		for _, pos := range positions {
-			if pos["symbol"] == symbol {
-				if lev, ok := pos["leverage"].(float64); ok {
-					currentLeverage = int(lev)
+			if pos.Symbol == symbol {
+				if pos.Leverage > 0 {
+					currentLeverage = pos.Leverage
 					break
 				}
 			}
@@ -287,4 +294,3 @@ func (t *FuturesTrader) FormatPrice(symbol string, price float64) (string, error
 	format := fmt.Sprintf("%%.%df", precision)
 	return fmt.Sprintf(format, price), nil
 }
-

@@ -11,7 +11,7 @@ import (
 )
 
 // GetBalance gets account balance
-func (t *OKXTrader) GetBalance() (map[string]interface{}, error) {
+func (t *OKXTrader) GetBalance() (*types.Account, error) {
 	// Check cache
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -70,10 +70,11 @@ func (t *OKXTrader) GetBalance() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	result := map[string]interface{}{
-		"totalWalletBalance":    totalEq,
-		"availableBalance":      usdtAvail,
-		"totalUnrealizedProfit": usdtUPL,
+	result := &types.Account{
+		TotalWalletBalance:    totalEq,
+		TotalEquity:           totalEq,
+		AvailableBalance:      usdtAvail,
+		TotalUnrealizedProfit: usdtUPL,
 	}
 
 	logger.Infof("✓ OKX balance: Total equity=%.2f, Available=%.2f, Unrealized PnL=%.2f", totalEq, usdtAvail, usdtUPL)

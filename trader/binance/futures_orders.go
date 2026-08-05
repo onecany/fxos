@@ -130,8 +130,8 @@ func (t *FuturesTrader) CloseLong(symbol string, quantity float64) (map[string]i
 		}
 
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "long" {
-				quantity = pos["positionAmt"].(float64)
+			if pos.Symbol == symbol && pos.Side == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -185,8 +185,8 @@ func (t *FuturesTrader) CloseShort(symbol string, quantity float64) (map[string]
 		}
 
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "short" {
-				quantity = -pos["positionAmt"].(float64) // Short position quantity is negative, take absolute value
+			if pos.Symbol == symbol && pos.Side == "short" {
+				quantity = pos.Quantity // Short position quantity is always positive in types.Position
 				break
 			}
 		}
@@ -719,7 +719,7 @@ func (t *FuturesTrader) SetTakeProfit(symbol string, positionSide string, quanti
 }
 
 // GetOrderStatus gets order status
-func (t *FuturesTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *FuturesTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	// Convert orderID to int64
 	orderIDInt, err := strconv.ParseInt(orderID, 10, 64)
 	if err != nil {
@@ -738,21 +738,13 @@ func (t *FuturesTrader) GetOrderStatus(symbol string, orderID string) (map[strin
 	avgPrice, _ := strconv.ParseFloat(order.AvgPrice, 64)
 	executedQty, _ := strconv.ParseFloat(order.ExecutedQuantity, 64)
 
-	result := map[string]interface{}{
-		"orderId":     order.OrderID,
-		"symbol":      order.Symbol,
-		"status":      string(order.Status),
-		"avgPrice":    avgPrice,
-		"executedQty": executedQty,
-		"side":        string(order.Side),
-		"type":        string(order.Type),
-		"time":        order.Time,
-		"updateTime":  order.UpdateTime,
-	}
-
 	// Binance futures commission fee needs to be obtained through GetUserTrades, not retrieved here for now
 	// Can be obtained later through WebSocket or separate query
-	result["commission"] = 0.0
-
-	return result, nil
+	return &types.OrderStatus{
+		OrderID:     fmt.Sprintf("%d", order.OrderID),
+		Status:      string(order.Status),
+		AvgPrice:    avgPrice,
+		ExecutedQty: executedQty,
+		Commission:  0.0,
+	}, nil
 }

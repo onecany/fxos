@@ -7,12 +7,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"fxos/httpclient"
+	"fxos/logger"
+	"fxos/trader/types"
 	"io"
 	"math"
 	"net/http"
 	"os"
-	"fxos/httpclient"
-	"fxos/logger"
 	"strconv"
 	"strings"
 	"sync"
@@ -68,12 +69,12 @@ type KuCoinTrader struct {
 	serverTimeMutex  sync.RWMutex
 
 	// Balance cache
-	cachedBalance     map[string]interface{}
+	cachedBalance     *types.Account
 	balanceCacheTime  time.Time
 	balanceCacheMutex sync.RWMutex
 
 	// Positions cache
-	cachedPositions     []map[string]interface{}
+	cachedPositions     []types.Position
 	positionsCacheTime  time.Time
 	positionsCacheMutex sync.RWMutex
 

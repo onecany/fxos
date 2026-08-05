@@ -173,8 +173,8 @@ func (t *AsterTrader) CloseLong(symbol string, quantity float64) (map[string]int
 		}
 
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "long" {
-				quantity = pos["positionAmt"].(float64)
+			if pos.Symbol == symbol && pos.Side == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -255,9 +255,9 @@ func (t *AsterTrader) CloseShort(symbol string, quantity float64) (map[string]in
 		}
 
 		for _, pos := range positions {
-			if pos["symbol"] == symbol && pos["side"] == "short" {
+			if pos.Symbol == symbol && pos.Side == "short" {
 				// Aster's GetPositions has already converted short position quantity to positive, use directly
-				quantity = pos["positionAmt"].(float64)
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -603,7 +603,7 @@ func (t *AsterTrader) FormatQuantity(symbol string, quantity float64) (string, e
 }
 
 // GetOrderStatus Get order status
-func (t *AsterTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *AsterTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	params := map[string]interface{}{
 		"symbol":  symbol,
 		"orderId": orderID,
@@ -619,36 +619,42 @@ func (t *AsterTrader) GetOrderStatus(symbol string, orderID string) (map[string]
 		return nil, fmt.Errorf("failed to parse order response: %w", err)
 	}
 
-	// Standardize return fields
-	response := map[string]interface{}{
-		"orderId":    result["orderId"],
-		"symbol":     result["symbol"],
-		"status":     result["status"],
-		"side":       result["side"],
-		"type":       result["type"],
-		"time":       result["time"],
-		"updateTime": result["updateTime"],
-		"commission": 0.0, // Aster may require separate query
+	// Extract order ID (Aster may return it as float64 or string)
+	orderIDStr := ""
+	if id, ok := result["orderId"].(float64); ok {
+		orderIDStr = fmt.Sprintf("%.0f", id)
+	} else if id, ok := result["orderId"].(string); ok {
+		orderIDStr = id
 	}
+
+	status, _ := result["status"].(string)
 
 	// Parse numeric fields
-	if avgPrice, ok := result["avgPrice"].(string); ok {
-		if v, err := strconv.ParseFloat(avgPrice, 64); err == nil {
-			response["avgPrice"] = v
+	avgPrice := 0.0
+	if avgPriceStr, ok := result["avgPrice"].(string); ok {
+		if v, err := strconv.ParseFloat(avgPriceStr, 64); err == nil {
+			avgPrice = v
 		}
-	} else if avgPrice, ok := result["avgPrice"].(float64); ok {
-		response["avgPrice"] = avgPrice
+	} else if avgPriceVal, ok := result["avgPrice"].(float64); ok {
+		avgPrice = avgPriceVal
 	}
 
-	if executedQty, ok := result["executedQty"].(string); ok {
-		if v, err := strconv.ParseFloat(executedQty, 64); err == nil {
-			response["executedQty"] = v
+	executedQty := 0.0
+	if executedQtyStr, ok := result["executedQty"].(string); ok {
+		if v, err := strconv.ParseFloat(executedQtyStr, 64); err == nil {
+			executedQty = v
 		}
-	} else if executedQty, ok := result["executedQty"].(float64); ok {
-		response["executedQty"] = executedQty
+	} else if executedQtyVal, ok := result["executedQty"].(float64); ok {
+		executedQty = executedQtyVal
 	}
 
-	return response, nil
+	return &types.OrderStatus{
+		OrderID:     orderIDStr,
+		Status:      status,
+		AvgPrice:    avgPrice,
+		ExecutedQty: executedQty,
+		Commission:  0.0, // Aster may require separate query
+	}, nil
 }
 
 // GetOpenOrders gets all open/pending orders for a symbol

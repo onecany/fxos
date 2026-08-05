@@ -7,16 +7,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"time"
 )
 
 // GetBalance retrieves account balance
-func (t *BybitTrader) GetBalance() (map[string]interface{}, error) {
+func (t *BybitTrader) GetBalance() (*types.Account, error) {
 	// Check cache
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -82,12 +82,11 @@ func (t *BybitTrader) GetBalance() (map[string]interface{}, error) {
 		totalWalletBalance = totalEquity
 	}
 
-	balance := map[string]interface{}{
-		"totalEquity":           totalEquity,
-		"totalWalletBalance":    totalWalletBalance,
-		"availableBalance":      availableBalance,
-		"totalUnrealizedProfit": totalPerpUPL,
-		"balance":               totalEquity, // Compatible with other exchange formats
+	balance := &types.Account{
+		TotalEquity:           totalEquity,
+		TotalWalletBalance:    totalWalletBalance,
+		AvailableBalance:      availableBalance,
+		TotalUnrealizedProfit: totalPerpUPL,
 	}
 
 	// Update cache

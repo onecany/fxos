@@ -6,11 +6,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"fxos/httpclient"
+	"fxos/logger"
+	"fxos/trader/types"
 	"io"
 	"net/http"
 	"net/url"
-	"fxos/httpclient"
-	"fxos/logger"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,8 +43,8 @@ type IndodaxTrader struct {
 	pairCacheTime  time.Time
 
 	// Cache for balance
-	cachedBalance     map[string]interface{}
-	cachedPositions   []map[string]interface{}
+	cachedBalance     *types.Account
+	cachedPositions   []types.Position
 	balanceCacheTime  time.Time
 	positionCacheTime time.Time
 	cacheDuration     time.Duration

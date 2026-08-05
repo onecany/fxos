@@ -100,20 +100,12 @@ func TestLighterGetBalance(t *testing.T) {
 	}
 
 	t.Logf("✅ Balance retrieved:")
-	if te, ok := balance["total_equity"].(float64); ok {
-		t.Logf("   Total Equity: %.2f", te)
-	}
-	if ab, ok := balance["available_balance"].(float64); ok {
-		t.Logf("   Available Balance: %.2f", ab)
-	}
-	if mu, ok := balance["margin_used"].(float64); ok {
-		t.Logf("   Margin Used: %.2f", mu)
-	}
-	if up, ok := balance["unrealized_pnl"].(float64); ok {
-		t.Logf("   Unrealized PnL: %.2f", up)
-	}
+	t.Logf("   Total Equity: %.2f", balance.TotalEquity)
+	t.Logf("   Available Balance: %.2f", balance.AvailableBalance)
+	t.Logf("   Margin Used: %.2f", balance.TotalMarginUsed)
+	t.Logf("   Unrealized PnL: %.2f", balance.TotalUnrealizedProfit)
 
-	if len(balance) == 0 {
+	if balance == nil {
 		t.Error("Expected balance data")
 	}
 }
@@ -133,14 +125,8 @@ func TestLighterGetPositions(t *testing.T) {
 
 	t.Logf("✅ Positions retrieved: %d positions", len(positions))
 	for i, pos := range positions {
-		symbol, _ := pos["symbol"].(string)
-		side, _ := pos["side"].(string)
-		size, _ := pos["size"].(float64)
-		entryPrice, _ := pos["entry_price"].(float64)
-		unrealizedPnl, _ := pos["unrealized_pnl"].(float64)
-
 		t.Logf("   [%d] %s %s: size=%.4f, entry=%.2f, pnl=%.2f",
-			i+1, symbol, side, size, entryPrice, unrealizedPnl)
+			i+1, pos.Symbol, pos.Side, pos.Quantity, pos.EntryPrice, pos.UnrealizedPnL)
 	}
 }
 
@@ -848,8 +834,8 @@ func TestLighterFullTradingFlow(t *testing.T) {
 	// Step 1: Get initial state
 	t.Log("=== Step 1: Get Initial State ===")
 	balance, _ := trader.GetBalance()
-	if equity, ok := balance["total_equity"].(float64); ok {
-		t.Logf("   Initial equity: %.2f", equity)
+	if balance != nil {
+		t.Logf("   Initial equity: %.2f", balance.TotalEquity)
 	}
 
 	marketPrice, err := trader.GetMarketPrice(symbol)
@@ -943,8 +929,8 @@ func TestLighterFullTradingFlow(t *testing.T) {
 	// Step 10: Get final balance
 	t.Log("=== Step 10: Get Final State ===")
 	balance, _ = trader.GetBalance()
-	if equity, ok := balance["total_equity"].(float64); ok {
-		t.Logf("   Final equity: %.2f", equity)
+	if balance != nil {
+		t.Logf("   Final equity: %.2f", balance.TotalEquity)
 	}
 
 	t.Log("=== Full Trading Flow Completed ===")

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"fxos/trader/testutil"
 	"fxos/trader/types"
+	"github.com/stretchr/testify/assert"
 )
 
 // ============================================================
@@ -311,8 +311,8 @@ func TestGateTrader_ClearCache(t *testing.T) {
 	gt := NewGateTrader("test", "test")
 
 	// Set some cached data
-	gt.cachedBalance = map[string]interface{}{"test": "data"}
-	gt.cachedPositions = []map[string]interface{}{{"test": "data"}}
+	gt.cachedBalance = &types.Account{}
+	gt.cachedPositions = []types.Position{{}}
 
 	// Clear cache
 	gt.clearCache()

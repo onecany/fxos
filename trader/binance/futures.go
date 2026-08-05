@@ -8,6 +8,7 @@ import (
 	"fxos/hook"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/types"
 	"strings"
 	"sync"
 	"time"
@@ -48,12 +49,12 @@ type FuturesTrader struct {
 	client *futures.Client
 
 	// Balance cache
-	cachedBalance     map[string]interface{}
+	cachedBalance     *types.Account
 	balanceCacheTime  time.Time
 	balanceCacheMutex sync.RWMutex
 
 	// Position cache
-	cachedPositions     []map[string]interface{}
+	cachedPositions     []types.Position
 	positionsCacheTime  time.Time
 	positionsCacheMutex sync.RWMutex
 

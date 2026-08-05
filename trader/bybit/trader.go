@@ -3,11 +3,12 @@ package bybit
 import (
 	"encoding/json"
 	"fmt"
+	"fxos/httpclient"
+	"fxos/logger"
+	"fxos/trader/types"
 	"io"
 	"math"
 	"net/http"
-	"fxos/httpclient"
-	"fxos/logger"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,12 +24,12 @@ type BybitTrader struct {
 	secretKey string
 
 	// Balance cache
-	cachedBalance     map[string]interface{}
+	cachedBalance     *types.Account
 	balanceCacheTime  time.Time
 	balanceCacheMutex sync.RWMutex
 
 	// Position cache
-	cachedPositions     []map[string]interface{}
+	cachedPositions     []types.Position
 	positionsCacheTime  time.Time
 	positionsCacheMutex sync.RWMutex
 

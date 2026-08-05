@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
+	"fxos/trader/types"
 	"time"
 )
 
 // GetBalance gets account balance
-func (t *KuCoinTrader) GetBalance() (map[string]interface{}, error) {
+func (t *KuCoinTrader) GetBalance() (*types.Account, error) {
 	// Check cache
 	t.balanceCacheMutex.RLock()
 	if t.cachedBalance != nil && time.Since(t.balanceCacheTime) < t.cacheDuration {
@@ -37,12 +38,11 @@ func (t *KuCoinTrader) GetBalance() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse balance data: %w", err)
 	}
 
-	result := map[string]interface{}{
-		"totalWalletBalance":    account.MarginBalance,        // Wallet balance (without unrealized PnL)
-		"availableBalance":      account.AvailableBalance,
-		"totalUnrealizedProfit": account.UnrealisedPNL,
-		"total_equity":          account.AccountEquity,
-		"totalEquity":           account.AccountEquity,        // For GetAccountInfo compatibility
+	result := &types.Account{
+		TotalWalletBalance:    account.MarginBalance, // Wallet balance (without unrealized PnL)
+		AvailableBalance:      account.AvailableBalance,
+		TotalUnrealizedProfit: account.UnrealisedPNL,
+		TotalEquity:           account.AccountEquity,
 	}
 
 	logger.Infof("✓ KuCoin balance: Total equity=%.2f, Available=%.2f, Unrealized PnL=%.2f",

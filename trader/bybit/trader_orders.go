@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/logger"
 	"fxos/trader/types"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -109,9 +109,8 @@ func (t *BybitTrader) CloseLong(symbol string, quantity float64) (map[string]int
 			return nil, err
 		}
 		for _, pos := range positions {
-			side, _ := types.SafeString(pos, "side")
-			if pos["symbol"] == symbol && strings.ToLower(side) == "long" {
-				quantity, _ = types.SafeFloat64(pos, "positionAmt")
+			if pos.Symbol == symbol && strings.ToLower(pos.Side) == "long" {
+				quantity = pos.Quantity
 				break
 			}
 		}
@@ -154,10 +153,8 @@ func (t *BybitTrader) CloseShort(symbol string, quantity float64) (map[string]in
 			return nil, err
 		}
 		for _, pos := range positions {
-			side, _ := types.SafeString(pos, "side")
-			if pos["symbol"] == symbol && strings.ToLower(side) == "short" {
-				qty, _ := types.SafeFloat64(pos, "positionAmt")
-				quantity = -qty // Short position is negative
+			if pos.Symbol == symbol && strings.ToLower(pos.Side) == "short" {
+				quantity = pos.Quantity // Position size is already positive
 				break
 			}
 		}
@@ -466,7 +463,7 @@ func (t *BybitTrader) cancelConditionalOrders(symbol string, orderType string) e
 }
 
 // GetOrderStatus retrieves order status
-func (t *BybitTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *BybitTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	params := map[string]interface{}{
 		"category": "linear",
 		"symbol":   symbol,
@@ -517,12 +514,12 @@ func (t *BybitTrader) GetOrderStatus(symbol string, orderID string) (map[string]
 		unifiedStatus = "PARTIALLY_FILLED"
 	}
 
-	return map[string]interface{}{
-		"orderId":     orderID,
-		"status":      unifiedStatus,
-		"avgPrice":    avgPrice,
-		"executedQty": executedQty,
-		"commission":  commission,
+	return &types.OrderStatus{
+		OrderID:     orderID,
+		Status:      unifiedStatus,
+		AvgPrice:    avgPrice,
+		ExecutedQty: executedQty,
+		Commission:  commission,
 	}, nil
 }
 

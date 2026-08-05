@@ -3,9 +3,9 @@ package kucoin
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"fxos/logger"
 	"fxos/trader/types"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -164,12 +164,12 @@ func (t *KuCoinTrader) CloseLong(symbol string, quantity float64) (map[string]in
 	var posFound bool
 	var marginMode string = "CROSS" // Default to CROSS
 	for _, pos := range positions {
-		if pos["symbol"] == symbol && pos["side"] == "long" {
-			actualQty = pos["positionAmt"].(float64)
+		if pos.Symbol == symbol && pos.Side == "long" {
+			actualQty = pos.Quantity
 			posFound = true
 			// Get margin mode from position
-			if mgnMode, ok := pos["mgnMode"].(string); ok {
-				marginMode = strings.ToUpper(mgnMode)
+			if pos.MarginMode != "" {
+				marginMode = strings.ToUpper(pos.MarginMode)
 			}
 			break
 		}
@@ -247,12 +247,12 @@ func (t *KuCoinTrader) CloseShort(symbol string, quantity float64) (map[string]i
 	var posFound bool
 	var marginMode string = "CROSS" // Default to CROSS
 	for _, pos := range positions {
-		if pos["symbol"] == symbol && pos["side"] == "short" {
-			actualQty = pos["positionAmt"].(float64)
+		if pos.Symbol == symbol && pos.Side == "short" {
+			actualQty = pos.Quantity
 			posFound = true
 			// Get margin mode from position
-			if mgnMode, ok := pos["mgnMode"].(string); ok {
-				marginMode = strings.ToUpper(mgnMode)
+			if pos.MarginMode != "" {
+				marginMode = strings.ToUpper(pos.MarginMode)
 			}
 			break
 		}
@@ -562,7 +562,7 @@ func (t *KuCoinTrader) FormatQuantity(symbol string, quantity float64) (string, 
 }
 
 // GetOrderStatus gets order status
-func (t *KuCoinTrader) GetOrderStatus(symbol string, orderID string) (map[string]interface{}, error) {
+func (t *KuCoinTrader) GetOrderStatus(symbol string, orderID string) (*types.OrderStatus, error) {
 	path := fmt.Sprintf("%s/%s", kucoinOrderPath, orderID)
 	data, err := t.doRequest("GET", path, nil)
 	if err != nil {
@@ -591,13 +591,12 @@ func (t *KuCoinTrader) GetOrderStatus(symbol string, orderID string) (map[string
 		status = "CANCELED"
 	}
 
-	return map[string]interface{}{
-		"orderId":     order.Id,
-		"symbol":      t.convertSymbolBack(order.Symbol),
-		"status":      status,
-		"avgPrice":    order.DealAvgPrice,
-		"executedQty": order.DealSize,
-		"commission":  order.Fee,
+	return &types.OrderStatus{
+		OrderID:     order.Id,
+		Status:      status,
+		AvgPrice:    order.DealAvgPrice,
+		ExecutedQty: float64(order.DealSize),
+		Commission:  order.Fee,
 	}, nil
 }
 

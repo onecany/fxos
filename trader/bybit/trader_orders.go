@@ -109,9 +109,9 @@ func (t *BybitTrader) CloseLong(symbol string, quantity float64) (map[string]int
 			return nil, err
 		}
 		for _, pos := range positions {
-			side, _ := pos["side"].(string)
+			side, _ := types.SafeString(pos, "side")
 			if pos["symbol"] == symbol && strings.ToLower(side) == "long" {
-				quantity = pos["positionAmt"].(float64)
+				quantity, _ = types.SafeFloat64(pos, "positionAmt")
 				break
 			}
 		}
@@ -154,9 +154,10 @@ func (t *BybitTrader) CloseShort(symbol string, quantity float64) (map[string]in
 			return nil, err
 		}
 		for _, pos := range positions {
-			side, _ := pos["side"].(string)
+			side, _ := types.SafeString(pos, "side")
 			if pos["symbol"] == symbol && strings.ToLower(side) == "short" {
-				quantity = -pos["positionAmt"].(float64) // Short position is negative
+				qty, _ := types.SafeFloat64(pos, "positionAmt")
+				quantity = -qty // Short position is negative
 				break
 			}
 		}

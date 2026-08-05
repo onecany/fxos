@@ -43,11 +43,28 @@ func (at *AutoTrader) checkPositionDrawdown() {
 	}
 
 	for _, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
+		symbol, sErr := SafeString(pos, "symbol")
+		if sErr != nil {
+			logger.Warnf("⚠️ Drawdown monitoring: position missing 'symbol', skipping: %v", sErr)
+			continue
+		}
+		side, sErr := SafeString(pos, "side")
+		if sErr != nil {
+			logger.Warnf("⚠️ Drawdown monitoring: position %s missing 'side', skipping: %v", symbol, sErr)
+			continue
+		}
+		entryPrice, fErr := SafeFloat64(pos, "entryPrice")
+		if fErr != nil {
+			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'entryPrice': %v", symbol, side, fErr)
+		}
+		markPrice, fErr := SafeFloat64(pos, "markPrice")
+		if fErr != nil {
+			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'markPrice': %v", symbol, side, fErr)
+		}
+		quantity, fErr := SafeFloat64(pos, "positionAmt")
+		if fErr != nil {
+			logger.Warnf("⚠️ Drawdown monitoring: position %s %s has invalid 'positionAmt': %v", symbol, side, fErr)
+		}
 		if quantity < 0 {
 			quantity = -quantity // Short position quantity is negative, convert to positive
 		}

@@ -196,11 +196,18 @@ func (t *OKXTrader) CloseLong(symbol string, quantity float64) (map[string]inter
 	for _, pos := range positions {
 		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v", pos["symbol"], pos["side"], pos["positionAmt"], pos["mgnMode"])
 		if pos["symbol"] == symbol {
-			side := pos["side"].(string)
+			side, sErr := types.SafeString(pos, "side")
+			if sErr != nil {
+				continue
+			}
 			// In net_mode, "long" means positive position
 			// In dual mode, check explicit "long" side
 			if side == "long" || (t.positionMode == "net_mode" && side == "long") {
-				actualQty = pos["positionAmt"].(float64)
+				actualQty, fErr := types.SafeFloat64(pos, "positionAmt")
+				if fErr != nil {
+					logger.Infof("🔍 OKX CloseLong: position %s has invalid positionAmt: %v", symbol, fErr)
+					continue
+				}
 				posFound = true
 				if mgnMode, ok := pos["mgnMode"].(string); ok && mgnMode != "" {
 					posMgnMode = mgnMode
@@ -310,7 +317,11 @@ func (t *OKXTrader) CloseShort(symbol string, quantity float64) (map[string]inte
 		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v",
 			pos["symbol"], pos["side"], pos["positionAmt"], pos["mgnMode"])
 		if pos["symbol"] == symbol && pos["side"] == "short" {
-			actualQty = pos["positionAmt"].(float64)
+			actualQty, fErr := types.SafeFloat64(pos, "positionAmt")
+			if fErr != nil {
+				logger.Infof("🔍 OKX CloseShort: position %s has invalid positionAmt: %v", symbol, fErr)
+				continue
+			}
 			posFound = true
 			if mgnMode, ok := pos["mgnMode"].(string); ok && mgnMode != "" {
 				posMgnMode = mgnMode

@@ -502,11 +502,28 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 	currentPositionKeys := make(map[string]bool)
 
 	for _, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
+		symbol, sErr := SafeString(pos, "symbol")
+		if sErr != nil {
+			at.logWarnf("⚠️ Position missing 'symbol', skipping: %v", sErr)
+			continue
+		}
+		side, sErr := SafeString(pos, "side")
+		if sErr != nil {
+			at.logWarnf("⚠️ Position %s missing 'side', skipping: %v", symbol, sErr)
+			continue
+		}
+		entryPrice, fErr := SafeFloat64(pos, "entryPrice")
+		if fErr != nil {
+			at.logWarnf("⚠️ Position %s %s has invalid 'entryPrice': %v", symbol, side, fErr)
+		}
+		markPrice, fErr := SafeFloat64(pos, "markPrice")
+		if fErr != nil {
+			at.logWarnf("⚠️ Position %s %s has invalid 'markPrice': %v", symbol, side, fErr)
+		}
+		quantity, fErr := SafeFloat64(pos, "positionAmt")
+		if fErr != nil {
+			at.logWarnf("⚠️ Position %s %s has invalid 'positionAmt': %v", symbol, side, fErr)
+		}
 		if quantity < 0 {
 			quantity = -quantity // Short position quantity is negative, convert to positive
 		}
@@ -516,8 +533,8 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 			continue
 		}
 
-		unrealizedPnl := pos["unRealizedProfit"].(float64)
-		liquidationPrice := pos["liquidationPrice"].(float64)
+		unrealizedPnl, _ := SafeFloat64(pos, "unRealizedProfit")
+		liquidationPrice, _ := SafeFloat64(pos, "liquidationPrice")
 
 		// Calculate margin used (estimated)
 		leverage := 10 // Default value, should actually be fetched from position info

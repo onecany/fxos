@@ -155,8 +155,8 @@ type AutoTrader struct {
 	config                AutoTraderConfig
 	trader                Trader // Use Trader interface (supports multiple platforms)
 	mcpClient             mcp.AIClient
-	store                 *store.Store           // Data storage (decision records, etc.)
-	strategyEngine        *kernel.StrategyEngine // Strategy engine (uses strategy configuration)
+	store                 StoreAccessor      // Data storage (decision records, etc.); interface for testability
+	strategyEngine        kernel.StrategyReader // Strategy engine (uses strategy configuration); interface for testability
 	cycleNumber           int                    // Current cycle number
 	initialBalance        float64
 	dailyPnL              float64
@@ -196,7 +196,7 @@ type AutoTrader struct {
 
 // NewAutoTrader creates an automatic trader
 // st parameter is used to store decision records to database
-func NewAutoTrader(config AutoTraderConfig, st *store.Store, userID string) (*AutoTrader, error) {
+func NewAutoTrader(config AutoTraderConfig, st StoreAccessor, userID string) (*AutoTrader, error) {
 	// Set default values
 	if config.ID == "" {
 		config.ID = "default_trader"
@@ -424,9 +424,12 @@ func (at *AutoTrader) Run() error {
 
 	// Start order+position sync if the exchange adapter supports it
 	// (indodax has no sync loop and simply does not implement OrderSyncer).
-	if syncer, ok := at.trader.(OrderSyncer); ok && at.store != nil {
-		syncer.StartOrderSync(at.id, at.exchangeID, at.exchange, at.store, 30*time.Second, at.stopMonitorCh)
-		at.logInfof("🔄 Order+position sync enabled (every 30s)")
+	// The sync loop needs the concrete store, so require it here.
+	if syncer, ok := at.trader.(OrderSyncer); ok {
+		if st, ok := at.store.(*store.Store); ok {
+			syncer.StartOrderSync(at.id, at.exchangeID, at.exchange, st, OrderSyncInterval, at.stopMonitorCh)
+			at.logInfof("🔄 Order+position sync enabled (every 30s)")
+		}
 	}
 
 	// Check if this is a grid trading strategy
@@ -578,7 +581,7 @@ func (at *AutoTrader) GetStrategyConfig() *store.StrategyConfig {
 }
 
 // GetStore gets data store (for external access to decision records, etc.)
-func (at *AutoTrader) GetStore() *store.Store {
+func (at *AutoTrader) GetStore() StoreAccessor {
 	return at.store
 }
 

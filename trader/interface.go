@@ -28,6 +28,19 @@ type OrderSyncer interface {
 	StartOrderSync(traderID, exchangeID, exchangeType string, st *store.Store, interval time.Duration, stop <-chan struct{})
 }
 
+// StoreAccessor is the subset of *store.Store that AutoTrader uses. It is
+// an interface so tests can inject a fake store and runCycle can be unit
+// tested without a database. *store.Store satisfies it.
+type StoreAccessor interface {
+	Decision() *store.DecisionStore
+	Position() *store.PositionStore
+	Strategy() *store.StrategyStore
+	Equity() *store.EquityStore
+	Order() *store.OrderStore
+	AICharge() *store.AIChargeStore
+	Trader() *store.TraderStore
+}
+
 // GridTraderAdapter wraps a basic Trader to provide GridTrader interface
 // Uses stop orders as a fallback when limit orders aren't directly available
 type GridTraderAdapter struct {

@@ -14,7 +14,7 @@ import (
 // 1. Delete all OPEN old positions from database
 // 2. Get current real positions from exchange
 // 3. Create a "snapshot" record for each real position
-func CreatePositionSnapshot(traderID, exchangeID, exchangeType string, trader Trader, st *store.Store) error {
+func CreatePositionSnapshot(traderID, exchangeID, exchangeType string, trader Trader, st StoreAccessor) error {
 	logger.Infof("📸 Creating position snapshot for trader %s (%s)...", traderID, exchangeType)
 
 	positionStore := st.Position()

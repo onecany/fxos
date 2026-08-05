@@ -42,7 +42,7 @@ func GetFullDecision(ctx *Context, mcpClient mcp.AIClient) (*FullDecision, error
 }
 
 // GetFullDecisionWithStrategy uses StrategyEngine to get AI decision (unified prompt generation)
-func GetFullDecisionWithStrategy(ctx *Context, mcpClient mcp.AIClient, engine *StrategyEngine, variant string) (*FullDecision, error) {
+func GetFullDecisionWithStrategy(ctx *Context, mcpClient mcp.AIClient, engine StrategyReader, variant string) (*FullDecision, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context is nil")
 	}
@@ -142,7 +142,7 @@ func GetFullDecisionWithStrategy(ctx *Context, mcpClient mcp.AIClient, engine *S
 	return decision, nil
 }
 
-func enrichVergexDataWithStrategy(ctx *Context, engine *StrategyEngine) {
+func enrichVergexDataWithStrategy(ctx *Context, engine StrategyReader) {
 	if ctx == nil || engine == nil || ctx.VergexDataMap != nil {
 		return
 	}
@@ -171,7 +171,7 @@ func enrichVergexDataWithStrategy(ctx *Context, engine *StrategyEngine) {
 // ============================================================================
 
 // fetchMarketDataWithStrategy fetches market data using strategy config (multiple timeframes)
-func fetchMarketDataWithStrategy(ctx *Context, engine *StrategyEngine) error {
+func fetchMarketDataWithStrategy(ctx *Context, engine StrategyReader) error {
 	config := engine.GetConfig()
 	ctx.MarketDataMap = make(map[string]*market.Data)
 

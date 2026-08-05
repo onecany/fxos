@@ -195,6 +195,23 @@ type StrategyEngine struct {
 	vergexRankingCache map[string]*vergex.SignalRankItem
 }
 
+// StrategyReader is the subset of StrategyEngine that decision-making and
+// AutoTrader consume. AutoTrader depends on this interface so runCycle can
+// be unit tested with a fake engine. *StrategyEngine satisfies it.
+type StrategyReader interface {
+	GetConfig() *store.StrategyConfig
+	GetRiskControlConfig() store.RiskControlConfig
+	GetCandidateCoins() ([]CandidateCoin, error)
+	DirectionalCandidates() (bullish []DirectionalCandidate, bearish []DirectionalCandidate)
+	FetchQuantDataBatch(symbols []string) map[string]*QuantData
+	FetchOIRankingData() *nofx.OIRankingData
+	FetchNetFlowRankingData() *nofx.NetFlowRankingData
+	FetchPriceRankingData() *nofx.PriceRankingData
+	FetchVergexDataBatch(ctx context.Context, symbols []string) map[string]*vergex.MarketAnalysis
+	BuildSystemPrompt(accountEquity float64, variant string) string
+	BuildUserPrompt(ctx *Context) string
+}
+
 // NewStrategyEngine creates strategy execution engine.
 // claw402WalletKey is optional — if provided, fxos data requests are routed through claw402.
 func NewStrategyEngine(config *store.StrategyConfig, claw402WalletKey ...string) *StrategyEngine {

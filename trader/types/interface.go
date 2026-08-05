@@ -76,13 +76,29 @@ type OrderStatus struct {
 
 // Trader Unified trader interface
 // Supports multiple trading platforms (Binance, Hyperliquid, etc.)
-type Trader interface {
-	// GetBalance Get account balance
+// Capability interfaces: Trader composes them so an adapter can implement
+// a subset (e.g. a spot-only exchange without ConditionalOrderManager) and
+// callers can depend on only what they use.
+
+// BalanceReader reads the account balance.
+type BalanceReader interface {
 	GetBalance() (*Account, error)
+}
 
-	// GetPositions Get all positions
+// PositionReader reads all open positions.
+type PositionReader interface {
 	GetPositions() ([]Position, error)
+}
 
+// OrderStatusReader queries a single order's status and fill details.
+type OrderStatusReader interface {
+	// GetOrderStatus returns status(FILLED/NEW/CANCELED), avgPrice,
+	// executedQty and commission.
+	GetOrderStatus(symbol string, orderID string) (*OrderStatus, error)
+}
+
+// OrderPlacer opens, closes and cancels market/limit positions.
+type OrderPlacer interface {
 	// OpenLong Open long position
 	OpenLong(symbol string, quantity float64, leverage int) (map[string]interface{}, error)
 
@@ -101,9 +117,12 @@ type Trader interface {
 	// SetMarginMode Set position mode (true=cross margin, false=isolated margin)
 	SetMarginMode(symbol string, isCrossMargin bool) error
 
-	// GetMarketPrice Get market price
-	GetMarketPrice(symbol string) (float64, error)
+	// CancelAllOrders Cancel all pending orders for this symbol
+	CancelAllOrders(symbol string) error
+}
 
+// ConditionalOrderManager manages stop-loss and take-profit orders.
+type ConditionalOrderManager interface {
 	// SetStopLoss Set stop-loss order
 	SetStopLoss(symbol string, positionSide string, quantity, stopPrice float64) error
 
@@ -116,28 +135,52 @@ type Trader interface {
 	// CancelTakeProfitOrders Cancel only take-profit orders (BUG fix: don't delete stop-loss when adjusting take-profit)
 	CancelTakeProfitOrders(symbol string) error
 
-	// CancelAllOrders Cancel all pending orders for this symbol
-	CancelAllOrders(symbol string) error
-
 	// CancelStopOrders Cancel stop-loss/take-profit orders for this symbol (for adjusting stop-loss/take-profit positions)
 	CancelStopOrders(symbol string) error
+}
 
-	// FormatQuantity Format quantity to correct precision
-	FormatQuantity(symbol string, quantity float64) (string, error)
+// OrderBookReader reads market price data.
+type OrderBookReader interface {
+	// GetMarketPrice Get market price
+	GetMarketPrice(symbol string) (float64, error)
+}
 
-	// GetOrderStatus Get order status
-	// Returns: status(FILLED/NEW/CANCELED), avgPrice, executedQty, commission
-	GetOrderStatus(symbol string, orderID string) (*OrderStatus, error)
-
+// OrderHistoryReader reads closed positions and trade history.
+type OrderHistoryReader interface {
 	// GetClosedPnL Get closed position PnL records from exchange
 	// startTime: start time for query (usually last sync time)
 	// limit: max number of records to return
 	// Returns accurate exit price, fees, and close reason for positions closed externally
 	GetClosedPnL(startTime time.Time, limit int) ([]ClosedPnLRecord, error)
+}
 
+// OpenOrderReader lists pending orders on the exchange.
+type OpenOrderReader interface {
 	// GetOpenOrders Get open/pending orders from exchange
 	// Returns stop-loss, take-profit, and limit orders that haven't been filled
 	GetOpenOrders(symbol string) ([]OpenOrder, error)
+}
+
+// ExchangeTooling provides exchange-specific formatting helpers.
+type ExchangeTooling interface {
+	// FormatQuantity Format quantity to correct precision
+	FormatQuantity(symbol string, quantity float64) (string, error)
+}
+
+// Trader unified trader interface. It is a composition of the capability
+// interfaces; adapters implement all of them (the exchange implementations
+// and test mocks do). Future spot-only adapters can implement a subset and
+// expose SupportsFutures() for capability detection.
+type Trader interface {
+	BalanceReader
+	PositionReader
+	OrderStatusReader
+	OrderPlacer
+	ConditionalOrderManager
+	OrderBookReader
+	OrderHistoryReader
+	OpenOrderReader
+	ExchangeTooling
 }
 
 // OpenOrder represents a pending order on the exchange

@@ -379,3 +379,5 @@ func (t *KuCoinTrader) quantityToLots(symbol string, quantity float64) (int64, e
 
 	return lotsInt, nil
 }
+
+var _ types.Trader = (*KuCoinTrader)(nil)

@@ -315,3 +315,5 @@ func genBitgetClientOid() string {
 	rand := time.Now().Nanosecond() % 100000
 	return fmt.Sprintf("fxos%d%05d", timestamp, rand)
 }
+
+var _ types.Trader = (*BitgetTrader)(nil)

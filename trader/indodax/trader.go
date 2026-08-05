@@ -321,3 +321,5 @@ func parseFloat(v interface{}) float64 {
 		return 0
 	}
 }
+
+var _ types.Trader = (*IndodaxTrader)(nil)

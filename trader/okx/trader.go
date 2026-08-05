@@ -313,3 +313,5 @@ func (t *OKXTrader) formatSize(sz float64, inst *OKXInstrument) string {
 	format := fmt.Sprintf("%%.%df", precision)
 	return fmt.Sprintf(format, sz)
 }
+
+var _ types.Trader = (*OKXTrader)(nil)

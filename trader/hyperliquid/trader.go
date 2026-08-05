@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"fxos/logger"
 	hlprovider "fxos/provider/hyperliquid"
+	"fxos/trader/types"
 	"strconv"
 	"strings"
 	"sync"
@@ -301,3 +302,5 @@ func (t *HyperliquidTrader) roundPriceToSigfigs(price float64) float64 {
 	rounded := float64(int(price*multiplier+0.5)) / multiplier
 	return rounded
 }
+
+var _ types.Trader = (*HyperliquidTrader)(nil)

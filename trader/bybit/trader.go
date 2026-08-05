@@ -196,3 +196,5 @@ func (t *BybitTrader) parseOrderResult(result *bybit.ServerResponse) (map[string
 		"status":  "NEW",
 	}, nil
 }
+
+var _ types.Trader = (*BybitTrader)(nil)

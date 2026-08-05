@@ -6,13 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"fxos/hook"
+	"fxos/httpclient"
+	"fxos/trader/types"
 	"io"
 	"math"
 	"math/big"
 	"net/http"
 	"net/url"
-	"fxos/hook"
-	"fxos/httpclient"
 	"sort"
 	"strconv"
 	"strings"
@@ -422,3 +423,5 @@ func (t *AsterTrader) doRequest(method, endpoint string, params map[string]inter
 		return nil, fmt.Errorf("unsupported HTTP method: %s", method)
 	}
 }
+
+var _ types.Trader = (*AsterTrader)(nil)

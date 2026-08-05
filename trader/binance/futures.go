@@ -183,3 +183,5 @@ func trimTrailingZeros(s string) string {
 
 	return s
 }
+
+var _ types.Trader = (*FuturesTrader)(nil)

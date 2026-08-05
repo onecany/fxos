@@ -688,3 +688,5 @@ func (t *LighterTraderV2) GetTrades(startTime time.Time, limit int) ([]tradertyp
 
 	return result, nil
 }
+
+var _ tradertypes.Trader = (*LighterTraderV2)(nil)

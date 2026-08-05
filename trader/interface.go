@@ -41,13 +41,18 @@ type StoreAccessor interface {
 	Trader() *store.TraderStore
 }
 
-// GridTraderAdapter wraps a basic Trader to provide GridTrader interface
-// Uses stop orders as a fallback when limit orders aren't directly available
+// Deprecated: GridTraderAdapter wraps a basic Trader to provide the
+// GridTrader interface, emulating limit orders with stop orders. It exists
+// for adapters without native limit-order support (gate, kucoin, indodax).
+// Prefer implementing GridTrader directly on the exchange adapter;
+// aster, binance, bitget, bybit, hyperliquid, lighter and okx already do
+// and never use this wrapper.
 type GridTraderAdapter struct {
 	Trader
 }
 
 // NewGridTraderAdapter creates an adapter for basic Trader
+// Deprecated: see GridTraderAdapter.
 func NewGridTraderAdapter(t Trader) *GridTraderAdapter {
 	return &GridTraderAdapter{Trader: t}
 }

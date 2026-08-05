@@ -162,9 +162,9 @@ type AutoTrader struct {
 	config                AutoTraderConfig
 	trader                Trader // Use Trader interface (supports multiple platforms)
 	mcpClient             mcp.AIClient
-	store                 StoreAccessor      // Data storage (decision records, etc.); interface for testability
+	store                 StoreAccessor         // Data storage (decision records, etc.); interface for testability
 	strategyEngine        kernel.StrategyReader // Strategy engine (uses strategy configuration); interface for testability
-	cycleNumber           int                    // Current cycle number
+	cycleNumber           int                   // Current cycle number
 	initialBalance        float64
 	dailyPnL              float64
 	dayStartEquity        float64 // Equity at the start of the current trading day (anchor for the daily-loss circuit breaker)
@@ -188,17 +188,17 @@ type AutoTrader struct {
 	// sleepFn abstracts time.Sleep so tests can fast-forward pauses
 	// (fill-confirmation polling, post-execution delay). Defaults to
 	// time.Sleep; override in tests.
-	sleepFn func(time.Duration)
-	userID                string             // User ID
-	gridState             *GridState         // Grid trading state (only used when StrategyType == "grid_trading")
-	claw402WalletAddr     string             // Claw402 wallet address (derived from private key at start)
-	consecutiveAIFailures int                // Consecutive AI call failures
-	runtimeHealthMu       sync.RWMutex       // Guards safe mode + AI wallet health (loop writes, API reads)
-	safeMode              bool               // Safe mode: no new positions, protect existing ones
-	safeModeReason        string             // Why safe mode was activated
-	aiWalletStatus        string             // "ok"|"low"|"empty"|"unknown" — see runtime_health.go
-	aiWalletBalanceUSDC   float64            // Last observed Base USDC balance of the claw402 wallet
-	aiWalletCheckedAt     time.Time          // When the balance was last observed
+	sleepFn               func(time.Duration)
+	userID                string       // User ID
+	gridState             *GridState   // Grid trading state (only used when StrategyType == "grid_trading")
+	claw402WalletAddr     string       // Claw402 wallet address (derived from private key at start)
+	consecutiveAIFailures int          // Consecutive AI call failures
+	runtimeHealthMu       sync.RWMutex // Guards safe mode + AI wallet health (loop writes, API reads)
+	safeMode              bool         // Safe mode: no new positions, protect existing ones
+	safeModeReason        string       // Why safe mode was activated
+	aiWalletStatus        string       // "ok"|"low"|"empty"|"unknown" — see runtime_health.go
+	aiWalletBalanceUSDC   float64      // Last observed Base USDC balance of the claw402 wallet
+	aiWalletCheckedAt     time.Time    // When the balance was last observed
 }
 
 // NewAutoTrader creates an automatic trader

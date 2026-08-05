@@ -433,7 +433,13 @@ func (t *GateTrader) CancelTakeProfitOrders(symbol string) error {
 	return t.cancelTriggerOrders(symbol, "take_profit")
 }
 
-// cancelTriggerOrders cancels trigger orders of a specific type
+// cancelTriggerOrders cancels trigger orders of a specific type.
+// Gate has no explicit SL/TP marker on triggered orders; the combination of
+// initial order size sign (position direction) and trigger rule identifies
+// the type, matching how SetStopLoss/SetTakeProfit encode it:
+//
+//	long position (size<0): rule 1 = stop loss, rule 2 = take profit
+//	short position (size>0): rule 2 = stop loss, rule 1 = take profit
 func (t *GateTrader) cancelTriggerOrders(symbol string, orderType string) error {
 	symbol = t.convertSymbol(symbol)
 
@@ -447,8 +453,9 @@ func (t *GateTrader) cancelTriggerOrders(symbol string, orderType string) error 
 	}
 
 	for _, order := range orders {
-		// Determine if it's stop loss or take profit based on trigger rule and position
-		// For simplicity, cancel all matching symbol orders
+		if !isTriggerOrderOfType(&order, orderType) {
+			continue
+		}
 		_, _, err := t.client.FuturesApi.CancelPriceTriggeredOrder(t.ctx, "usdt", fmt.Sprintf("%d", order.Id))
 		if err != nil {
 			logger.Warnf("  [Gate] Failed to cancel trigger order %d: %v", order.Id, err)
@@ -456,6 +463,24 @@ func (t *GateTrader) cancelTriggerOrders(symbol string, orderType string) error 
 	}
 
 	return nil
+}
+
+// isTriggerOrderOfType reports whether a Gate price-triggered order is a
+// stop-loss ("stop_loss") or take-profit ("take_profit") order. An empty
+// orderType matches all orders (used by CancelAllOrders).
+func isTriggerOrderOfType(order *gateapi.FuturesPriceTriggeredOrder, orderType string) bool {
+	if orderType == "" {
+		return true
+	}
+	isSL := (order.Initial.Size < 0 && order.Trigger.Rule == 1) || (order.Initial.Size > 0 && order.Trigger.Rule == 2)
+	switch orderType {
+	case "stop_loss":
+		return isSL
+	case "take_profit":
+		return !isSL
+	default:
+		return true
+	}
 }
 
 // CancelAllOrders cancels all pending orders for a symbol

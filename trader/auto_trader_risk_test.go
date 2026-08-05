@@ -8,10 +8,8 @@ import (
 // TestBreakevenStopTriggered verifies that breakeven stop decision is made
 // when profit exceeds the threshold.
 func TestBreakevenStopTriggered(t *testing.T) {
-	// Reset cache
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
+	at := &AutoTrader{}
+	at.breakevenStopCache = make(map[string]bool)
 
 	// Simulate: BTC long, profit=2% (above 1.5% threshold)
 	symbol := "BTCUSDT"
@@ -23,14 +21,14 @@ func TestBreakevenStopTriggered(t *testing.T) {
 	currentPnLPct := 2.0
 
 	if currentPnLPct >= breakevenThreshold {
-		breakevenStopCacheMutex.Lock()
-		breakevenStopCache[posKey] = true
-		breakevenStopCacheMutex.Unlock()
+		at.breakevenStopCacheMu.Lock()
+		at.breakevenStopCache[posKey] = true
+		at.breakevenStopCacheMu.Unlock()
 	}
 
-	breakevenStopCacheMutex.RLock()
-	applied := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	applied := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if !applied {
 		t.Errorf("Expected breakeven stop to be marked as applied for %s %s", symbol, side)
@@ -41,9 +39,8 @@ func TestBreakevenStopTriggered(t *testing.T) {
 // TestBreakevenStopNotTriggeredBelowThreshold verifies breakeven stop
 // is NOT applied when profit is below threshold.
 func TestBreakevenStopNotTriggeredBelowThreshold(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
+	at := &AutoTrader{}
+	at.breakevenStopCache = make(map[string]bool)
 
 	symbol := "BTCUSDT"
 	side := "long"
@@ -53,14 +50,14 @@ func TestBreakevenStopNotTriggeredBelowThreshold(t *testing.T) {
 	currentPnLPct := 1.0 // Below threshold
 
 	if currentPnLPct >= breakevenThreshold {
-		breakevenStopCacheMutex.Lock()
-		breakevenStopCache[posKey] = true
-		breakevenStopCacheMutex.Unlock()
+		at.breakevenStopCacheMu.Lock()
+		at.breakevenStopCache[posKey] = true
+		at.breakevenStopCacheMu.Unlock()
 	}
 
-	breakevenStopCacheMutex.RLock()
-	applied := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	applied := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if applied {
 		t.Errorf("Expected breakeven stop NOT to be applied at %.2f%% (threshold %.2f%%)", currentPnLPct, breakevenThreshold)
@@ -106,9 +103,8 @@ func TestTrailingStopDecision(t *testing.T) {
 
 // TestAltcoinHigherThresholds verifies altcoins use higher thresholds.
 func TestAltcoinHigherThresholds(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
+	at := &AutoTrader{}
+	at.breakevenStopCache = make(map[string]bool)
 
 	symbol := "SOLUSDT"
 	side := "long"
@@ -119,14 +115,14 @@ func TestAltcoinHigherThresholds(t *testing.T) {
 	currentPnLPct := 2.0
 
 	if currentPnLPct >= altcoinThreshold {
-		breakevenStopCacheMutex.Lock()
-		breakevenStopCache[posKey] = true
-		breakevenStopCacheMutex.Unlock()
+		at.breakevenStopCacheMu.Lock()
+		at.breakevenStopCache[posKey] = true
+		at.breakevenStopCacheMu.Unlock()
 	}
 
-	breakevenStopCacheMutex.RLock()
-	applied := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	applied := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if applied {
 		t.Errorf("Expected breakeven NOT to trigger for altcoin at %.2f%% (threshold %.2f%%)", currentPnLPct, altcoinThreshold)
@@ -136,30 +132,29 @@ func TestAltcoinHigherThresholds(t *testing.T) {
 
 // TestBreakevenNotReapplied verifies breakeven stop is only applied once.
 func TestBreakevenNotReapplied(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
+	at := &AutoTrader{}
+	at.breakevenStopCache = make(map[string]bool)
 
 	posKey := "BTCUSDT_long"
 
 	// First application
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache[posKey] = true
-	breakevenStopCacheMutex.Unlock()
+	at.breakevenStopCacheMu.Lock()
+	at.breakevenStopCache[posKey] = true
+	at.breakevenStopCacheMu.Unlock()
 
 	// Check: should be true
-	breakevenStopCacheMutex.RLock()
-	first := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	first := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if !first {
 		t.Fatal("Expected cache to be true after first application")
 	}
 
 	// Second check: still true (idempotent)
-	breakevenStopCacheMutex.RLock()
-	second := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	second := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if !second {
 		t.Error("Cache should remain true after second check")
@@ -169,9 +164,8 @@ func TestBreakevenNotReapplied(t *testing.T) {
 
 // TestConcurrentCacheAccess verifies thread safety.
 func TestConcurrentCacheAccess(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
+	at := &AutoTrader{}
+	at.breakevenStopCache = make(map[string]bool)
 
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
@@ -179,20 +173,20 @@ func TestConcurrentCacheAccess(t *testing.T) {
 		go func(idx int) {
 			defer wg.Done()
 			posKey := "BTCUSDT_long"
-			breakevenStopCacheMutex.Lock()
-			breakevenStopCache[posKey] = true
-			breakevenStopCacheMutex.Unlock()
+			at.breakevenStopCacheMu.Lock()
+			at.breakevenStopCache[posKey] = true
+			at.breakevenStopCacheMu.Unlock()
 
-			breakevenStopCacheMutex.RLock()
-			_ = breakevenStopCache[posKey]
-			breakevenStopCacheMutex.RUnlock()
+			at.breakevenStopCacheMu.RLock()
+			_ = at.breakevenStopCache[posKey]
+			at.breakevenStopCacheMu.RUnlock()
 		}(i)
 	}
 	wg.Wait()
 
-	breakevenStopCacheMutex.RLock()
-	applied := breakevenStopCache["BTCUSDT_long"]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	applied := at.breakevenStopCache["BTCUSDT_long"]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if !applied {
 		t.Error("Cache should be true after concurrent access")

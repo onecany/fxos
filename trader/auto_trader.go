@@ -2,7 +2,6 @@ package trader
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
 	"fxos/kernel"
 	"fxos/logger"
 	"fxos/mcp"
@@ -20,6 +19,7 @@ import (
 	"fxos/trader/lighter"
 	"fxos/trader/okx"
 	"fxos/wallet"
+	"github.com/ethereum/go-ethereum/crypto"
 	"sync"
 	"time"
 )
@@ -172,6 +172,8 @@ type AutoTrader struct {
 	monitorWg             sync.WaitGroup     // Used to wait for monitoring goroutine to finish
 	peakPnLCache          map[string]float64 // Peak profit cache (symbol -> peak P&L percentage)
 	peakPnLCacheMutex     sync.RWMutex       // Cache read-write lock
+	breakevenStopCache    map[string]bool    // Breakeven stop applied per position (symbol_side -> true), per-instance to avoid cross-trader pollution
+	breakevenStopCacheMu  sync.RWMutex       // Breakeven stop cache read-write lock
 	lastBalanceSyncTime   time.Time          // Last balance sync time
 	userID                string             // User ID
 	gridState             *GridState         // Grid trading state (only used when StrategyType == "grid_trading")
@@ -397,6 +399,8 @@ func NewAutoTrader(config AutoTraderConfig, st *store.Store, userID string) (*Au
 		monitorWg:             sync.WaitGroup{},
 		peakPnLCache:          make(map[string]float64),
 		peakPnLCacheMutex:     sync.RWMutex{},
+		breakevenStopCache:    make(map[string]bool),
+		breakevenStopCacheMu:  sync.RWMutex{},
 		lastBalanceSyncTime:   time.Now(),
 		userID:                userID,
 	}, nil

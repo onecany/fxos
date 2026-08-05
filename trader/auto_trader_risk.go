@@ -7,7 +7,6 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -183,20 +182,16 @@ func (at *AutoTrader) ClearPeakPnLCache(symbol, side string) {
 
 // ClearBreakevenStopCache clears breakeven stop cache for specified position
 func (at *AutoTrader) ClearBreakevenStopCache(symbol, side string) {
-	breakevenStopCacheMutex.Lock()
-	defer breakevenStopCacheMutex.Unlock()
+	at.breakevenStopCacheMu.Lock()
+	defer at.breakevenStopCacheMu.Unlock()
 
 	posKey := symbol + "_" + side
-	delete(breakevenStopCache, posKey)
+	delete(at.breakevenStopCache, posKey)
 }
 
 // ============================================================================
 // Dynamic Stop-Loss (Breakeven + Trailing)
 // ============================================================================
-
-// breakevenStopCache tracks whether breakeven stop has been applied per position
-var breakevenStopCache = make(map[string]bool)
-var breakevenStopCacheMutex sync.RWMutex
 
 // adjustStopLoss implements dynamic stop-loss management:
 // 1. Breakeven stop: when profit >= 1x risk, move SL to entry price
@@ -255,9 +250,9 @@ func (at *AutoTrader) adjustStopLoss(symbol, side string, entryPrice, markPrice,
 	}
 
 	// --- Breakeven Stop: when profit >= breakevenThreshold, move SL to entry ---
-	breakevenStopCacheMutex.RLock()
-	alreadyApplied := breakevenStopCache[posKey]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	alreadyApplied := at.breakevenStopCache[posKey]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if currentPnLPct >= breakevenThreshold && !alreadyApplied {
 		logger.Infof("🔒 Breakeven stop triggered: %s %s | Profit: %.2f%% >= %.2f%% threshold",
@@ -265,9 +260,9 @@ func (at *AutoTrader) adjustStopLoss(symbol, side string, entryPrice, markPrice,
 
 		at.applyTrailingStop(symbol, side, quantity, entryPrice, "breakeven")
 
-		breakevenStopCacheMutex.Lock()
-		breakevenStopCache[posKey] = true
-		breakevenStopCacheMutex.Unlock()
+		at.breakevenStopCacheMu.Lock()
+		at.breakevenStopCache[posKey] = true
+		at.breakevenStopCacheMu.Unlock()
 	}
 }
 

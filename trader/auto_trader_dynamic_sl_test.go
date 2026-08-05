@@ -125,11 +125,6 @@ func (m *mockTrader) GetOrderBook(symbol string, depth int) (bids, asks [][]floa
 // TestBreakevenStopLiveFlow tests the complete breakeven stop flow:
 // position exists → profit reaches threshold → SL moved to breakeven
 func TestBreakevenStopLiveFlow(t *testing.T) {
-	// Reset caches
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -144,6 +139,7 @@ func TestBreakevenStopLiveFlow(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 
 	// Run the drawdown monitor check
 	at.checkPositionDrawdown()
@@ -169,11 +165,6 @@ func TestBreakevenStopLiveFlow(t *testing.T) {
 // TestTrailingStopLiveFlow tests the trailing stop flow:
 // profit peaks then retraces → SL trails at 50% from peak
 func TestTrailingStopLiveFlow(t *testing.T) {
-	// Reset caches
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -188,6 +179,7 @@ func TestTrailingStopLiveFlow(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 
 	// First check: sets peak at 3%
 	at.checkPositionDrawdown()
@@ -238,28 +230,22 @@ func TestTrailingStopLiveFlow(t *testing.T) {
 
 // TestBreakevenCacheClearedOnClose verifies cache is cleared when position closes
 func TestBreakevenCacheClearedOnClose(t *testing.T) {
-	// Reset caches
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
-	// Set cache as if breakeven was already applied
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache["BTCUSDT_long"] = true
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
+
+	// Set cache as if breakeven was already applied
+	at.breakevenStopCache["BTCUSDT_long"] = true
 
 	// Simulate close position
 	at.ClearBreakevenStopCache("BTCUSDT", "long")
 
 	// Verify cache is cleared
-	breakevenStopCacheMutex.RLock()
-	applied := breakevenStopCache["BTCUSDT_long"]
-	breakevenStopCacheMutex.RUnlock()
+	at.breakevenStopCacheMu.RLock()
+	applied := at.breakevenStopCache["BTCUSDT_long"]
+	at.breakevenStopCacheMu.RUnlock()
 
 	if applied {
 		t.Error("Expected breakeven cache to be cleared after position close")
@@ -269,11 +255,6 @@ func TestBreakevenCacheClearedOnClose(t *testing.T) {
 
 // TestMultiplePositionsIndependentSl verifies each position has independent SL
 func TestMultiplePositionsIndependentSl(t *testing.T) {
-	// Reset caches
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -296,6 +277,7 @@ func TestMultiplePositionsIndependentSl(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 	at.checkPositionDrawdown()
 
 	mock.mu.Lock()
@@ -374,10 +356,6 @@ func TestDrawdownCalculation(t *testing.T) {
 
 // TestEdgeCaseZeroQuantity verifies zero quantity doesn't cause issues
 func TestEdgeCaseZeroQuantity(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -392,6 +370,7 @@ func TestEdgeCaseZeroQuantity(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 
 	// Should not panic
 	at.checkPositionDrawdown()
@@ -400,10 +379,6 @@ func TestEdgeCaseZeroQuantity(t *testing.T) {
 
 // TestEdgeCaseZeroLeverage verifies zero leverage defaults to 10
 func TestEdgeCaseZeroLeverage(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -418,6 +393,7 @@ func TestEdgeCaseZeroLeverage(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 
 	// Should not panic, should use default leverage of 10
 	at.checkPositionDrawdown()
@@ -426,10 +402,6 @@ func TestEdgeCaseZeroLeverage(t *testing.T) {
 
 // TestShortPositionPnL verifies correct PnL for short positions
 func TestShortPositionPnL(t *testing.T) {
-	breakevenStopCacheMutex.Lock()
-	breakevenStopCache = make(map[string]bool)
-	breakevenStopCacheMutex.Unlock()
-
 	mock := newMockTrader()
 	mock.positions = []map[string]interface{}{
 		{
@@ -444,6 +416,7 @@ func TestShortPositionPnL(t *testing.T) {
 
 	at := &AutoTrader{trader: mock}
 	at.peakPnLCache = make(map[string]float64)
+	at.breakevenStopCache = make(map[string]bool)
 	at.checkPositionDrawdown()
 
 	// Short position: price dropped 1.5%, with 10x leverage = +15% profit

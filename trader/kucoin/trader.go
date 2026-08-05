@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"fxos/httpclient"
 	"fxos/logger"
 	"strconv"
@@ -37,9 +38,21 @@ const (
 
 // API channel configuration
 const (
-	kcPartnerID  = "NoFxFutures"
-	kcPartnerKey = "d7c05b0c-c81b-4630-8fa8-ca6d049d3aae"
+	// kcPartnerID is the KuCoin partner referral code. DO NOT CHANGE: it is
+	// tied to the revenue-sharing agreement.
+	kcPartnerID = "NoFxFutures"
 )
+
+// kcPartnerKey is the KuCoin futures partner signature secret. It used to be
+// hardcoded in the binary; it now prefers the KC_PARTNER_KEY environment
+// variable and falls back to the legacy value so existing deployments keep
+// working. Set KC_PARTNER_KEY to rotate the secret out of the source tree.
+var kcPartnerKey = func() string {
+	if v := os.Getenv("KC_PARTNER_KEY"); v != "" {
+		return v
+	}
+	return "d7c05b0c-c81b-4630-8fa8-ca6d049d3aae"
+}()
 
 // KuCoinTrader implements types.Trader interface for KuCoin Futures
 type KuCoinTrader struct {

@@ -33,9 +33,9 @@ func (t *HyperliquidTrader) GetPositions() ([]types.Position, error) {
 		symbol := position.Coin + "USDT"
 
 		// Position amount and direction
-		side := "long"
+		side := types.SideLong
 		if posAmt < 0 {
-			side = "short"
+			side = types.SideShort
 			posAmt = -posAmt // Convert to positive number
 		}
 
@@ -88,9 +88,9 @@ func (t *HyperliquidTrader) GetPositions() ([]types.Position, error) {
 				symbol = "xyz:" + symbol
 			}
 
-			side := "long"
+			side := types.SideLong
 			if posAmt < 0 {
-				side = "short"
+				side = types.SideShort
 				posAmt = -posAmt
 			}
 

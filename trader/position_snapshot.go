@@ -5,6 +5,7 @@ import (
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
 	"time"
 )
 
@@ -59,7 +60,7 @@ func CreatePositionSnapshot(traderID, exchangeID, exchangeType string, trader Tr
 
 		// Determine position side
 		side := "LONG"
-		if sideStr == "short" {
+		if sideStr == types.SideShort {
 			side = "SHORT"
 		}
 

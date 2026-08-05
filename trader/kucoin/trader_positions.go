@@ -53,10 +53,10 @@ func (t *KuCoinTrader) GetPositions() ([]types.Position, error) {
 
 		// Determine side based on position quantity
 		// KuCoin: positive qty = long, negative qty = short
-		side := "long"
+		side := types.SideLong
 		qty := pos.CurrentQty
 		if qty < 0 {
-			side = "short"
+			side = types.SideShort
 			qty = -qty
 		}
 

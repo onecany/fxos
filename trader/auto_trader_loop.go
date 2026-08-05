@@ -10,6 +10,7 @@ import (
 	"fxos/mcp/payment"
 	"fxos/provider/hyperliquid"
 	"fxos/store"
+	"fxos/trader/types"
 	"fxos/wallet"
 	"strings"
 	"time"
@@ -296,7 +297,7 @@ func (at *AutoTrader) runCycle() error {
 	if at.isSafeMode() {
 		filtered := make([]kernel.Decision, 0)
 		for _, d := range sortedDecisions {
-			if d.Action == "open_long" || d.Action == "open_short" {
+			if d.Action == types.ActionOpenLong || d.Action == types.ActionOpenShort {
 				at.logWarnf("🛡️ Safe mode: BLOCKED %s %s (no new positions allowed)", d.Action, d.Symbol)
 				continue
 			}
@@ -407,7 +408,7 @@ func universeBaseKey(symbol string) string {
 
 func isOpenDecision(action string) bool {
 	a := strings.ToLower(strings.TrimSpace(action))
-	return a == "open_long" || a == "open_short"
+	return a == types.ActionOpenLong || a == types.ActionOpenShort
 }
 
 func (at *AutoTrader) filterDecisionsToStrategyUniverse(decisions []kernel.Decision, ctx *kernel.Context) []kernel.Decision {
@@ -789,11 +790,11 @@ func sortDecisionsByPriority(decisions []kernel.Decision) []kernel.Decision {
 	// Define priority
 	getActionPriority := func(action string) int {
 		switch action {
-		case "close_long", "close_short":
+		case types.ActionCloseLong, types.ActionCloseShort:
 			return 1 // Highest priority: close positions first
-		case "open_long", "open_short":
+		case types.ActionOpenLong, types.ActionOpenShort:
 			return 2 // Second priority: open positions later
-		case "hold", "wait":
+		case types.ActionHold, types.ActionWait:
 			return 3 // Lowest priority: wait
 		default:
 			return 999 // Unknown actions at the end

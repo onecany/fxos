@@ -1,8 +1,9 @@
 package hyperliquid
 
 import (
-	"math"
 	"fxos/store"
+	"fxos/trader/types"
+	"math"
 	"testing"
 	"time"
 
@@ -24,28 +25,28 @@ func TestHyperliquidOrderDirectionParsing(t *testing.T) {
 			name:            "Open Long",
 			dirField:        "Open Long",
 			side:            "BUY",
-			expectedAction:  "open_long",
+			expectedAction:  types.ActionOpenLong,
 			expectedPosSide: "LONG",
 		},
 		{
 			name:            "Open Short",
 			dirField:        "Open Short",
 			side:            "SELL",
-			expectedAction:  "open_short",
+			expectedAction:  types.ActionOpenShort,
 			expectedPosSide: "SHORT",
 		},
 		{
 			name:            "Close Long",
 			dirField:        "Close Long",
 			side:            "SELL",
-			expectedAction:  "close_long",
+			expectedAction:  types.ActionCloseLong,
 			expectedPosSide: "LONG",
 		},
 		{
 			name:            "Close Short",
 			dirField:        "Close Short",
 			side:            "BUY",
-			expectedAction:  "close_short",
+			expectedAction:  types.ActionCloseShort,
 			expectedPosSide: "SHORT",
 		},
 	}
@@ -57,13 +58,13 @@ func TestHyperliquidOrderDirectionParsing(t *testing.T) {
 			var orderAction string
 			switch tt.dirField {
 			case "Open Long":
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			case "Open Short":
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			case "Close Long":
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			case "Close Short":
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			}
 
 			if orderAction != tt.expectedAction {
@@ -101,7 +102,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Open Long: BUY 0.1 ETH @ 3500
 		err := posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "open_long",
+			symbol, "LONG", types.ActionOpenLong,
 			0.1, 3500, 0.5, 0,
 			time.Now().UnixMilli(), "order-1",
 		)
@@ -124,7 +125,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Close Long: SELL 0.1 ETH @ 3600
 		err = posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "close_long",
+			symbol, "LONG", types.ActionCloseLong,
 			0.1, 3600, 0.5, 10.0, // PnL = (3600-3500)*0.1 = 10
 			time.Now().UnixMilli(), "order-2",
 		)
@@ -150,7 +151,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Open Short: SELL 0.05 ETH @ 3500
 		err := posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "SHORT", "open_short",
+			symbol, "SHORT", types.ActionOpenShort,
 			0.05, 3500, 0.25, 0,
 			time.Now().UnixMilli(), "order-3",
 		)
@@ -174,7 +175,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// ⚠️ This is the critical test - BUY should close SHORT, not open LONG!
 		err = posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "SHORT", "close_short",
+			symbol, "SHORT", types.ActionCloseShort,
 			0.05, 3400, 0.25, 5.0, // PnL = (3500-3400)*0.05 = 5
 			time.Now().UnixMilli(), "order-4",
 		)
@@ -203,7 +204,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Open Long: BUY 0.1 ETH @ 3500
 		err := posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "open_long",
+			symbol, "LONG", types.ActionOpenLong,
 			0.1, 3500, 0.5, 0,
 			time.Now().UnixMilli(), "order-5",
 		)
@@ -214,7 +215,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Add to Long: BUY 0.1 ETH @ 3600
 		err = posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "open_long",
+			symbol, "LONG", types.ActionOpenLong,
 			0.1, 3600, 0.5, 0,
 			time.Now().UnixMilli(), "order-6",
 		)
@@ -241,7 +242,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Close all: SELL 0.2 ETH @ 3700
 		err = posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "close_long",
+			symbol, "LONG", types.ActionCloseLong,
 			0.2, 3700, 1.0, 30.0,
 			time.Now().UnixMilli(), "order-7",
 		)
@@ -267,7 +268,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Open Long: BUY 1.0 ETH @ 3500
 		err := posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "open_long",
+			symbol, "LONG", types.ActionOpenLong,
 			1.0, 3500, 2.0, 0,
 			time.Now().UnixMilli(), "order-8",
 		)
@@ -278,7 +279,7 @@ func TestHyperliquidPositionBuilding(t *testing.T) {
 		// Partial Close: SELL 0.3 ETH @ 3600
 		err = posBuilder.ProcessTrade(
 			traderID, exchangeID, exchangeType,
-			symbol, "LONG", "close_long",
+			symbol, "LONG", types.ActionCloseLong,
 			0.3, 3600, 0.6, 30.0,
 			time.Now().UnixMilli(), "order-9",
 		)
@@ -328,22 +329,22 @@ func TestHyperliquidBugScenario(t *testing.T) {
 	// Account has 30 USDT, should not be able to hold 1.7 ETH
 
 	trades := []struct {
-		action   string
-		side     string
-		symbol   string
-		qty      float64
-		price    float64
-		fee      float64
-		pnl      float64
+		action string
+		side   string
+		symbol string
+		qty    float64
+		price  float64
+		fee    float64
+		pnl    float64
 	}{
 		// Order 853: Open Short
-		{"open_short", "SHORT", "ETHUSDT", 0.0472, 3500, 0.2, 0},
+		{types.ActionOpenShort, "SHORT", "ETHUSDT", 0.0472, 3500, 0.2, 0},
 		// Order 854: Close Short (was incorrectly classified as open_long)
-		{"close_short", "SHORT", "ETHUSDT", 0.0472, 3400, 0.2, 4.72},
+		{types.ActionCloseShort, "SHORT", "ETHUSDT", 0.0472, 3400, 0.2, 4.72},
 		// Order 855: Open Long
-		{"open_long", "LONG", "ETHUSDT", 0.05, 3450, 0.2, 0},
+		{types.ActionOpenLong, "LONG", "ETHUSDT", 0.05, 3450, 0.2, 0},
 		// Order 856: Close Long
-		{"close_long", "LONG", "ETHUSDT", 0.05, 3550, 0.2, 5.0},
+		{types.ActionCloseLong, "LONG", "ETHUSDT", 0.05, 3550, 0.2, 5.0},
 	}
 
 	for i, trade := range trades {

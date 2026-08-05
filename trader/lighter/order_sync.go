@@ -6,6 +6,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strings"
 	"time"
@@ -64,10 +65,10 @@ func (t *LighterTraderV2) SyncOrdersFromLighter(traderID string, exchangeID stri
 		if orderAction == "" {
 			if strings.ToUpper(side) == "BUY" {
 				positionSide = "LONG"
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			} else {
 				positionSide = "SHORT"
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 

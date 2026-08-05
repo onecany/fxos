@@ -6,6 +6,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strings"
 	"time"
@@ -62,7 +63,7 @@ func (t *AsterTrader) SyncOrdersFromAster(traderID string, exchangeID string, ex
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(orderAction, "short") {
+		if strings.Contains(orderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 
@@ -156,26 +157,26 @@ func deriveAsterOrderAction(side, positionSide string, realizedPnL float64) stri
 
 	if positionSide == "LONG" {
 		if isClose {
-			return "close_long"
+			return types.ActionCloseLong
 		}
-		return "open_long"
+		return types.ActionOpenLong
 	} else if positionSide == "SHORT" {
 		if isClose {
-			return "close_short"
+			return types.ActionCloseShort
 		}
-		return "open_short"
+		return types.ActionOpenShort
 	} else {
 		// BOTH mode - infer from side and PnL
 		if side == "BUY" {
 			if isClose {
-				return "close_short" // Buying to close short
+				return types.ActionCloseShort // Buying to close short
 			}
-			return "open_long" // Buying to open long
+			return types.ActionOpenLong // Buying to open long
 		} else {
 			if isClose {
-				return "close_long" // Selling to close long
+				return types.ActionCloseLong // Selling to close long
 			}
-			return "open_short" // Selling to open short
+			return types.ActionOpenShort // Selling to open short
 		}
 	}
 }

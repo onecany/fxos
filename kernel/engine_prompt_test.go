@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"fxos/store"
+	"fxos/trader/types"
 )
 
 func TestBuildSystemPromptUsesVergexClaw402Prompt(t *testing.T) {
@@ -30,7 +31,7 @@ func TestBuildSystemPromptUsesVergexClaw402Prompt(t *testing.T) {
 	if !strings.Contains(prompt, "Claw402.ai Signal Ranking") || !strings.Contains(prompt, "Signal Lab") || !strings.Contains(prompt, "Cost/Liquidation Heatmap") {
 		t.Fatalf("prompt is missing Claw402/Vergex detail data guidance:\n%s", prompt)
 	}
-	if !strings.Contains(prompt, "open_short") {
+	if !strings.Contains(prompt, types.ActionOpenShort) {
 		t.Fatalf("prompt should explicitly allow short entries:\n%s", prompt)
 	}
 	if !strings.Contains(prompt, "Direction must be data-driven") {
@@ -199,7 +200,7 @@ func TestBuildSystemPromptDoesNotForceLongOnlyForSingleXYZ(t *testing.T) {
 	required := []string{
 		"DIRECTIONAL, SIGNAL-DRIVEN",
 		"You may open long or short",
-		"open_short",
+		types.ActionOpenShort,
 	}
 	for _, phrase := range required {
 		if !strings.Contains(prompt, phrase) {

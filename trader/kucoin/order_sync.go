@@ -118,18 +118,18 @@ func (t *KuCoinTrader) GetTrades(startTime time.Time, limit int) ([]KuCoinTrade,
 		if trade.Side == "buy" {
 			if isClosing {
 				// Buying to close short
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			} else {
 				// Buying to open long
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			}
 		} else { // sell
 			if isClosing {
 				// Selling to close long
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			} else {
 				// Selling to open short
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 
@@ -219,15 +219,15 @@ func (t *KuCoinTrader) GetRecentTrades() ([]KuCoinTrade, error) {
 		var orderAction string
 		if trade.Side == "buy" {
 			if isClosing {
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			} else {
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			}
 		} else {
 			if isClosing {
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			} else {
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 
@@ -255,7 +255,7 @@ func (t *KuCoinTrader) GetRecentTrades() ([]KuCoinTrade, error) {
 func (t *KuCoinTrade) ToTradeRecord() types.TradeRecord {
 	// Determine position side from order action
 	positionSide := "LONG"
-	if strings.Contains(t.OrderAction, "short") {
+	if strings.Contains(t.OrderAction, types.SideShort) {
 		positionSide = "SHORT"
 	}
 
@@ -318,7 +318,7 @@ func (t *KuCoinTrader) SyncOrdersFromKuCoin(traderID string, exchangeID string, 
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, "short") {
+		if strings.Contains(trade.OrderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

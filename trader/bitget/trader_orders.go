@@ -132,7 +132,7 @@ func (t *BitgetTrader) CloseLong(symbol string, quantity float64) (map[string]in
 			return nil, err
 		}
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "long" {
+			if pos.Symbol == symbol && pos.Side == types.SideLong {
 				quantity = pos.Quantity
 				break
 			}
@@ -195,7 +195,7 @@ func (t *BitgetTrader) CloseShort(symbol string, quantity float64) (map[string]i
 			return nil, err
 		}
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "short" {
+			if pos.Symbol == symbol && pos.Side == types.SideShort {
 				quantity = pos.Quantity
 				break
 			}
@@ -258,10 +258,10 @@ func (t *BitgetTrader) SetStopLoss(symbol string, positionSide string, quantity,
 	symbol = t.convertSymbol(symbol)
 
 	side := "sell"
-	holdSide := "long"
+	holdSide := types.SideLong
 	if strings.ToUpper(positionSide) == "SHORT" {
 		side = "buy"
-		holdSide = "short"
+		holdSide = types.SideShort
 	}
 
 	qtyStr, _ := t.FormatQuantity(symbol, quantity)
@@ -297,10 +297,10 @@ func (t *BitgetTrader) SetTakeProfit(symbol string, positionSide string, quantit
 	symbol = t.convertSymbol(symbol)
 
 	side := "sell"
-	holdSide := "long"
+	holdSide := types.SideLong
 	if strings.ToUpper(positionSide) == "SHORT" {
 		side = "buy"
-		holdSide = "short"
+		holdSide = types.SideShort
 	}
 
 	qtyStr, _ := t.FormatQuantity(symbol, quantity)

@@ -1,6 +1,7 @@
 package trader
 
 import (
+	"fxos/trader/types"
 	"sync"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestBreakevenStopTriggered(t *testing.T) {
 
 	// Simulate: BTC long, profit=2% (above 1.5% threshold)
 	symbol := "BTCUSDT"
-	side := "long"
+	side := types.SideLong
 	posKey := symbol + "_" + side
 
 	// Check threshold logic directly (without calling adjustStopLoss which needs a trader)
@@ -43,7 +44,7 @@ func TestBreakevenStopNotTriggeredBelowThreshold(t *testing.T) {
 	at.breakevenStopCache = make(map[string]bool)
 
 	symbol := "BTCUSDT"
-	side := "long"
+	side := types.SideLong
 	posKey := symbol + "_" + side
 
 	breakevenThreshold := 1.5
@@ -107,7 +108,7 @@ func TestAltcoinHigherThresholds(t *testing.T) {
 	at.breakevenStopCache = make(map[string]bool)
 
 	symbol := "SOLUSDT"
-	side := "long"
+	side := types.SideLong
 	posKey := symbol + "_" + side
 
 	// Altcoin threshold is 2.5%, profit is 2.0% → should NOT trigger

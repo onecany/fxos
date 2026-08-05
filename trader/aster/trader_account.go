@@ -150,21 +150,21 @@ func (t *AsterTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Clos
 		}
 
 		// Determine side from PositionSide or trade direction
-		side := "long"
-		if trade.PositionSide == "SHORT" || trade.PositionSide == "short" {
-			side = "short"
+		side := types.SideLong
+		if trade.PositionSide == "SHORT" || trade.PositionSide == types.SideShort {
+			side = types.SideShort
 		} else if trade.PositionSide == "BOTH" || trade.PositionSide == "" {
 			if trade.Side == "SELL" || trade.Side == "Sell" {
-				side = "long"
+				side = types.SideLong
 			} else {
-				side = "short"
+				side = types.SideShort
 			}
 		}
 
 		// Calculate entry price from PnL
 		var entryPrice float64
 		if trade.Quantity > 0 {
-			if side == "long" {
+			if side == types.SideLong {
 				entryPrice = trade.Price - trade.RealizedPnL/trade.Quantity
 			} else {
 				entryPrice = trade.Price + trade.RealizedPnL/trade.Quantity

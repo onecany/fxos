@@ -509,9 +509,9 @@ func TestLighterOrderSync(t *testing.T) {
 	openTrades := 0
 	closeTrades := 0
 	for _, trade := range trades {
-		if trade.OrderAction == "open_long" || trade.OrderAction == "open_short" {
+		if trade.OrderAction == tradertypes.ActionOpenLong || trade.OrderAction == tradertypes.ActionOpenShort {
 			openTrades++
-		} else if trade.OrderAction == "close_long" || trade.OrderAction == "close_short" {
+		} else if trade.OrderAction == tradertypes.ActionCloseLong || trade.OrderAction == tradertypes.ActionCloseShort {
 			closeTrades++
 		}
 	}
@@ -757,7 +757,7 @@ func TestLighterStopLossOrder(t *testing.T) {
 
 	// Calculate stop-loss price (5% below entry for long, 5% above for short)
 	var stopPrice float64
-	if pos.Side == "long" {
+	if pos.Side == tradertypes.SideLong {
 		stopPrice = pos.EntryPrice * 0.95
 	} else {
 		stopPrice = pos.EntryPrice * 1.05
@@ -797,7 +797,7 @@ func TestLighterTakeProfitOrder(t *testing.T) {
 
 	// Calculate take-profit price (10% above entry for long, 10% below for short)
 	var takeProfitPrice float64
-	if pos.Side == "long" {
+	if pos.Side == tradertypes.SideLong {
 		takeProfitPrice = pos.EntryPrice * 1.10
 	} else {
 		takeProfitPrice = pos.EntryPrice * 0.90

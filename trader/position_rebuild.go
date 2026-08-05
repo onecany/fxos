@@ -2,6 +2,7 @@ package trader
 
 import (
 	"fmt"
+	"fxos/trader/types"
 	"sort"
 	"time"
 )
@@ -96,26 +97,26 @@ func RebuildPositionsFromTrades(trades []TradeRecord) []ClosedPnLRecord {
 func determinePositionSide(trade TradeRecord) string {
 	// Hedge mode: use PositionSide directly
 	switch trade.PositionSide {
-	case "LONG", "long":
-		return "long"
-	case "SHORT", "short":
-		return "short"
+	case "LONG", types.SideLong:
+		return types.SideLong
+	case "SHORT", types.SideShort:
+		return types.SideShort
 	}
 
 	// One-way mode (BOTH or empty): determine from trade direction and RealizedPnL
 	if trade.RealizedPnL == 0 {
 		// Opening trade
 		if trade.Side == "BUY" || trade.Side == "Buy" {
-			return "long"
+			return types.SideLong
 		} else if trade.Side == "SELL" || trade.Side == "Sell" {
-			return "short"
+			return types.SideShort
 		}
 	} else {
 		// Closing trade
 		if trade.Side == "BUY" || trade.Side == "Buy" {
-			return "short" // Buy to close short
+			return types.SideShort // Buy to close short
 		} else if trade.Side == "SELL" || trade.Side == "Sell" {
-			return "long" // Sell to close long
+			return types.SideLong // Sell to close long
 		}
 	}
 
@@ -174,7 +175,7 @@ func buildClosedPosition(trade TradeRecord, side string, state *positionState) *
 	if entryPrice == 0 && trade.Quantity > 0 {
 		// PnL = (exitPrice - entryPrice) * qty for LONG
 		// PnL = (entryPrice - exitPrice) * qty for SHORT
-		if side == "long" {
+		if side == types.SideLong {
 			entryPrice = trade.Price - trade.RealizedPnL/trade.Quantity
 		} else {
 			entryPrice = trade.Price + trade.RealizedPnL/trade.Quantity

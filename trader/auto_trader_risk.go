@@ -70,7 +70,7 @@ func (at *AutoTrader) checkPositionDrawdown() {
 		}
 
 		var currentPnLPct float64
-		if side == "long" {
+		if side == types.SideLong {
 			currentPnLPct = ((markPrice - entryPrice) / entryPrice) * float64(leverage) * 100
 		} else {
 			currentPnLPct = ((entryPrice - markPrice) / entryPrice) * float64(leverage) * 100
@@ -127,13 +127,13 @@ func (at *AutoTrader) checkPositionDrawdown() {
 // emergencyClosePosition emergency close position function
 func (at *AutoTrader) emergencyClosePosition(symbol, side string) error {
 	switch side {
-	case "long":
+	case types.SideLong:
 		order, err := at.trader.CloseLong(symbol, 0) // 0 = close all
 		if err != nil {
 			return err
 		}
 		logger.Infof("✅ Emergency close long position succeeded, order ID: %v", order["orderId"])
-	case "short":
+	case types.SideShort:
 		order, err := at.trader.CloseShort(symbol, 0) // 0 = close all
 		if err != nil {
 			return err
@@ -230,7 +230,7 @@ func (at *AutoTrader) adjustStopLoss(symbol, side string, entryPrice, markPrice,
 		// Calculate trailing stop price
 		var trailStopPrice float64
 		lev := float64(leverage)
-		if side == "long" {
+		if side == types.SideLong {
 			// For long: trail below peak
 			peakPrice := entryPrice * (1 + peakPnLPct/100/lev)
 			trailStopPrice = peakPrice * (1 - trailingDrawdown/100*peakPnLPct/100/lev)
@@ -281,7 +281,7 @@ func (at *AutoTrader) applyTrailingStop(symbol, side string, quantity, stopPrice
 
 	// Place new stop-loss at adjusted price
 	positionSide := "LONG"
-	if side == "short" {
+	if side == types.SideShort {
 		positionSide = "SHORT"
 	}
 
@@ -441,9 +441,9 @@ func (at *AutoTrader) enforceMaxPositions(currentPositionCount int) error {
 // getSideFromAction converts order action to side (BUY/SELL)
 func getSideFromAction(action string) string {
 	switch action {
-	case "open_long", "close_short":
+	case types.ActionOpenLong, types.ActionCloseShort:
 		return "BUY"
-	case "open_short", "close_long":
+	case types.ActionOpenShort, types.ActionCloseLong:
 		return "SELL"
 	default:
 		return "BUY"

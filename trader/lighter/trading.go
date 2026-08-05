@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"fxos/logger"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"fxos/logger"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/elliottech/lighter-go/types"
 	tradertypes "fxos/trader/types"
+	"github.com/elliottech/lighter-go/types"
 )
 
 // OpenLong Open long position (implements Trader interface)
@@ -51,7 +51,7 @@ func (t *LighterTraderV2) OpenLong(symbol string, quantity float64, leverage int
 	return map[string]interface{}{
 		"orderId": orderResult["orderId"],
 		"symbol":  symbol,
-		"side":    "long",
+		"side":    tradertypes.SideLong,
 		"status":  "FILLED",
 		"price":   marketPrice,
 	}, nil
@@ -92,7 +92,7 @@ func (t *LighterTraderV2) OpenShort(symbol string, quantity float64, leverage in
 	return map[string]interface{}{
 		"orderId": orderResult["orderId"],
 		"symbol":  symbol,
-		"side":    "short",
+		"side":    tradertypes.SideShort,
 		"status":  "FILLED",
 		"price":   marketPrice,
 	}, nil
@@ -322,11 +322,11 @@ func (t *LighterTraderV2) CreateOrder(symbol string, isAsk bool, quantity float6
 
 // SendTxResponse Send transaction response
 type SendTxResponse struct {
-	Code                    int                    `json:"code"`
-	Message                 string                 `json:"message"`
-	TxHash                  string                 `json:"tx_hash"`
-	PredictedExecutionTime  int64                  `json:"predicted_execution_time_ms"`
-	Data                    map[string]interface{} `json:"data"`
+	Code                   int                    `json:"code"`
+	Message                string                 `json:"message"`
+	TxHash                 string                 `json:"tx_hash"`
+	PredictedExecutionTime int64                  `json:"predicted_execution_time_ms"`
+	Data                   map[string]interface{} `json:"data"`
 }
 
 // CreateOrderTxInfoAPI Order transaction info with CamelCase JSON tags (matching SDK) + hex signature

@@ -6,6 +6,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strconv"
 	"strings"
@@ -91,25 +92,25 @@ func (t *GateTrader) GetTrades(startTime time.Time, limit int) ([]GateTrade, err
 		// close_size>0 && size>0: Close short (and possibly open long if size > close_size)
 		// close_size<0 && size<0: Close long (and possibly open short if |size| > |close_size|)
 		side := "BUY"
-		orderAction := "open_long"
+		orderAction := types.ActionOpenLong
 
 		if trade.Size > 0 {
 			side = "BUY"
 			if trade.CloseSize > 0 {
 				// Closing short position
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			} else {
 				// Opening long position
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			}
 		} else if trade.Size < 0 {
 			side = "SELL"
 			if trade.CloseSize < 0 {
 				// Closing long position
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			} else {
 				// Opening short position
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 
@@ -186,7 +187,7 @@ func (t *GateTrader) SyncOrdersFromGate(traderID string, exchangeID string, exch
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, "short") {
+		if strings.Contains(trade.OrderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

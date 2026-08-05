@@ -217,9 +217,9 @@ func (t *BybitTrader) parseClosedPnLResult(resultData interface{}) ([]types.Clos
 		}
 
 		// Normalize side
-		normalizedSide := "long"
+		normalizedSide := types.SideLong
 		if side == "Sell" {
-			normalizedSide = "short"
+			normalizedSide = types.SideShort
 		}
 
 		record := types.ClosedPnLRecord{

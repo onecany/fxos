@@ -7,6 +7,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strconv"
 	"strings"
@@ -97,28 +98,28 @@ func (t *OKXTrader) GetTrades(startTime time.Time, limit int) ([]OKXTrade, error
 		// - sell + long = close long
 		// - sell + short = open short
 		// - buy + short = close short
-		orderAction := "open_long"
+		orderAction := types.ActionOpenLong
 		posSide := strings.ToLower(fill.PosSide)
 		side := strings.ToLower(fill.Side)
 
-		if posSide == "long" {
+		if posSide == types.SideLong {
 			if side == "buy" {
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			} else {
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			}
-		} else if posSide == "short" {
+		} else if posSide == types.SideShort {
 			if side == "sell" {
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			} else {
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			}
 		} else {
 			// One-way mode (net position)
 			if side == "buy" {
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			} else {
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 
@@ -191,7 +192,7 @@ func (t *OKXTrader) SyncOrdersFromOKX(traderID string, exchangeID string, exchan
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, "short") {
+		if strings.Contains(trade.OrderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

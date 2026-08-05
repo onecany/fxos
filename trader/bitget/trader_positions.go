@@ -62,9 +62,9 @@ func (t *BitgetTrader) GetPositions() ([]types.Position, error) {
 		cTime, _ := strconv.ParseInt(pos.CTime, 10, 64)
 
 		// Normalize side
-		side := "long"
-		if pos.HoldSide == "short" {
-			side = "short"
+		side := types.SideLong
+		if pos.HoldSide == types.SideShort {
+			side = types.SideShort
 		}
 
 		// Quantity is always positive

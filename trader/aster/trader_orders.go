@@ -173,7 +173,7 @@ func (t *AsterTrader) CloseLong(symbol string, quantity float64) (map[string]int
 		}
 
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "long" {
+			if pos.Symbol == symbol && pos.Side == types.SideLong {
 				quantity = pos.Quantity
 				break
 			}
@@ -255,7 +255,7 @@ func (t *AsterTrader) CloseShort(symbol string, quantity float64) (map[string]in
 		}
 
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "short" {
+			if pos.Symbol == symbol && pos.Side == types.SideShort {
 				// Aster's GetPositions has already converted short position quantity to positive, use directly
 				quantity = pos.Quantity
 				break

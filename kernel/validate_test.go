@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"fxos/trader/types"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestLeverageFallback(t *testing.T) {
 			name: "Altcoin leverage exceeded - auto-correct to limit",
 			decision: Decision{
 				Symbol:          "SOLUSDT",
-				Action:          "open_long",
+				Action:          types.ActionOpenLong,
 				Leverage:        20, // Exceeds limit
 				PositionSizeUSD: 100,
 				StopLoss:        50,
@@ -35,7 +36,7 @@ func TestLeverageFallback(t *testing.T) {
 			name: "BTC leverage exceeded - auto-correct to limit",
 			decision: Decision{
 				Symbol:          "BTCUSDT",
-				Action:          "open_long",
+				Action:          types.ActionOpenLong,
 				Leverage:        20, // Exceeds limit
 				PositionSizeUSD: 1000,
 				StopLoss:        90000,
@@ -51,7 +52,7 @@ func TestLeverageFallback(t *testing.T) {
 			name: "Leverage within limit - no correction",
 			decision: Decision{
 				Symbol:          "ETHUSDT",
-				Action:          "open_short",
+				Action:          types.ActionOpenShort,
 				Leverage:        5, // Not exceeded
 				PositionSizeUSD: 500,
 				StopLoss:        4000,
@@ -67,7 +68,7 @@ func TestLeverageFallback(t *testing.T) {
 			name: "Leverage is 0 - should error",
 			decision: Decision{
 				Symbol:          "SOLUSDT",
-				Action:          "open_long",
+				Action:          types.ActionOpenLong,
 				Leverage:        0, // Invalid
 				PositionSizeUSD: 100,
 				StopLoss:        50,
@@ -103,7 +104,7 @@ func TestLeverageFallback(t *testing.T) {
 func TestClaw402XyzAllowsFullTenXNotional(t *testing.T) {
 	decision := Decision{
 		Symbol:          "xyz:SP500",
-		Action:          "open_long",
+		Action:          types.ActionOpenLong,
 		Leverage:        10,
 		PositionSizeUSD: 306.8,
 		StopLoss:        95,

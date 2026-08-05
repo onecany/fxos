@@ -7,6 +7,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strconv"
 	"strings"
@@ -106,28 +107,28 @@ func (t *BitgetTrader) GetTrades(startTime time.Time, limit int) ([]BitgetTrade,
 		// Determine order action based on side and tradeSide
 		// Bitget one-way mode: buy_single (open long), sell_single (close long)
 		// Bitget hedge mode: open + buy = open_long, close + sell = close_long
-		orderAction := "open_long"
+		orderAction := types.ActionOpenLong
 		side := strings.ToLower(fill.Side)
 		tradeSide := strings.ToLower(fill.TradeSide)
 
 		// One-way position mode (buy_single/sell_single)
 		if tradeSide == "buy_single" {
-			orderAction = "open_long"
+			orderAction = types.ActionOpenLong
 		} else if tradeSide == "sell_single" {
-			orderAction = "close_long"
+			orderAction = types.ActionCloseLong
 		} else if tradeSide == "open" {
 			// Hedge mode: open
 			if side == "buy" {
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			} else {
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		} else if tradeSide == "close" {
 			// Hedge mode: close
 			if side == "sell" {
-				orderAction = "close_long"
+				orderAction = types.ActionCloseLong
 			} else {
-				orderAction = "close_short"
+				orderAction = types.ActionCloseShort
 			}
 		}
 
@@ -197,7 +198,7 @@ func (t *BitgetTrader) SyncOrdersFromBitget(traderID string, exchangeID string, 
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, "short") {
+		if strings.Contains(trade.OrderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

@@ -6,6 +6,7 @@ import (
 	"fxos/logger"
 	"fxos/store"
 	"fxos/trader"
+	"fxos/trader/types"
 	"sort"
 	"strings"
 	"sync"
@@ -412,7 +413,7 @@ func (tm *TraderManager) RemoveTrader(traderID string) {
 }
 
 func ensureHyperliquidNativeStrategy(traderName, exchangeType string, cfg *store.StrategyConfig) {
-	if cfg == nil || strings.ToLower(strings.TrimSpace(exchangeType)) != "hyperliquid" {
+	if cfg == nil || strings.ToLower(strings.TrimSpace(exchangeType)) != types.ExchangeHyperliquid {
 		return
 	}
 
@@ -668,7 +669,7 @@ func (tm *TraderManager) addTraderFromStore(traderCfg *store.Trader, aiModelCfg 
 		return fmt.Errorf("trader %s has no strategy configured", traderCfg.Name)
 	}
 
-	if exchangeCfg.ExchangeType == "hyperliquid" && !exchangeCfg.HyperliquidBuilderApproved {
+	if exchangeCfg.ExchangeType == types.ExchangeHyperliquid && !exchangeCfg.HyperliquidBuilderApproved {
 		return fmt.Errorf("Hyperliquid trading authorization is incomplete for exchange %s; reconnect Hyperliquid wallet and complete trading authorization before starting trader %s", exchangeCfg.AccountName, traderCfg.Name)
 	}
 
@@ -697,43 +698,43 @@ func (tm *TraderManager) addTraderFromStore(traderCfg *store.Trader, aiModelCfg 
 
 	// Set API keys based on exchange type (convert EncryptedString to string)
 	switch exchangeCfg.ExchangeType {
-	case "binance":
+	case types.ExchangeBinance:
 		traderConfig.Credentials.Binance.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Binance.SecretKey = string(exchangeCfg.SecretKey)
-	case "bybit":
+	case types.ExchangeBybit:
 		traderConfig.Credentials.Bybit.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Bybit.SecretKey = string(exchangeCfg.SecretKey)
-	case "okx":
+	case types.ExchangeOKX:
 		traderConfig.Credentials.OKX.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.OKX.SecretKey = string(exchangeCfg.SecretKey)
 		traderConfig.Credentials.OKX.Passphrase = string(exchangeCfg.Passphrase)
-	case "bitget":
+	case types.ExchangeBitget:
 		traderConfig.Credentials.Bitget.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Bitget.SecretKey = string(exchangeCfg.SecretKey)
 		traderConfig.Credentials.Bitget.Passphrase = string(exchangeCfg.Passphrase)
-	case "gate":
+	case types.ExchangeGate:
 		traderConfig.Credentials.Gate.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Gate.SecretKey = string(exchangeCfg.SecretKey)
-	case "kucoin":
+	case types.ExchangeKuCoin:
 		traderConfig.Credentials.KuCoin.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.KuCoin.SecretKey = string(exchangeCfg.SecretKey)
 		traderConfig.Credentials.KuCoin.Passphrase = string(exchangeCfg.Passphrase)
-	case "hyperliquid":
+	case types.ExchangeHyperliquid:
 		traderConfig.Credentials.Hyperliquid.PrivateKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Hyperliquid.WalletAddr = exchangeCfg.HyperliquidWalletAddr
 		traderConfig.Credentials.Hyperliquid.UnifiedAcct = exchangeCfg.HyperliquidUnifiedAcct
 		traderConfig.Credentials.Hyperliquid.Testnet = exchangeCfg.Testnet
-	case "aster":
+	case types.ExchangeAster:
 		traderConfig.Credentials.Aster.User = exchangeCfg.AsterUser
 		traderConfig.Credentials.Aster.Signer = exchangeCfg.AsterSigner
 		traderConfig.Credentials.Aster.PrivateKey = string(exchangeCfg.AsterPrivateKey)
-	case "lighter":
+	case types.ExchangeLighter:
 		traderConfig.Credentials.Lighter.PrivateKey = string(exchangeCfg.LighterPrivateKey)
 		traderConfig.Credentials.Lighter.WalletAddr = exchangeCfg.LighterWalletAddr
 		traderConfig.Credentials.Lighter.APIKeyPrivateKey = string(exchangeCfg.LighterAPIKeyPrivateKey)
 		traderConfig.Credentials.Lighter.APIKeyIndex = exchangeCfg.LighterAPIKeyIndex
 		traderConfig.Credentials.Lighter.Testnet = exchangeCfg.Testnet
-	case "indodax":
+	case types.ExchangeIndodax:
 		traderConfig.Credentials.Indodax.APIKey = string(exchangeCfg.APIKey)
 		traderConfig.Credentials.Indodax.SecretKey = string(exchangeCfg.SecretKey)
 	}

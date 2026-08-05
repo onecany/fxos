@@ -45,9 +45,9 @@ func (t *FuturesTrader) GetPositions() ([]types.Position, error) {
 		// Note: Binance SDK doesn't expose updateTime field, will fallback to local tracking
 
 		// Determine direction
-		side := "long"
+		side := types.SideLong
 		if posAmt < 0 {
-			side = "short"
+			side = types.SideShort
 			posAmt = -posAmt // Quantity is always positive
 		}
 

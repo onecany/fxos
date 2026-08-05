@@ -89,10 +89,10 @@ func (t *BybitTrader) GetPositions() ([]types.Position, error) {
 
 		// Convert to unified format (use lowercase for consistency with other exchanges)
 		// Bybit returns "Buy" for long, "Sell" for short
-		side := "long"
+		side := types.SideLong
 		positionSideLower := strings.ToLower(positionSide)
 		if positionSideLower == "sell" {
-			side = "short"
+			side = types.SideShort
 		}
 
 		logger.Infof("[Bybit] GetPositions converted: symbol=%v, rawSide=%s -> side=%s", symbol, positionSide, side)

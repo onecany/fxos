@@ -49,7 +49,7 @@ func (t *OKXTrader) OpenLong(symbol string, quantity float64, leverage int) (map
 		"instId":  instId,
 		"tdMode":  marginMode,
 		"side":    "buy",
-		"posSide": "long",
+		"posSide": types.SideLong,
 		"ordType": "market",
 		"sz":      szStr,
 		"clOrdId": genOkxClOrdID(),
@@ -130,7 +130,7 @@ func (t *OKXTrader) OpenShort(symbol string, quantity float64, leverage int) (ma
 		"instId":  instId,
 		"tdMode":  marginMode,
 		"side":    "sell",
-		"posSide": "short",
+		"posSide": types.SideShort,
 		"ordType": "market",
 		"sz":      szStr,
 		"clOrdId": genOkxClOrdID(),
@@ -199,7 +199,7 @@ func (t *OKXTrader) CloseLong(symbol string, quantity float64) (map[string]inter
 			side := pos.Side
 			// In net_mode, "long" means positive position
 			// In dual mode, check explicit "long" side
-			if side == "long" || (t.positionMode == "net_mode" && side == "long") {
+			if side == types.SideLong || (t.positionMode == "net_mode" && side == types.SideLong) {
 				actualQty = pos.Quantity
 				posFound = true
 				if pos.MarginMode != "" {
@@ -244,7 +244,7 @@ func (t *OKXTrader) CloseLong(symbol string, quantity float64) (map[string]inter
 
 	// Only add posSide in dual mode (long_short_mode)
 	if t.positionMode == "long_short_mode" {
-		body["posSide"] = "long"
+		body["posSide"] = types.SideLong
 	}
 
 	data, err := t.doRequest("POST", okxOrderPath, body)
@@ -309,7 +309,7 @@ func (t *OKXTrader) CloseShort(symbol string, quantity float64) (map[string]inte
 	for _, pos := range positions {
 		logger.Infof("🔍 OKX position: symbol=%v, side=%v, positionAmt=%v, mgnMode=%v",
 			pos.Symbol, pos.Side, pos.Quantity, pos.MarginMode)
-		if pos.Symbol == symbol && pos.Side == "short" {
+		if pos.Symbol == symbol && pos.Side == types.SideShort {
 			actualQty = pos.Quantity
 			posFound = true
 			if pos.MarginMode != "" {
@@ -357,7 +357,7 @@ func (t *OKXTrader) CloseShort(symbol string, quantity float64) (map[string]inte
 
 	// Only add posSide in dual mode (long_short_mode)
 	if t.positionMode == "long_short_mode" {
-		body["posSide"] = "short"
+		body["posSide"] = types.SideShort
 	}
 
 	logger.Infof("🔻 OKX close short request body: %+v", body)
@@ -416,10 +416,10 @@ func (t *OKXTrader) SetStopLoss(symbol string, positionSide string, quantity, st
 
 	// Determine direction
 	side := "sell"
-	posSide := "long"
+	posSide := types.SideLong
 	if strings.ToUpper(positionSide) == "SHORT" {
 		side = "buy"
-		posSide = "short"
+		posSide = types.SideShort
 	}
 
 	marginMode := t.marginMode()
@@ -461,10 +461,10 @@ func (t *OKXTrader) SetTakeProfit(symbol string, positionSide string, quantity, 
 
 	// Determine direction
 	side := "sell"
-	posSide := "long"
+	posSide := types.SideLong
 	if strings.ToUpper(positionSide) == "SHORT" {
 		side = "buy"
-		posSide = "short"
+		posSide = types.SideShort
 	}
 
 	marginMode := t.marginMode()
@@ -837,10 +837,10 @@ func (t *OKXTrader) PlaceLimitOrder(req *types.LimitOrderRequest) (*types.LimitO
 
 	// Determine side and position side
 	side := "buy"
-	posSide := "long"
+	posSide := types.SideLong
 	if req.Side == "SELL" {
 		side = "sell"
-		posSide = "short"
+		posSide = types.SideShort
 	}
 
 	marginMode := t.marginMode()

@@ -3,6 +3,7 @@ package kucoin
 import (
 	"encoding/json"
 	"fmt"
+	"fxos/trader/types"
 	"os"
 	"testing"
 	"time"
@@ -99,8 +100,8 @@ func TestKuCoinGetTrades(t *testing.T) {
 		if trade.Side != "BUY" && trade.Side != "SELL" {
 			t.Errorf("Trade %d has invalid Side: %s (expected BUY or SELL)", i, trade.Side)
 		}
-		if trade.OrderAction != "open_long" && trade.OrderAction != "open_short" &&
-			trade.OrderAction != "close_long" && trade.OrderAction != "close_short" {
+		if trade.OrderAction != types.ActionOpenLong && trade.OrderAction != types.ActionOpenShort &&
+			trade.OrderAction != types.ActionCloseLong && trade.OrderAction != types.ActionCloseShort {
 			t.Errorf("Trade %d has invalid OrderAction: %s", i, trade.OrderAction)
 		}
 		if trade.FillPrice <= 0 {
@@ -136,7 +137,7 @@ func TestKuCoinTradeToRecord(t *testing.T) {
 		TradeID:     "test-trade-1",
 		Symbol:      "BTCUSDT",
 		Side:        "BUY",
-		OrderAction: "open_long",
+		OrderAction: types.ActionOpenLong,
 		FillPrice:   50000.0,
 		FillQty:     0.01,
 		Fee:         0.5,
@@ -152,7 +153,7 @@ func TestKuCoinTradeToRecord(t *testing.T) {
 		TradeID:     "test-trade-2",
 		Symbol:      "BTCUSDT",
 		Side:        "SELL",
-		OrderAction: "close_long",
+		OrderAction: types.ActionCloseLong,
 		FillPrice:   51000.0,
 		FillQty:     0.01,
 		Fee:         0.5,
@@ -168,7 +169,7 @@ func TestKuCoinTradeToRecord(t *testing.T) {
 		TradeID:     "test-trade-3",
 		Symbol:      "ETHUSDT",
 		Side:        "SELL",
-		OrderAction: "open_short",
+		OrderAction: types.ActionOpenShort,
 		FillPrice:   3000.0,
 		FillQty:     0.1,
 		Fee:         0.3,
@@ -184,7 +185,7 @@ func TestKuCoinTradeToRecord(t *testing.T) {
 		TradeID:     "test-trade-4",
 		Symbol:      "ETHUSDT",
 		Side:        "BUY",
-		OrderAction: "close_short",
+		OrderAction: types.ActionCloseShort,
 		FillPrice:   2900.0,
 		FillQty:     0.1,
 		Fee:         0.3,
@@ -226,19 +227,19 @@ func TestKuCoinOrderActionDetermination(t *testing.T) {
 	// - SELL + close_long: closing a long position
 	for i, trade := range trades {
 		switch trade.OrderAction {
-		case "open_long":
+		case types.ActionOpenLong:
 			if trade.Side != "BUY" {
 				t.Errorf("Trade %d: open_long should have Side=BUY, got %s", i, trade.Side)
 			}
-		case "close_short":
+		case types.ActionCloseShort:
 			if trade.Side != "BUY" {
 				t.Errorf("Trade %d: close_short should have Side=BUY, got %s", i, trade.Side)
 			}
-		case "open_short":
+		case types.ActionOpenShort:
 			if trade.Side != "SELL" {
 				t.Errorf("Trade %d: open_short should have Side=SELL, got %s", i, trade.Side)
 			}
-		case "close_long":
+		case types.ActionCloseLong:
 			if trade.Side != "SELL" {
 				t.Errorf("Trade %d: close_long should have Side=SELL, got %s", i, trade.Side)
 			}
@@ -274,14 +275,14 @@ func TestKuCoinPositionBuilding(t *testing.T) {
 		pos.TradeCount++
 
 		switch trade.OrderAction {
-		case "open_long":
+		case types.ActionOpenLong:
 			pos.LongQty += trade.FillQty
-		case "close_long":
+		case types.ActionCloseLong:
 			pos.LongQty -= trade.FillQty
 			pos.LongPnL += trade.ProfitLoss
-		case "open_short":
+		case types.ActionOpenShort:
 			pos.ShortQty += trade.FillQty
-		case "close_short":
+		case types.ActionCloseShort:
 			pos.ShortQty -= trade.FillQty
 			pos.ShortPnL += trade.ProfitLoss
 		}
@@ -427,7 +428,7 @@ func TestKuCoinEntryExitPrice(t *testing.T) {
 		if positions[trade.Symbol] == nil {
 			positions[trade.Symbol] = &PositionTracker{}
 		}
-		if trade.OrderAction == "open_long" || trade.OrderAction == "open_short" {
+		if trade.OrderAction == types.ActionOpenLong || trade.OrderAction == types.ActionOpenShort {
 			positions[trade.Symbol].OpenTrades = append(positions[trade.Symbol].OpenTrades, trade)
 		} else {
 			positions[trade.Symbol].CloseTrades = append(positions[trade.Symbol].CloseTrades, trade)
@@ -535,7 +536,7 @@ func TestKuCoinPnLCalculation(t *testing.T) {
 		p := pnlBySymbol[trade.Symbol]
 		p.TotalFees += trade.Fee
 
-		if trade.OrderAction == "open_long" || trade.OrderAction == "open_short" {
+		if trade.OrderAction == types.ActionOpenLong || trade.OrderAction == types.ActionOpenShort {
 			p.OpenQty += trade.FillQty
 			p.AvgOpenPrice = (p.AvgOpenPrice*(p.OpenQty-trade.FillQty) + trade.FillPrice*trade.FillQty) / p.OpenQty
 		} else {

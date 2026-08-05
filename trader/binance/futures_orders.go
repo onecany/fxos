@@ -130,7 +130,7 @@ func (t *FuturesTrader) CloseLong(symbol string, quantity float64) (map[string]i
 		}
 
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "long" {
+			if pos.Symbol == symbol && pos.Side == types.SideLong {
 				quantity = pos.Quantity
 				break
 			}
@@ -185,7 +185,7 @@ func (t *FuturesTrader) CloseShort(symbol string, quantity float64) (map[string]
 		}
 
 		for _, pos := range positions {
-			if pos.Symbol == symbol && pos.Side == "short" {
+			if pos.Symbol == symbol && pos.Side == types.SideShort {
 				quantity = pos.Quantity // Short position quantity is always positive in types.Position
 				break
 			}

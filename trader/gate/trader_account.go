@@ -107,9 +107,9 @@ func (t *GateTrader) GetPositions() ([]types.Position, error) {
 		positionAmt := contractSize * quantoMultiplier
 
 		// Determine side based on position size
-		side := "long"
+		side := types.SideLong
 		if pos.Size < 0 {
-			side = "short"
+			side = types.SideShort
 		}
 
 		result = append(result, types.Position{

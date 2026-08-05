@@ -122,7 +122,7 @@ func (t *OKXTrader) SetLeverage(symbol string, leverage int) error {
 	marginMode := t.marginMode()
 
 	// Set leverage for both long and short
-	for _, posSide := range []string{"long", "short"} {
+	for _, posSide := range []string{types.SideLong, types.SideShort} {
 		body := map[string]interface{}{
 			"instId":  instId,
 			"lever":   strconv.Itoa(leverage),
@@ -206,7 +206,7 @@ func (t *OKXTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Closed
 		Msg  string `json:"msg"`
 		Data []struct {
 			InstID        string `json:"instId"`        // Instrument ID (e.g., "BTC-USDT-SWAP")
-			Direction     string `json:"direction"`     // Position direction: "long" or "short"
+			Direction     string `json:"direction"`     // Position direction: types.SideLong or types.SideShort
 			OpenAvgPx     string `json:"openAvgPx"`     // Average open price
 			CloseAvgPx    string `json:"closeAvgPx"`    // Average close price
 			CloseTotalPos string `json:"closeTotalPos"` // Closed position quantity
@@ -243,7 +243,7 @@ func (t *OKXTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Closed
 		}
 
 		// Side
-		record.Side = pos.Direction // OKX already returns "long" or "short"
+		record.Side = pos.Direction // OKX already returns types.SideLong or types.SideShort
 
 		// Prices
 		record.EntryPrice, _ = strconv.ParseFloat(pos.OpenAvgPx, 64)

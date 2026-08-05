@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"fxos/trader/types"
 	"strings"
 	"testing"
 )
@@ -19,7 +20,7 @@ func TestMaskSensitiveString(t *testing.T) {
 		},
 		{
 			name:     "Short string (8 characters or less)",
-			input:    "short",
+			input:    types.SideShort,
 			expected: "****",
 		},
 		{

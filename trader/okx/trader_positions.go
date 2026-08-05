@@ -65,9 +65,9 @@ func (t *OKXTrader) GetPositions() ([]types.Position, error) {
 		logger.Infof("🔍 OKX symbol conversion: %s → %s", pos.InstId, symbol)
 
 		// Determine direction and ensure contractCount is positive
-		side := "long"
-		if pos.PosSide == "short" {
-			side = "short"
+		side := types.SideLong
+		if pos.PosSide == types.SideShort {
+			side = types.SideShort
 		}
 		// OKX short position's pos is negative, need to take absolute value
 		if contractCount < 0 {

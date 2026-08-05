@@ -5,6 +5,7 @@ import (
 	"fxos/kernel"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
 	"strings"
 	"time"
 )
@@ -21,17 +22,17 @@ const (
 	// directional pair from re-establishing after positions close. A tight value
 	// here (e.g. 2) starves the strategy: once a couple opens fire, every later
 	// cycle is blocked and the book drains to flat. Keep it generous.
-	autopilotMaxOpensPerHour        = 30
-	autopilotMaxOpensPerCycle       = 6
-	earlyCloseStopLossBypassPct     = -2.5
-	earlyCloseTakeProfitBypassPct   = 5.0
-	noiseCloseLossFloorPct          = -1.0
-	noiseCloseProfitCeilingPct      = 2.0
+	autopilotMaxOpensPerHour      = 30
+	autopilotMaxOpensPerCycle     = 6
+	earlyCloseStopLossBypassPct   = -2.5
+	earlyCloseTakeProfitBypassPct = 5.0
+	noiseCloseLossFloorPct        = -1.0
+	noiseCloseProfitCeilingPct    = 2.0
 )
 
 func isOpenAction(action string) bool {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "open_long", "open_short":
+	case types.ActionOpenLong, types.ActionOpenShort:
 		return true
 	default:
 		return false
@@ -40,7 +41,7 @@ func isOpenAction(action string) bool {
 
 func isCloseAction(action string) bool {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "close_long", "close_short":
+	case types.ActionCloseLong, types.ActionCloseShort:
 		return true
 	default:
 		return false
@@ -49,10 +50,10 @@ func isCloseAction(action string) bool {
 
 func closeActionSide(action string) string {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "close_long":
-		return "long"
-	case "close_short":
-		return "short"
+	case types.ActionCloseLong:
+		return types.SideLong
+	case types.ActionCloseShort:
+		return types.SideShort
 	default:
 		return ""
 	}
@@ -60,10 +61,10 @@ func closeActionSide(action string) string {
 
 func openActionSide(action string) string {
 	switch strings.ToLower(strings.TrimSpace(action)) {
-	case "open_long":
-		return "long"
-	case "open_short":
-		return "short"
+	case types.ActionOpenLong:
+		return types.SideLong
+	case types.ActionOpenShort:
+		return types.SideShort
 	default:
 		return ""
 	}

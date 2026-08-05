@@ -27,18 +27,18 @@ const (
 // executeDecisionWithRecord executes AI decision and records detailed information
 func (at *AutoTrader) executeDecisionWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
 	switch decision.Action {
-	case "open_long":
+	case types.ActionOpenLong:
 		return at.executeOpenLongWithRecord(decision, actionRecord)
-	case "open_short":
+	case types.ActionOpenShort:
 		return at.executeOpenShortWithRecord(decision, actionRecord)
-	case "close_long":
+	case types.ActionCloseLong:
 		return at.executeCloseLongWithRecord(decision, actionRecord)
-	case "close_short":
+	case types.ActionCloseShort:
 		return at.executeCloseShortWithRecord(decision, actionRecord)
-	case "hold", "wait":
-		// No execution needed, just record
+	case types.ActionHold, types.ActionWait:
+		// Hold or wait: no position action needed
 		return nil
-	case "modify":
+	case types.ActionModify:
 		return at.executeModifyWithRecord(decision, actionRecord)
 	default:
 		return fmt.Errorf("unknown action: %s", decision.Action)
@@ -62,7 +62,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actio
 
 	// Check if there's already a position in the same symbol and direction
 	for _, pos := range positions {
-		if pos.Symbol == decision.Symbol && pos.Side == "long" {
+		if pos.Symbol == decision.Symbol && pos.Side == types.SideLong {
 			return fmt.Errorf("❌ %s already has long position, close it first", decision.Symbol)
 		}
 	}
@@ -140,7 +140,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actio
 	logger.Infof("  ✓ Position opened successfully, order ID: %v, quantity: %.4f", order["orderId"], quantity)
 
 	// Record order to database and poll for confirmation
-	at.recordAndConfirmOrder(order, decision.Symbol, "open_long", quantity, marketData.CurrentPrice, decision.Leverage, 0)
+	at.recordAndConfirmOrder(order, decision.Symbol, types.ActionOpenLong, quantity, marketData.CurrentPrice, decision.Leverage, 0)
 
 	// Record position opening time
 	posKey := decision.Symbol + "_long"
@@ -174,7 +174,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, acti
 
 	// Check if there's already a position in the same symbol and direction
 	for _, pos := range positions {
-		if pos.Symbol == decision.Symbol && pos.Side == "short" {
+		if pos.Symbol == decision.Symbol && pos.Side == types.SideShort {
 			return fmt.Errorf("❌ %s already has short position, close it first", decision.Symbol)
 		}
 	}
@@ -252,7 +252,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, acti
 	logger.Infof("  ✓ Position opened successfully, order ID: %v, quantity: %.4f", order["orderId"], quantity)
 
 	// Record order to database and poll for confirmation
-	at.recordAndConfirmOrder(order, decision.Symbol, "open_short", quantity, marketData.CurrentPrice, decision.Leverage, 0)
+	at.recordAndConfirmOrder(order, decision.Symbol, types.ActionOpenShort, quantity, marketData.CurrentPrice, decision.Leverage, 0)
 
 	// Record position opening time
 	posKey := decision.Symbol + "_short"
@@ -301,7 +301,7 @@ func (at *AutoTrader) executeCloseLongWithRecord(decision *kernel.Decision, acti
 		positions, err := at.trader.GetPositions()
 		if err == nil {
 			for _, pos := range positions {
-				if pos.Symbol == decision.Symbol && pos.Side == "long" {
+				if pos.Symbol == decision.Symbol && pos.Side == types.SideLong {
 					if pos.EntryPrice > 0 {
 						entryPrice = pos.EntryPrice
 					}
@@ -327,11 +327,11 @@ func (at *AutoTrader) executeCloseLongWithRecord(decision *kernel.Decision, acti
 	}
 
 	// Record order to database and poll for confirmation
-	at.recordAndConfirmOrder(order, decision.Symbol, "close_long", quantity, marketData.CurrentPrice, 0, entryPrice)
+	at.recordAndConfirmOrder(order, decision.Symbol, types.ActionCloseLong, quantity, marketData.CurrentPrice, 0, entryPrice)
 
 	// Clear dynamic stop-loss caches
-	at.ClearPeakPnLCache(decision.Symbol, "long")
-	at.ClearBreakevenStopCache(decision.Symbol, "long")
+	at.ClearPeakPnLCache(decision.Symbol, types.SideLong)
+	at.ClearBreakevenStopCache(decision.Symbol, types.SideLong)
 
 	logger.Infof("  ✓ Position closed successfully")
 	return nil
@@ -369,7 +369,7 @@ func (at *AutoTrader) executeCloseShortWithRecord(decision *kernel.Decision, act
 		positions, err := at.trader.GetPositions()
 		if err == nil {
 			for _, pos := range positions {
-				if pos.Symbol == decision.Symbol && pos.Side == "short" {
+				if pos.Symbol == decision.Symbol && pos.Side == types.SideShort {
 					if pos.EntryPrice > 0 {
 						entryPrice = pos.EntryPrice
 					}
@@ -395,11 +395,11 @@ func (at *AutoTrader) executeCloseShortWithRecord(decision *kernel.Decision, act
 	}
 
 	// Record order to database and poll for confirmation
-	at.recordAndConfirmOrder(order, decision.Symbol, "close_short", quantity, marketData.CurrentPrice, 0, entryPrice)
+	at.recordAndConfirmOrder(order, decision.Symbol, types.ActionCloseShort, quantity, marketData.CurrentPrice, 0, entryPrice)
 
 	// Clear dynamic stop-loss caches
-	at.ClearPeakPnLCache(decision.Symbol, "short")
-	at.ClearBreakevenStopCache(decision.Symbol, "short")
+	at.ClearPeakPnLCache(decision.Symbol, types.SideShort)
+	at.ClearBreakevenStopCache(decision.Symbol, types.SideShort)
 
 	logger.Infof("  ✓ Position closed successfully")
 	return nil
@@ -434,7 +434,7 @@ func (at *AutoTrader) executeModifyWithRecord(decision *kernel.Decision, actionR
 	}
 
 	positionSide := "LONG"
-	if side == "short" {
+	if side == types.SideShort {
 		positionSide = "SHORT"
 	}
 

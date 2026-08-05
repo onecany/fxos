@@ -5,6 +5,7 @@ import (
 
 	"fxos/kernel"
 	"fxos/store"
+	"fxos/trader/types"
 )
 
 func baseForceTrader() *AutoTrader {
@@ -39,8 +40,8 @@ func TestEnsureLongShortCoverageNonVergexSkips(t *testing.T) {
 func TestEnsureLongShortCoverageBothPresentNoop(t *testing.T) {
 	at := baseForceTrader()
 	in := []kernel.Decision{
-		{Action: "open_long", Symbol: "xyz:AAPL"},
-		{Action: "open_short", Symbol: "BTC"},
+		{Action: types.ActionOpenLong, Symbol: "xyz:AAPL"},
+		{Action: types.ActionOpenShort, Symbol: "BTC"},
 	}
 	out := at.ensureLongShortCoverage(in, &kernel.Context{}, 100)
 	if len(out) != 2 {

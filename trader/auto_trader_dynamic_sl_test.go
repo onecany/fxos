@@ -129,7 +129,7 @@ func TestBreakevenStopLiveFlow(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "BTCUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 50000.0,
 			MarkPrice:  50750.0, // +1.5% profit → triggers breakeven
 			Quantity:   0.1,
@@ -169,7 +169,7 @@ func TestTrailingStopLiveFlow(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "ETHUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 3000.0,
 			MarkPrice:  3090.0, // +3% profit → above trailing threshold
 			Quantity:   1.0,
@@ -240,7 +240,7 @@ func TestBreakevenCacheClearedOnClose(t *testing.T) {
 	at.breakevenStopCache["BTCUSDT_long"] = true
 
 	// Simulate close position
-	at.ClearBreakevenStopCache("BTCUSDT", "long")
+	at.ClearBreakevenStopCache("BTCUSDT", types.SideLong)
 
 	// Verify cache is cleared
 	at.breakevenStopCacheMu.RLock()
@@ -259,7 +259,7 @@ func TestMultiplePositionsIndependentSl(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "BTCUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 50000.0,
 			MarkPrice:  50750.0, // +1.5% → breakeven
 			Quantity:   0.1,
@@ -267,7 +267,7 @@ func TestMultiplePositionsIndependentSl(t *testing.T) {
 		},
 		{
 			Symbol:     "SOLUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 100.0,
 			MarkPrice:  102.0, // +2% → below altcoin threshold (2.5%)
 			Quantity:   10.0,
@@ -314,16 +314,16 @@ func TestPnLCalculation(t *testing.T) {
 		leverage       int
 		expectedPnLPct float64
 	}{
-		{"Long profit", "long", 100, 102, 10, 20.0},  // +2% price * 10x = +20%
-		{"Long loss", "long", 100, 98, 10, -20.0},    // -2% price * 10x = -20%
-		{"Short profit", "short", 100, 98, 10, 20.0}, // -2% price * 10x = +20% for short
-		{"Short loss", "short", 100, 102, 10, -20.0}, // +2% price * 10x = -20% for short
+		{"Long profit", types.SideLong, 100, 102, 10, 20.0},  // +2% price * 10x = +20%
+		{"Long loss", types.SideLong, 100, 98, 10, -20.0},    // -2% price * 10x = -20%
+		{"Short profit", types.SideShort, 100, 98, 10, 20.0}, // -2% price * 10x = +20% for short
+		{"Short loss", types.SideShort, 100, 102, 10, -20.0}, // +2% price * 10x = -20% for short
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var currentPnLPct float64
-			if tt.side == "long" {
+			if tt.side == types.SideLong {
 				currentPnLPct = ((tt.markPrice - tt.entryPrice) / tt.entryPrice) * float64(tt.leverage) * 100
 			} else {
 				currentPnLPct = ((tt.entryPrice - tt.markPrice) / tt.entryPrice) * float64(tt.leverage) * 100
@@ -360,7 +360,7 @@ func TestEdgeCaseZeroQuantity(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "BTCUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 50000.0,
 			MarkPrice:  50750.0,
 			Quantity:   0.0, // Zero quantity
@@ -383,7 +383,7 @@ func TestEdgeCaseZeroLeverage(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "BTCUSDT",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: 50000.0,
 			MarkPrice:  50750.0,
 			Quantity:   0.1,
@@ -406,7 +406,7 @@ func TestShortPositionPnL(t *testing.T) {
 	mock.positions = []types.Position{
 		{
 			Symbol:     "BTCUSDT",
-			Side:       "short",
+			Side:       types.SideShort,
 			EntryPrice: 50000.0,
 			MarkPrice:  49250.0, // -1.5% price → +1.5% profit for short
 			Quantity:   -0.1,    // Negative for short

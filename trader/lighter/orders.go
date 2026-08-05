@@ -24,7 +24,7 @@ func (t *LighterTraderV2) SetStopLoss(symbol string, positionSide string, quanti
 	logger.Infof("🛑 LIGHTER Setting stop-loss: %s %s qty=%.4f, trigger=%.2f", symbol, positionSide, quantity, stopPrice)
 
 	// Determine order direction (long position uses sell order, short position uses buy order)
-	isAsk := (positionSide == "LONG" || positionSide == "long")
+	isAsk := (positionSide == "LONG" || positionSide == tradertypes.SideLong)
 
 	// Create stop-loss order with TriggerPrice (type=2: StopLossOrder)
 	_, err := t.CreateStopOrder(symbol, isAsk, quantity, stopPrice, "stop_loss")
@@ -46,7 +46,7 @@ func (t *LighterTraderV2) SetTakeProfit(symbol string, positionSide string, quan
 	logger.Infof("🎯 LIGHTER Setting take-profit: %s %s qty=%.4f, trigger=%.2f", symbol, positionSide, quantity, takeProfitPrice)
 
 	// Determine order direction (long position uses sell order, short position uses buy order)
-	isAsk := (positionSide == "LONG" || positionSide == "long")
+	isAsk := (positionSide == "LONG" || positionSide == tradertypes.SideLong)
 
 	// Create take-profit order with TriggerPrice (type=4: TakeProfitOrder)
 	_, err := t.CreateStopOrder(symbol, isAsk, quantity, takeProfitPrice, "take_profit")

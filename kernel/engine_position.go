@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"fxos/logger"
 	"fxos/market"
+	"fxos/trader/types"
 )
 
 // ============================================================================
@@ -21,13 +22,13 @@ func validateDecisions(decisions []Decision, accountEquity float64, btcEthLevera
 
 func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) error {
 	validActions := map[string]bool{
-		"open_long":   true,
-		"open_short":  true,
-		"close_long":  true,
-		"close_short": true,
-		"hold":        true,
-		"wait":        true,
-		"modify":      true,
+		types.ActionOpenLong:   true,
+		types.ActionOpenShort:  true,
+		types.ActionCloseLong:  true,
+		types.ActionCloseShort: true,
+		types.ActionHold:       true,
+		types.ActionWait:       true,
+		types.ActionModify:     true,
 	}
 
 	if !validActions[d.Action] {
@@ -35,13 +36,13 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 	}
 
 	// Validate close actions: symbol must exist in current positions
-	if (d.Action == "close_long" || d.Action == "close_short") && posSymbols != nil {
+	if (d.Action == types.ActionCloseLong || d.Action == types.ActionCloseShort) && posSymbols != nil {
 		if !posSymbols[d.Symbol] {
 			return fmt.Errorf("cannot close %s: symbol not in current positions", d.Symbol)
 		}
 	}
 
-	if d.Action == "open_long" || d.Action == "open_short" {
+	if d.Action == types.ActionOpenLong || d.Action == types.ActionOpenShort {
 		// Asset tiering for validation:
 		//   - BTC/ETH crypto perps use the BTC/ETH tier (typically 5x equity).
 		//   - Hyperliquid XYZ assets (US equities, commodities, forex) are
@@ -99,7 +100,7 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 			return fmt.Errorf("stop loss and take profit must be greater than 0")
 		}
 
-		if d.Action == "open_long" {
+		if d.Action == types.ActionOpenLong {
 			if d.StopLoss >= d.TakeProfit {
 				return fmt.Errorf("for long positions, stop loss price must be less than take profit price")
 			}
@@ -118,7 +119,7 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 		}
 		if entryPrice > 0 {
 			var riskPercent, rewardPercent, riskRewardRatio float64
-			if d.Action == "open_long" {
+			if d.Action == types.ActionOpenLong {
 				riskPercent = (entryPrice - d.StopLoss) / entryPrice * 100
 				rewardPercent = (d.TakeProfit - entryPrice) / entryPrice * 100
 				if riskPercent > 0 {

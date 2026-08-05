@@ -6,6 +6,7 @@ import (
 	"fxos/provider/nofx"
 	"fxos/provider/vergex"
 	"fxos/store"
+	"fxos/trader/types"
 	"strings"
 	"time"
 )
@@ -868,14 +869,14 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 			if order.RealizedPnL < 0 {
 				resultStr = "Loss"
 				totalLoss++
-				if order.Side == "long" {
+				if order.Side == types.SideLong {
 					longLosses++
 				} else {
 					shortLosses++
 				}
 			} else {
 				totalWin++
-				if order.Side == "long" {
+				if order.Side == types.SideLong {
 					longWins++
 				} else {
 					shortWins++
@@ -963,7 +964,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 			if order.RealizedPnL > 0 {
 				recentWins++
 			}
-			if order.Side == "long" {
+			if order.Side == types.SideLong {
 				longTrades++
 				longPnL += order.RealizedPnL
 				if order.RealizedPnL > 0 {
@@ -1025,7 +1026,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 			if posValue < 0 {
 				posValue = -posValue
 			}
-			if pos.Side == "long" {
+			if pos.Side == types.SideLong {
 				totalLongValue += posValue
 			} else {
 				totalShortValue += posValue
@@ -1033,7 +1034,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 			// Track closest to liquidation
 			if pos.LiquidationPrice > 0 && pos.MarkPrice > 0 {
 				var buffer float64
-				if pos.Side == "long" {
+				if pos.Side == types.SideLong {
 					buffer = (pos.MarkPrice - pos.LiquidationPrice) / pos.MarkPrice * 100
 				} else {
 					buffer = (pos.LiquidationPrice - pos.MarkPrice) / pos.MarkPrice * 100

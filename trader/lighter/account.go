@@ -250,9 +250,9 @@ func (t *LighterTraderV2) GetPositionsRaw(symbol string) ([]Position, error) {
 		}
 
 		// Determine side based on sign field (1 = long, -1 = short)
-		side := "long"
+		side := types.SideLong
 		if lPos.Sign < 0 {
-			side = "short"
+			side = types.SideShort
 		}
 
 		pos := Position{

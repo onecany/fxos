@@ -228,7 +228,7 @@ func (t *HyperliquidTrader) CloseLong(symbol string, quantity float64) (map[stri
 
 		for _, pos := range positions {
 			posSymbol := pos.Symbol
-			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == "long" {
+			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == types.SideLong {
 				quantity = pos.Quantity
 				break
 			}
@@ -317,7 +317,7 @@ func (t *HyperliquidTrader) CloseShort(symbol string, quantity float64) (map[str
 
 		for _, pos := range positions {
 			posSymbol := pos.Symbol
-			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == "short" {
+			if (posSymbol == symbol || posSymbol == searchSymbol) && pos.Side == types.SideShort {
 				quantity = pos.Quantity
 				break
 			}

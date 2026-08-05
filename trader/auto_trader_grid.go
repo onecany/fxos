@@ -7,6 +7,7 @@ import (
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
 	"sync"
 	"time"
 )
@@ -230,7 +231,7 @@ func (at *AutoTrader) emergencyExit(reason string) error {
 	if err == nil {
 		for _, pos := range positions {
 			if pos.Symbol == gridConfig.Symbol && pos.Quantity != 0 {
-				if pos.Side == "short" {
+				if pos.Side == types.SideShort {
 					at.trader.CloseShort(gridConfig.Symbol, pos.Quantity)
 				} else {
 					at.trader.CloseLong(gridConfig.Symbol, pos.Quantity)
@@ -485,9 +486,9 @@ func (at *AutoTrader) buildGridContext() (*kernel.GridContext, error) {
 
 	// Count active orders and filled levels
 	for _, level := range at.gridState.Levels {
-		if level.State == "pending" {
+		if level.State == types.GridStatePending {
 			ctx.ActiveOrderCount++
-		} else if level.State == "filled" {
+		} else if level.State == types.GridStateFilled {
 			ctx.FilledLevelCount++
 		}
 	}
@@ -531,14 +532,14 @@ func (at *AutoTrader) executeGridDecision(d *kernel.Decision) error {
 		return at.resumeGrid()
 	case "adjust_grid":
 		return at.adjustGrid(d)
-	case "hold":
+	case types.ActionHold:
 		logger.Infof("[Grid] Holding current state: %s", d.Reasoning)
 		return nil
 	// Support standard actions for closing positions
-	case "close_long":
+	case types.ActionCloseLong:
 		_, err := at.trader.CloseLong(d.Symbol, d.Quantity)
 		return err
-	case "close_short":
+	case types.ActionCloseShort:
 		_, err := at.trader.CloseShort(d.Symbol, d.Quantity)
 		return err
 	default:

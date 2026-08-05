@@ -18,6 +18,7 @@ import (
 	"fxos/trader/kucoin"
 	"fxos/trader/lighter"
 	"fxos/trader/okx"
+	"fxos/trader/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -358,9 +359,9 @@ func (s *Server) recordClosePositionOrder(traderID, exchangeID, exchangeType, sy
 	// Determine order action based on side
 	var orderAction string
 	if side == "LONG" {
-		orderAction = "close_long"
+		orderAction = types.ActionCloseLong
 	} else {
-		orderAction = "close_short"
+		orderAction = types.ActionCloseShort
 	}
 
 	// Use entry price if exit price not available
@@ -524,9 +525,9 @@ func (s *Server) pollLighterTradeHistory(orderRecordID int64, traderID, exchange
 // getSideFromAction Get order side (BUY/SELL) from order action
 func getSideFromAction(action string) string {
 	switch action {
-	case "open_long", "close_short":
+	case types.ActionOpenLong, types.ActionCloseShort:
 		return "BUY"
-	case "open_short", "close_long":
+	case types.ActionOpenShort, types.ActionCloseLong:
 		return "SELL"
 	default:
 		return "BUY"

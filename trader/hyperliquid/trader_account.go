@@ -523,17 +523,17 @@ func (t *HyperliquidTrader) GetClosedPnL(startTime time.Time, limit int) ([]type
 		}
 
 		// Determine side (Hyperliquid uses one-way mode)
-		side := "long"
+		side := types.SideLong
 		if trade.Side == "SELL" || trade.Side == "Sell" {
-			side = "long" // Selling closes long
+			side = types.SideLong // Selling closes long
 		} else {
-			side = "short" // Buying closes short
+			side = types.SideShort // Buying closes short
 		}
 
 		// Calculate entry price from PnL
 		var entryPrice float64
 		if trade.Quantity > 0 {
-			if side == "long" {
+			if side == types.SideLong {
 				entryPrice = trade.Price - trade.RealizedPnL/trade.Quantity
 			} else {
 				entryPrice = trade.Price + trade.RealizedPnL/trade.Quantity
@@ -588,26 +588,26 @@ func (t *HyperliquidTrader) GetTrades(startTime time.Time, limit int) ([]types.T
 		var orderAction string
 		switch strings.ToLower(fill.Dir) {
 		case "open long":
-			orderAction = "open_long"
+			orderAction = types.ActionOpenLong
 		case "open short":
-			orderAction = "open_short"
+			orderAction = types.ActionOpenShort
 		case "close long":
-			orderAction = "close_long"
+			orderAction = types.ActionCloseLong
 		case "close short":
-			orderAction = "close_short"
+			orderAction = types.ActionCloseShort
 		default:
 			// Fallback: use RealizedPnL if Dir is missing/unknown
 			if pnl != 0 {
 				if side == "BUY" {
-					orderAction = "close_short"
+					orderAction = types.ActionCloseShort
 				} else {
-					orderAction = "close_long"
+					orderAction = types.ActionCloseLong
 				}
 			} else {
 				if side == "BUY" {
-					orderAction = "open_long"
+					orderAction = types.ActionOpenLong
 				} else {
-					orderAction = "open_short"
+					orderAction = types.ActionOpenShort
 				}
 			}
 		}

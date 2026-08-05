@@ -164,7 +164,7 @@ func (t *KuCoinTrader) CloseLong(symbol string, quantity float64) (map[string]in
 	var posFound bool
 	var marginMode string = "CROSS" // Default to CROSS
 	for _, pos := range positions {
-		if pos.Symbol == symbol && pos.Side == "long" {
+		if pos.Symbol == symbol && pos.Side == types.SideLong {
 			actualQty = pos.Quantity
 			posFound = true
 			// Get margin mode from position
@@ -247,7 +247,7 @@ func (t *KuCoinTrader) CloseShort(symbol string, quantity float64) (map[string]i
 	var posFound bool
 	var marginMode string = "CROSS" // Default to CROSS
 	for _, pos := range positions {
-		if pos.Symbol == symbol && pos.Side == "short" {
+		if pos.Symbol == symbol && pos.Side == types.SideShort {
 			actualQty = pos.Quantity
 			posFound = true
 			// Get margin mode from position
@@ -643,10 +643,10 @@ func (t *KuCoinTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Clo
 
 	var records []types.ClosedPnLRecord
 	for _, item := range response.DataList {
-		side := "long"
+		side := types.SideLong
 		qty := item.Qty
 		if qty < 0 {
-			side = "short"
+			side = types.SideShort
 			qty = -qty
 		}
 

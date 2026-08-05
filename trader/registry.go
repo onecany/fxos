@@ -13,6 +13,7 @@ import (
 	"fxos/trader/kucoin"
 	"fxos/trader/lighter"
 	"fxos/trader/okx"
+	"fxos/trader/types"
 )
 
 // ExchangeFactory constructs an exchange adapter from the trader config.
@@ -41,31 +42,31 @@ func CreateTrader(exchange string, cfg AutoTraderConfig, userID string) (Trader,
 }
 
 func init() {
-	RegisterExchange("binance", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeBinance, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Binance Futures trading", cfg.Name)
 		return binance.NewFuturesTrader(cfg.Credentials.Binance.APIKey, cfg.Credentials.Binance.SecretKey, userID), nil
 	})
-	RegisterExchange("bybit", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeBybit, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Bybit Futures trading", cfg.Name)
 		return bybit.NewBybitTrader(cfg.Credentials.Bybit.APIKey, cfg.Credentials.Bybit.SecretKey), nil
 	})
-	RegisterExchange("okx", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeOKX, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using OKX Futures trading", cfg.Name)
 		return okx.NewOKXTrader(cfg.Credentials.OKX.APIKey, cfg.Credentials.OKX.SecretKey, cfg.Credentials.OKX.Passphrase), nil
 	})
-	RegisterExchange("bitget", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeBitget, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Bitget Futures trading", cfg.Name)
 		return bitget.NewBitgetTrader(cfg.Credentials.Bitget.APIKey, cfg.Credentials.Bitget.SecretKey, cfg.Credentials.Bitget.Passphrase), nil
 	})
-	RegisterExchange("gate", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeGate, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Gate.io Futures trading", cfg.Name)
 		return gate.NewGateTrader(cfg.Credentials.Gate.APIKey, cfg.Credentials.Gate.SecretKey), nil
 	})
-	RegisterExchange("kucoin", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeKuCoin, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using KuCoin Futures trading", cfg.Name)
 		return kucoin.NewKuCoinTrader(cfg.Credentials.KuCoin.APIKey, cfg.Credentials.KuCoin.SecretKey, cfg.Credentials.KuCoin.Passphrase), nil
 	})
-	RegisterExchange("hyperliquid", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeHyperliquid, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Hyperliquid trading", cfg.Name)
 		creds := cfg.Credentials.Hyperliquid
 		trader, err := hyperliquid.NewHyperliquidTrader(creds.PrivateKey, creds.WalletAddr, creds.Testnet, creds.UnifiedAcct)
@@ -74,7 +75,7 @@ func init() {
 		}
 		return trader, nil
 	})
-	RegisterExchange("aster", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeAster, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Aster trading", cfg.Name)
 		creds := cfg.Credentials.Aster
 		trader, err := aster.NewAsterTrader(creds.User, creds.Signer, creds.PrivateKey)
@@ -83,7 +84,7 @@ func init() {
 		}
 		return trader, nil
 	})
-	RegisterExchange("lighter", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeLighter, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using LIGHTER trading", cfg.Name)
 		creds := cfg.Credentials.Lighter
 		if creds.WalletAddr == "" || creds.APIKeyPrivateKey == "" {
@@ -97,7 +98,7 @@ func init() {
 		logger.Infof("✓ LIGHTER trader initialized successfully")
 		return trader, nil
 	})
-	RegisterExchange("indodax", func(cfg AutoTraderConfig, userID string) (Trader, error) {
+	RegisterExchange(types.ExchangeIndodax, func(cfg AutoTraderConfig, userID string) (Trader, error) {
 		logger.Infof("🏦 [%s] Using Indodax Spot trading", cfg.Name)
 		return indodax.NewIndodaxTrader(cfg.Credentials.Indodax.APIKey, cfg.Credentials.Indodax.SecretKey), nil
 	})

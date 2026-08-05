@@ -1,6 +1,7 @@
 package trader
 
 import (
+	"fxos/trader/types"
 	"math"
 	"testing"
 	"time"
@@ -56,7 +57,7 @@ func TestRebuildPositionsFromTrades_SimpleLongOpenClose(t *testing.T) {
 	if r.Symbol != "BTCUSDT" {
 		t.Errorf("Symbol = %q, want BTCUSDT", r.Symbol)
 	}
-	if r.Side != "long" {
+	if r.Side != types.SideLong {
 		t.Errorf("Side = %q, want long", r.Side)
 	}
 	if !floatsClose(r.EntryPrice, 100.0) {
@@ -128,7 +129,7 @@ func TestRebuildPositionsFromTrades_PartialClose(t *testing.T) {
 	}
 
 	for i, r := range records {
-		if r.Side != "long" {
+		if r.Side != types.SideLong {
 			t.Errorf("records[%d].Side = %q, want long", i, r.Side)
 		}
 		// FIFO: both partial closes consume the single open at 100.
@@ -269,7 +270,7 @@ func TestRebuildPositionsFromTrades_HedgeMode(t *testing.T) {
 	}
 
 	long := records[0]
-	if long.Side != "long" {
+	if long.Side != types.SideLong {
 		t.Fatalf("records[0].Side = %q, want long", long.Side)
 	}
 	if !floatsClose(long.EntryPrice, 100.0) || !floatsClose(long.ExitPrice, 110.0) {
@@ -277,7 +278,7 @@ func TestRebuildPositionsFromTrades_HedgeMode(t *testing.T) {
 	}
 
 	short := records[1]
-	if short.Side != "short" {
+	if short.Side != types.SideShort {
 		t.Fatalf("records[1].Side = %q, want short", short.Side)
 	}
 	if !floatsClose(short.EntryPrice, 100.0) || !floatsClose(short.ExitPrice, 90.0) {
@@ -314,7 +315,7 @@ func TestRebuildPositionsFromTrades_OneWayModeShort(t *testing.T) {
 	}
 
 	r := records[0]
-	if r.Side != "short" {
+	if r.Side != types.SideShort {
 		t.Errorf("Side = %q, want short", r.Side)
 	}
 	if !floatsClose(r.EntryPrice, 100.0) {
@@ -346,7 +347,7 @@ func TestRebuildPositionsFromTrades_PnLFallbackEntryPrice(t *testing.T) {
 				RealizedPnL: 20.0,
 				Time:        testTime(0),
 			},
-			wantSide:  "long",
+			wantSide:  types.SideLong,
 			wantEntry: 100.0, // 110 - 20/2
 		},
 		{
@@ -360,7 +361,7 @@ func TestRebuildPositionsFromTrades_PnLFallbackEntryPrice(t *testing.T) {
 				RealizedPnL: 5.0,
 				Time:        testTime(0),
 			},
-			wantSide:  "short",
+			wantSide:  types.SideShort,
 			wantEntry: 100.0, // 95 + 5/1
 		},
 	}

@@ -7,6 +7,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/telemetry"
+	"fxos/trader/types"
 	"math"
 	"time"
 )
@@ -267,9 +268,9 @@ func (at *AutoTrader) recordAndConfirmOrder(orderResult map[string]interface{}, 
 	// Determine positionSide
 	var positionSide string
 	switch action {
-	case "open_long", "close_long":
+	case types.ActionOpenLong, types.ActionCloseLong:
 		positionSide = "LONG"
-	case "open_short", "close_short":
+	case types.ActionOpenShort, types.ActionCloseShort:
 		positionSide = "SHORT"
 	}
 
@@ -361,7 +362,7 @@ func (at *AutoTrader) recordPositionChange(orderID, symbol, side, action string,
 	}
 
 	switch action {
-	case "open_long", "open_short":
+	case types.ActionOpenLong, types.ActionOpenShort:
 		// Open position: create new position record
 		nowMs := time.Now().UTC().UnixMilli()
 		pos := &store.TraderPosition{
@@ -385,7 +386,7 @@ func (at *AutoTrader) recordPositionChange(orderID, symbol, side, action string,
 			logger.Infof("  📊 Position recorded [%s] %s %s @ %.4f", at.id[:8], symbol, side, price)
 		}
 
-	case "close_long", "close_short":
+	case types.ActionCloseLong, types.ActionCloseShort:
 		// Close position using PositionBuilder for consistent handling
 		// PositionBuilder will handle both cases:
 		// 1. If open position exists: close it properly
@@ -412,9 +413,9 @@ func (at *AutoTrader) createOrderRecord(orderID, symbol, action, positionSide st
 	// Determine side (BUY/SELL)
 	var side string
 	switch action {
-	case "open_long", "close_short":
+	case types.ActionOpenLong, types.ActionCloseShort:
 		side = "BUY"
-	case "open_short", "close_long":
+	case types.ActionOpenShort, types.ActionCloseLong:
 		side = "SELL"
 	}
 
@@ -422,7 +423,7 @@ func (at *AutoTrader) createOrderRecord(orderID, symbol, action, positionSide st
 	orderAction := action
 
 	// Determine if it's a reduce only order
-	reduceOnly := (action == "close_long" || action == "close_short")
+	reduceOnly := (action == types.ActionCloseLong || action == types.ActionCloseShort)
 
 	// Normalize symbol for consistency
 	normalizedSymbol := market.Normalize(symbol)
@@ -462,9 +463,9 @@ func (at *AutoTrader) recordOrderFill(orderRecordID int64, exchangeOrderID, symb
 	// Determine side (BUY/SELL)
 	var side string
 	switch action {
-	case "open_long", "close_short":
+	case types.ActionOpenLong, types.ActionCloseShort:
 		side = "BUY"
-	case "open_short", "close_long":
+	case types.ActionOpenShort, types.ActionCloseLong:
 		side = "SELL"
 	}
 
@@ -494,10 +495,10 @@ func (at *AutoTrader) recordOrderFill(orderRecordID int64, exchangeOrderID, symb
 	}
 
 	// Calculate realized PnL for close orders
-	if action == "close_long" || action == "close_short" {
+	if action == types.ActionCloseLong || action == types.ActionCloseShort {
 		// Try to get the entry price from the open position
 		var positionSide string
-		if action == "close_long" {
+		if action == types.ActionCloseLong {
 			positionSide = "LONG"
 		} else {
 			positionSide = "SHORT"

@@ -7,6 +7,7 @@ import (
 	"fxos/market"
 	"fxos/mcp"
 	"fxos/store"
+	"fxos/trader/types"
 	"strings"
 	"time"
 )
@@ -83,8 +84,8 @@ type GridContext struct {
 	DailyPnL      float64 `json:"daily_pnl"`
 
 	// Grid-specific metrics
-	GridEfficiency float64 `json:"grid_efficiency"` // Actual profit / theoretical max profit (%)
-	FillRate       float64 `json:"fill_rate"`       // Filled levels / total levels (%)
+	GridEfficiency   float64 `json:"grid_efficiency"` // Actual profit / theoretical max profit (%)
+	FillRate         float64 `json:"fill_rate"`       // Filled levels / total levels (%)
 	AvgProfitPerFill float64 `json:"avg_profit_per_fill"`
 
 	// Box indicators (Donchian Channels)
@@ -240,11 +241,11 @@ func buildGridUserPromptUnified(ctx *GridContext) string {
 	sb.WriteString(fmt.Sprintf("- Grid Paused: %v\n", ctx.IsPaused))
 	if ctx.CurrentDirection != "" {
 		directionDescZh := map[string]string{
-			"neutral":    "Neutral (50% buy + 50% sell)",
-			"long":       "Long (100% buy)",
-			"short":      "Short (100% sell)",
-			"long_bias":  "Long bias (70% buy + 30% sell)",
-			"short_bias": "Short bias (30% buy + 70% sell)",
+			"neutral":       "Neutral (50% buy + 50% sell)",
+			types.SideLong:  "Long (100% buy)",
+			types.SideShort: "Short (100% sell)",
+			"long_bias":     "Long bias (70% buy + 30% sell)",
+			"short_bias":    "Short bias (30% buy + 70% sell)",
 		}
 		desc := directionDescZh[ctx.CurrentDirection]
 		if desc == "" {
@@ -393,12 +394,12 @@ func isValidGridAction(action string) bool {
 		"pause_grid":        true,
 		"resume_grid":       true,
 		"adjust_grid":       true,
-		"hold":              true,
+		types.ActionHold:    true,
 		// Also support standard actions for compatibility
-		"open_long":   true,
-		"open_short":  true,
-		"close_long":  true,
-		"close_short": true,
+		types.ActionOpenLong:   true,
+		types.ActionOpenShort:  true,
+		types.ActionCloseLong:  true,
+		types.ActionCloseShort: true,
 	}
 	return validActions[action]
 }

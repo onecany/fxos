@@ -6,13 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/httpclient"
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
+	"io"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -134,20 +135,20 @@ func (t *BybitTrader) parseTradesResult(list []map[string]interface{}) ([]BybitT
 		// Determine order action based on side and closedSize
 		// If closedSize > 0, it's a close trade
 		// Side: Buy = long direction, Sell = short direction
-		orderAction := "open_long"
+		orderAction := types.ActionOpenLong
 		if closedSize > 0 {
 			// This is a close trade
 			if strings.ToLower(side) == "sell" {
-				orderAction = "close_long" // Selling to close a long
+				orderAction = types.ActionCloseLong // Selling to close a long
 			} else {
-				orderAction = "close_short" // Buying to close a short
+				orderAction = types.ActionCloseShort // Buying to close a short
 			}
 		} else {
 			// This is an open trade
 			if strings.ToLower(side) == "buy" {
-				orderAction = "open_long"
+				orderAction = types.ActionOpenLong
 			} else {
-				orderAction = "open_short"
+				orderAction = types.ActionOpenShort
 			}
 		}
 
@@ -218,7 +219,7 @@ func (t *BybitTrader) SyncOrdersFromBybit(traderID string, exchangeID string, ex
 
 		// Determine position side from order action
 		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, "short") {
+		if strings.Contains(trade.OrderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

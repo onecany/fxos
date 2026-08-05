@@ -54,7 +54,7 @@ type Account struct {
 // Position is the strongly-typed result of Trader.GetPositions.
 type Position struct {
 	Symbol           string  // Trading pair (e.g. "BTCUSDT")
-	Side             string  // "long" or "short"
+	Side             string  // types.SideLong or types.SideShort
 	EntryPrice       float64 // Average entry price
 	MarkPrice        float64 // Current mark price
 	Quantity         float64 // Position size, always positive

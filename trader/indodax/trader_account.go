@@ -126,7 +126,7 @@ func (t *IndodaxTrader) GetPositions() ([]types.Position, error) {
 
 		positions = append(positions, types.Position{
 			Symbol:     strings.ToUpper(currency) + "IDR",
-			Side:       "long",
+			Side:       types.SideLong,
 			EntryPrice: markPrice, // Spot doesn't track entry price
 			MarkPrice:  markPrice,
 			Quantity:   totalAmount,
@@ -186,9 +186,9 @@ func (t *IndodaxTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Cl
 		fee, _ := strconv.ParseFloat(trade.Fee, 64)
 		tradeTime, _ := strconv.ParseInt(trade.TradeTime, 10, 64)
 
-		side := "long"
+		side := types.SideLong
 		if trade.Type == "sell" {
-			side = "long" // Selling from a spot position is closing long
+			side = types.SideLong // Selling from a spot position is closing long
 		}
 
 		records = append(records, types.ClosedPnLRecord{

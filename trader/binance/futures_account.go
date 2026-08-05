@@ -82,22 +82,22 @@ func (t *FuturesTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Cl
 		}
 
 		// Determine side from trade
-		side := "long"
-		if trade.PositionSide == "SHORT" || trade.PositionSide == "short" {
-			side = "short"
+		side := types.SideLong
+		if trade.PositionSide == "SHORT" || trade.PositionSide == types.SideShort {
+			side = types.SideShort
 		} else if trade.PositionSide == "BOTH" || trade.PositionSide == "" {
 			// One-way mode: selling closes long, buying closes short
 			if trade.Side == "SELL" || trade.Side == "Sell" {
-				side = "long"
+				side = types.SideLong
 			} else {
-				side = "short"
+				side = types.SideShort
 			}
 		}
 
 		// Calculate entry price from PnL (mathematically accurate for this trade)
 		var entryPrice float64
 		if trade.Quantity > 0 {
-			if side == "long" {
+			if side == types.SideLong {
 				entryPrice = trade.Price - trade.RealizedPnL/trade.Quantity
 			} else {
 				entryPrice = trade.Price + trade.RealizedPnL/trade.Quantity

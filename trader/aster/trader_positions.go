@@ -41,9 +41,9 @@ func (t *AsterTrader) GetPositions() ([]types.Position, error) {
 		liquidationPrice, _ := strconv.ParseFloat(pos["liquidationPrice"].(string), 64)
 
 		// Determine direction (consistent with Binance)
-		side := "long"
+		side := types.SideLong
 		if posAmt < 0 {
-			side = "short"
+			side = types.SideShort
 			posAmt = -posAmt
 		}
 

@@ -8,6 +8,7 @@ import (
 	_ "fxos/mcp/payment"
 	_ "fxos/mcp/provider"
 	"fxos/store"
+	"fxos/trader/types"
 	"fxos/wallet"
 	"github.com/ethereum/go-ethereum/crypto"
 	"sync"
@@ -103,7 +104,7 @@ type AutoTraderConfig struct {
 	AIModel    string // AI model: "qwen" or "deepseek"
 
 	// Trading platform selection
-	Exchange   string // Exchange type: "binance", "bybit", "okx", "bitget", "gate", "hyperliquid", "aster" or "lighter"
+	Exchange   string // Exchange type: types.ExchangeBinance, types.ExchangeBybit, types.ExchangeOKX, types.ExchangeBitget, types.ExchangeGate, types.ExchangeHyperliquid, types.ExchangeAster or types.ExchangeLighter
 	ExchangeID string // Exchange account UUID (for multi-account support)
 
 	// Per-exchange credentials and connection options (grouped by exchange;
@@ -255,7 +256,7 @@ func NewAutoTrader(config AutoTraderConfig, st *store.Store, userID string) (*Au
 
 	// Set default trading platform
 	if config.Exchange == "" {
-		config.Exchange = "binance"
+		config.Exchange = types.ExchangeBinance
 	}
 
 	// Create corresponding trader based on configuration via the exchange

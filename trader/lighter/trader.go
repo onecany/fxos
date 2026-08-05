@@ -4,49 +4,49 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"fxos/httpclient"
+	"fxos/logger"
 	"io"
 	"math"
 	"net/http"
 	"net/url"
-	"fxos/httpclient"
-	"fxos/logger"
 	"strings"
 	"sync"
 	"time"
 
+	tradertypes "fxos/trader/types"
 	lighterClient "github.com/elliottech/lighter-go/client"
 	lighterHTTP "github.com/elliottech/lighter-go/client/http"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	tradertypes "fxos/trader/types"
 )
 
 // AccountInfo LIGHTER account information
 type AccountInfo struct {
-	AccountIndex     int64   `json:"account_index"`
-	Index            int64   `json:"index"` // Same as account_index
-	L1Address        string  `json:"l1_address"`
-	AvailableBalance string  `json:"available_balance"`
-	Collateral       string  `json:"collateral"`
-	CrossAssetValue  string  `json:"cross_asset_value"`
-	TotalEquity      string  `json:"total_equity"`
-	UnrealizedPnl    string  `json:"unrealized_pnl"`
+	AccountIndex     int64                 `json:"account_index"`
+	Index            int64                 `json:"index"` // Same as account_index
+	L1Address        string                `json:"l1_address"`
+	AvailableBalance string                `json:"available_balance"`
+	Collateral       string                `json:"collateral"`
+	CrossAssetValue  string                `json:"cross_asset_value"`
+	TotalEquity      string                `json:"total_equity"`
+	UnrealizedPnl    string                `json:"unrealized_pnl"`
 	Positions        []LighterPositionInfo `json:"positions"`
 }
 
 // LighterPositionInfo Position info from Lighter account API
 type LighterPositionInfo struct {
-	MarketID              int     `json:"market_id"`
-	Symbol                string  `json:"symbol"`
-	Sign                  int     `json:"sign"`                    // 1 = long, -1 = short
-	Position              string  `json:"position"`                // Position size
-	AvgEntryPrice         string  `json:"avg_entry_price"`         // Entry price
-	PositionValue         string  `json:"position_value"`          // Position value in USD
-	LiquidationPrice      string  `json:"liquidation_price"`
-	UnrealizedPnl         string  `json:"unrealized_pnl"`
-	RealizedPnl           string  `json:"realized_pnl"`
-	InitialMarginFraction string  `json:"initial_margin_fraction"` // e.g. "5.00" means 5% = 20x leverage
-	AllocatedMargin       string  `json:"allocated_margin"`
-	MarginMode            int     `json:"margin_mode"`             // 0 = cross, 1 = isolated
+	MarketID              int    `json:"market_id"`
+	Symbol                string `json:"symbol"`
+	Sign                  int    `json:"sign"`            // 1 = long, -1 = short
+	Position              string `json:"position"`        // Position size
+	AvgEntryPrice         string `json:"avg_entry_price"` // Entry price
+	PositionValue         string `json:"position_value"`  // Position value in USD
+	LiquidationPrice      string `json:"liquidation_price"`
+	UnrealizedPnl         string `json:"unrealized_pnl"`
+	RealizedPnl           string `json:"realized_pnl"`
+	InitialMarginFraction string `json:"initial_margin_fraction"` // e.g. "5.00" means 5% = 20x leverage
+	AllocatedMargin       string `json:"allocated_margin"`
+	MarginMode            int    `json:"margin_mode"` // 0 = cross, 1 = isolated
 }
 
 // AccountResponse LIGHTER account API response
@@ -79,9 +79,9 @@ type LighterTraderV2 struct {
 	apiKeyValid      bool   // Whether API key has been validated against server
 
 	// Authentication token
-	authToken     string
-	tokenExpiry   time.Time
-	accountMutex  sync.RWMutex
+	authToken    string
+	tokenExpiry  time.Time
+	accountMutex sync.RWMutex
 
 	// Market info cache
 	symbolPrecision map[string]SymbolPrecision
@@ -128,10 +128,10 @@ func NewLighterTraderV2(walletAddr, apiKeyPrivateKeyHex string, apiKeyIndex int,
 	httpClient := lighterHTTP.NewClient(baseURL)
 
 	trader := &LighterTraderV2{
-		ctx:        context.Background(),
-		walletAddr: walletAddr,
-		client:     httpclient.New(30 * time.Second),
-		baseURL: baseURL,
+		ctx:              context.Background(),
+		walletAddr:       walletAddr,
+		client:           httpclient.New(30 * time.Second),
+		baseURL:          baseURL,
 		testnet:          testnet,
 		chainID:          chainID,
 		httpClient:       httpClient,
@@ -411,16 +411,16 @@ func (t *LighterTraderV2) GetClosedPnL(startTime time.Time, limit int) ([]trader
 			continue
 		}
 
-		side := "long"
+		side := tradertypes.SideLong
 		if trade.Side == "SELL" || trade.Side == "Sell" {
-			side = "long"
+			side = tradertypes.SideLong
 		} else {
-			side = "short"
+			side = tradertypes.SideShort
 		}
 
 		var entryPrice float64
 		if trade.Quantity > 0 {
-			if side == "long" {
+			if side == tradertypes.SideLong {
 				entryPrice = trade.Price - trade.RealizedPnL/trade.Quantity
 			} else {
 				entryPrice = trade.Price + trade.RealizedPnL/trade.Quantity
@@ -608,11 +608,11 @@ func (t *LighterTraderV2) GetTrades(startTime time.Time, limit int) ([]tradertyp
 
 			var closeAction, closeSide, openAction, openSide string
 			if posBefore > 0 {
-				closeSide, closeAction = "LONG", "close_long"
-				openSide, openAction = "SHORT", "open_short"
+				closeSide, closeAction = "LONG", tradertypes.ActionCloseLong
+				openSide, openAction = "SHORT", tradertypes.ActionOpenShort
 			} else {
-				closeSide, closeAction = "SHORT", "close_short"
-				openSide, openAction = "LONG", "open_long"
+				closeSide, closeAction = "SHORT", tradertypes.ActionCloseShort
+				openSide, openAction = "LONG", tradertypes.ActionOpenLong
 			}
 
 			closeTrade := tradertypes.TradeRecord{
@@ -651,23 +651,23 @@ func (t *LighterTraderV2) GetTrades(startTime time.Time, limit int) ([]tradertyp
 		if math.Abs(posBefore) < EPSILON {
 			// No position before → opening new position
 			if side == "BUY" {
-				positionSide, orderAction = "LONG", "open_long"
+				positionSide, orderAction = "LONG", tradertypes.ActionOpenLong
 			} else {
-				positionSide, orderAction = "SHORT", "open_short"
+				positionSide, orderAction = "SHORT", tradertypes.ActionOpenShort
 			}
 		} else if posBefore > 0 {
 			// Was LONG
 			if side == "BUY" {
-				positionSide, orderAction = "LONG", "open_long" // Adding to long
+				positionSide, orderAction = "LONG", tradertypes.ActionOpenLong // Adding to long
 			} else {
-				positionSide, orderAction = "LONG", "close_long" // Reducing long
+				positionSide, orderAction = "LONG", tradertypes.ActionCloseLong // Reducing long
 			}
 		} else {
 			// Was SHORT (posBefore < 0)
 			if side == "BUY" {
-				positionSide, orderAction = "SHORT", "close_short" // Reducing short
+				positionSide, orderAction = "SHORT", tradertypes.ActionCloseShort // Reducing short
 			} else {
-				positionSide, orderAction = "SHORT", "open_short" // Adding to short
+				positionSide, orderAction = "SHORT", tradertypes.ActionOpenShort // Adding to short
 			}
 		}
 

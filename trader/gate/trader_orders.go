@@ -170,7 +170,7 @@ func (t *GateTrader) CloseLong(symbol string, quantity float64) (map[string]inte
 		}
 		for _, pos := range positions {
 			posSymbol := t.convertSymbol(pos.Symbol)
-			if posSymbol == symbol && pos.Side == "long" {
+			if posSymbol == symbol && pos.Side == types.SideLong {
 				quantity = pos.Quantity
 				break
 			}
@@ -238,7 +238,7 @@ func (t *GateTrader) CloseShort(symbol string, quantity float64) (map[string]int
 		}
 		for _, pos := range positions {
 			posSymbol := t.convertSymbol(pos.Symbol)
-			if posSymbol == symbol && pos.Side == "short" {
+			if posSymbol == symbol && pos.Side == types.SideShort {
 				quantity = pos.Quantity
 				break
 			}

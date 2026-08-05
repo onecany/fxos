@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"fxos/kernel"
 	"fxos/logger"
+	"fxos/trader/types"
 	"math"
 	"time"
 )
@@ -42,7 +43,7 @@ func (at *AutoTrader) checkTotalPositionLimit(symbol string, additionalValue flo
 	at.gridState.mu.RLock()
 	pendingValue := 0.0
 	for _, level := range at.gridState.Levels {
-		if level.State == "pending" {
+		if level.State == types.GridStatePending {
 			pendingValue += level.OrderQuantity * level.Price
 		}
 	}
@@ -137,7 +138,7 @@ func (at *AutoTrader) placeGridLimitOrder(d *kernel.Decision, side string) error
 	// Update grid level state
 	at.gridState.mu.Lock()
 	if d.LevelIndex >= 0 && d.LevelIndex < len(at.gridState.Levels) {
-		at.gridState.Levels[d.LevelIndex].State = "pending"
+		at.gridState.Levels[d.LevelIndex].State = types.GridStatePending
 		at.gridState.Levels[d.LevelIndex].OrderID = result.OrderID
 		at.gridState.Levels[d.LevelIndex].OrderQuantity = d.Quantity
 		at.gridState.OrderBook[result.OrderID] = d.LevelIndex
@@ -188,7 +189,7 @@ func (at *AutoTrader) cancelAllGridOrders() error {
 	// Reset all pending levels
 	at.gridState.mu.Lock()
 	for i := range at.gridState.Levels {
-		if at.gridState.Levels[i].State == "pending" {
+		if at.gridState.Levels[i].State == types.GridStatePending {
 			at.gridState.Levels[i].State = "empty"
 			at.gridState.Levels[i].OrderID = ""
 			at.gridState.Levels[i].OrderQuantity = 0
@@ -268,7 +269,7 @@ func (at *AutoTrader) syncGridState() {
 	} else {
 		for _, pos := range positions {
 			if pos.Symbol == gridConfig.Symbol {
-				if pos.Side == "short" {
+				if pos.Side == types.SideShort {
 					currentPositionSize = -pos.Quantity
 				} else {
 					currentPositionSize = pos.Quantity
@@ -281,21 +282,21 @@ func (at *AutoTrader) syncGridState() {
 	at.gridState.mu.Lock()
 	expectedPositionSize := 0.0
 	for _, level := range at.gridState.Levels {
-		if level.State == "filled" {
+		if level.State == types.GridStateFilled {
 			expectedPositionSize += level.PositionSize
 		}
 	}
 
 	for i := range at.gridState.Levels {
 		level := &at.gridState.Levels[i]
-		if level.State == "pending" && level.OrderID != "" {
+		if level.State == types.GridStatePending && level.OrderID != "" {
 			if !activeOrderIDs[level.OrderID] {
 				// Order no longer exists - check if position changed to determine fill vs cancel
 				// This is a heuristic - ideally we'd query order history
 				// If current position is larger than expected filled positions, this order was likely filled
 				if math.Abs(currentPositionSize) > math.Abs(expectedPositionSize) {
 					// Position increased, likely filled
-					level.State = "filled"
+					level.State = types.GridStateFilled
 					level.PositionEntry = level.Price
 					level.PositionSize = level.OrderQuantity
 					at.gridState.TotalTrades++
@@ -343,7 +344,7 @@ func (at *AutoTrader) closeAllPositions() error {
 			continue
 		}
 
-		if pos.Side == "short" {
+		if pos.Side == types.SideShort {
 			_, err = at.trader.CloseShort(pos.Symbol, pos.Quantity)
 		} else {
 			_, err = at.trader.CloseLong(pos.Symbol, pos.Quantity)

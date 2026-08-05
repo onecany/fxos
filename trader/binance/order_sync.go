@@ -192,7 +192,7 @@ func (t *FuturesTrader) SyncOrdersFromBinance(traderID string, exchangeID string
 		positionSide := trade.PositionSide
 		if positionSide == "" || positionSide == "BOTH" {
 			// Infer from order action
-			if strings.Contains(orderAction, "long") {
+			if strings.Contains(orderAction, types.SideLong) {
 				positionSide = "LONG"
 			} else {
 				positionSide = "SHORT"
@@ -319,34 +319,34 @@ func (t *FuturesTrader) determineOrderAction(side, positionSide string, realized
 	if positionSide == "LONG" || positionSide == "" {
 		if side == "BUY" {
 			if isClose {
-				return "close_short" // Buying to close short
+				return types.ActionCloseShort // Buying to close short
 			}
-			return "open_long"
+			return types.ActionOpenLong
 		} else {
 			if isClose {
-				return "close_long" // Selling to close long
+				return types.ActionCloseLong // Selling to close long
 			}
-			return "open_short"
+			return types.ActionOpenShort
 		}
 	} else if positionSide == "SHORT" {
 		if side == "SELL" {
 			if isClose {
-				return "close_long"
+				return types.ActionCloseLong
 			}
-			return "open_short"
+			return types.ActionOpenShort
 		} else {
 			if isClose {
-				return "close_short"
+				return types.ActionCloseShort
 			}
-			return "open_long"
+			return types.ActionOpenLong
 		}
 	}
 
 	// Default fallback
 	if side == "BUY" {
-		return "open_long"
+		return types.ActionOpenLong
 	}
-	return "open_short"
+	return types.ActionOpenShort
 }
 
 // StartOrderSync starts background order sync task for Binance

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"fxos/kernel"
+	"fxos/trader/types"
 )
 
 // forcedCoverageMinScore is the minimum absolute board z-score a candidate
@@ -54,19 +55,19 @@ func (at *AutoTrader) ensureLongShortCoverage(decisions []kernel.Decision, ctx *
 	for _, p := range ctx.Positions {
 		held[universeBaseKey(p.Symbol)] = true
 		posCount++
-		if strings.EqualFold(p.Side, "long") {
+		if strings.EqualFold(p.Side, types.SideLong) {
 			longCount++
-		} else if strings.EqualFold(p.Side, "short") {
+		} else if strings.EqualFold(p.Side, types.SideShort) {
 			shortCount++
 		}
 	}
 	for _, d := range decisions {
 		held[universeBaseKey(d.Symbol)] = true
 		switch d.Action {
-		case "open_long":
+		case types.ActionOpenLong:
 			longCount++
 			posCount++
-		case "open_short":
+		case types.ActionOpenShort:
 			shortCount++
 			posCount++
 		}
@@ -116,7 +117,7 @@ func (at *AutoTrader) ensureLongShortCoverage(decisions []kernel.Decision, ctx *
 		}
 	}
 
-	fill("open_long", bullish, longCount, targetLong)
-	fill("open_short", bearish, shortCount, targetShort)
+	fill(types.ActionOpenLong, bullish, longCount, targetLong)
+	fill(types.ActionOpenShort, bearish, shortCount, targetShort)
 	return decisions
 }

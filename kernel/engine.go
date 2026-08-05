@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"fxos/logger"
 	"fxos/market"
 	"fxos/provider/hyperliquid"
@@ -13,6 +11,9 @@ import (
 	"fxos/provider/vergex"
 	"fxos/security"
 	"fxos/store"
+	"fxos/trader/types"
+	"io"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -27,7 +28,7 @@ import (
 // PositionInfo position information
 type PositionInfo struct {
 	Symbol           string  `json:"symbol"`
-	Side             string  `json:"side"` // "long" or "short"
+	Side             string  `json:"side"` // types.SideLong or types.SideShort
 	EntryPrice       float64 `json:"entry_price"`
 	MarkPrice        float64 `json:"mark_price"`
 	Quantity         float64 `json:"quantity"`
@@ -107,9 +108,9 @@ type Context struct {
 	OITopDataMap       map[string]*OITopData              `json:"-"`
 	QuantDataMap       map[string]*QuantData              `json:"-"`
 	VergexDataMap      map[string]*vergex.MarketAnalysis  `json:"-"`
-	OIRankingData      *nofx.OIRankingData              `json:"-"` // Market-wide OI ranking data
-	NetFlowRankingData *nofx.NetFlowRankingData         `json:"-"` // Market-wide fund flow ranking data
-	PriceRankingData   *nofx.PriceRankingData           `json:"-"` // Market-wide price gainers/losers
+	OIRankingData      *nofx.OIRankingData                `json:"-"` // Market-wide OI ranking data
+	NetFlowRankingData *nofx.NetFlowRankingData           `json:"-"` // Market-wide fund flow ranking data
+	PriceRankingData   *nofx.PriceRankingData             `json:"-"` // Market-wide price gainers/losers
 	BTCETHLeverage     int                                `json:"-"`
 	AltcoinLeverage    int                                `json:"-"`
 	Timeframes         []string                           `json:"-"`
@@ -189,7 +190,7 @@ type OIDeltaData struct {
 // StrategyEngine strategy execution engine
 type StrategyEngine struct {
 	config             *store.StrategyConfig
-	fxosClient       *nofx.Client
+	fxosClient         *nofx.Client
 	vergexClient       *vergex.Client
 	vergexRankingCache map[string]*vergex.SignalRankItem
 }
@@ -233,7 +234,7 @@ func NewStrategyEngine(config *store.StrategyConfig, claw402WalletKey ...string)
 		}
 		return &StrategyEngine{
 			config:             config,
-			fxosClient:       client,
+			fxosClient:         client,
 			vergexClient:       vergexClient,
 			vergexRankingCache: make(map[string]*vergex.SignalRankItem),
 		}
@@ -241,7 +242,7 @@ func NewStrategyEngine(config *store.StrategyConfig, claw402WalletKey ...string)
 
 	return &StrategyEngine{
 		config:             config,
-		fxosClient:       client,
+		fxosClient:         client,
 		vergexRankingCache: make(map[string]*vergex.SignalRankItem),
 	}
 }
@@ -815,9 +816,9 @@ func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqB
 			continue
 		}
 		switch strings.ToLower(strings.TrimSpace(item.Bias)) {
-		case "bearish", "short", "sell":
+		case "bearish", types.SideShort, "sell":
 			bearItems = append(bearItems, item)
-		case "bullish", "long", "buy":
+		case "bullish", types.SideLong, "buy":
 			bullItems = append(bullItems, item)
 		default:
 			otherItems = append(otherItems, item)
@@ -916,9 +917,9 @@ func (e *StrategyEngine) DirectionalCandidates() (bullish []DirectionalCandidate
 		}
 		entry := ranked{DirectionalCandidate{Symbol: sym, Score: item.Score}, item.Rank}
 		switch strings.ToLower(strings.TrimSpace(item.Bias)) {
-		case "bearish", "short", "sell":
+		case "bearish", types.SideShort, "sell":
 			br = append(br, entry)
-		case "bullish", "long", "buy":
+		case "bullish", types.SideLong, "buy":
 			bl = append(bl, entry)
 		}
 	}

@@ -1,11 +1,12 @@
 package trader
 
 import (
-	"math"
 	"fxos/kernel"
 	"fxos/logger"
 	"fxos/market"
 	"fxos/store"
+	"fxos/trader/types"
+	"math"
 )
 
 // ============================================================================
@@ -194,13 +195,13 @@ func (at *AutoTrader) checkGridSkew() (bool, int, int) {
 
 	for _, level := range at.gridState.Levels {
 		if level.Side == "buy" {
-			if level.State == "filled" {
+			if level.State == types.GridStateFilled {
 				buyFilled++
 			} else if level.State == "empty" {
 				buyEmpty++
 			}
 		} else {
-			if level.State == "filled" {
+			if level.State == types.GridStateFilled {
 				sellFilled++
 			} else if level.State == "empty" {
 				sellEmpty++
@@ -273,7 +274,7 @@ func (at *AutoTrader) autoAdjustGrid() {
 	// Preserve filled positions before reinitializing
 	filledPositions := make(map[int]kernel.GridLevelInfo)
 	for i, level := range at.gridState.Levels {
-		if level.State == "filled" {
+		if level.State == types.GridStateFilled {
 			filledPositions[i] = level
 		}
 	}
@@ -318,7 +319,7 @@ func (at *AutoTrader) autoAdjustGrid() {
 
 		if closestIdx >= 0 {
 			// Restore the filled state to the closest level
-			at.gridState.Levels[closestIdx].State = "filled"
+			at.gridState.Levels[closestIdx].State = types.GridStateFilled
 			at.gridState.Levels[closestIdx].PositionEntry = filledLevel.PositionEntry
 			at.gridState.Levels[closestIdx].PositionSize = filledLevel.PositionSize
 			at.gridState.Levels[closestIdx].UnrealizedPnL = filledLevel.UnrealizedPnL

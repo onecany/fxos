@@ -6,6 +6,7 @@ import (
 	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
+	"fxos/trader/types"
 	"sort"
 	"strings"
 	"time"
@@ -58,7 +59,7 @@ func (t *HyperliquidTrader) SyncOrdersFromHyperliquid(traderID string, exchangeI
 		// Dir field values: "Open Long", "Open Short", "Close Long", "Close Short"
 		orderAction := trade.OrderAction
 		positionSide := "LONG"
-		if strings.Contains(orderAction, "short") {
+		if strings.Contains(orderAction, types.SideShort) {
 			positionSide = "SHORT"
 		}
 

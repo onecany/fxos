@@ -3,6 +3,7 @@ package trader
 import (
 	"fxos/kernel"
 	"fxos/store"
+	"fxos/trader/types"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ func TestApplyAutopilotFullSizeOpenForClaw402(t *testing.T) {
 	at := &AutoTrader{config: AutoTraderConfig{StrategyConfig: &cfg}}
 	decision := &kernel.Decision{
 		Symbol:          "xyz:INTC",
-		Action:          "open_long",
+		Action:          types.ActionOpenLong,
 		Leverage:        3,
 		PositionSizeUSD: 12,
 	}
@@ -41,7 +42,7 @@ func TestApplyAutopilotFullSizeOpenSkipsNonClaw402Strategies(t *testing.T) {
 	at := &AutoTrader{config: AutoTraderConfig{StrategyConfig: &cfg}}
 	decision := &kernel.Decision{
 		Symbol:          "BTCUSDT",
-		Action:          "open_long",
+		Action:          types.ActionOpenLong,
 		Leverage:        3,
 		PositionSizeUSD: 12,
 	}

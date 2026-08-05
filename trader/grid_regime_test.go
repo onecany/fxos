@@ -2,6 +2,7 @@ package trader
 
 import (
 	"fxos/market"
+	"fxos/trader/types"
 	"testing"
 )
 
@@ -134,8 +135,8 @@ func TestGetBuySellRatio(t *testing.T) {
 		wantSell  float64
 	}{
 		{"neutral", market.GridDirectionNeutral, 0.7, 0.5, 0.5},
-		{"long", market.GridDirectionLong, 0.7, 1.0, 0.0},
-		{"short", market.GridDirectionShort, 0.7, 0.0, 1.0},
+		{types.SideLong, market.GridDirectionLong, 0.7, 1.0, 0.0},
+		{types.SideShort, market.GridDirectionShort, 0.7, 0.0, 1.0},
 		{"long_bias_default", market.GridDirectionLongBias, 0.7, 0.7, 0.3},
 		{"short_bias_default", market.GridDirectionShortBias, 0.7, 0.3, 0.7},
 		{"long_bias_custom", market.GridDirectionLongBias, 0.8, 0.8, 0.2},

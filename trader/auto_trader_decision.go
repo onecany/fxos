@@ -295,8 +295,8 @@ func (at *AutoTrader) recordAndConfirmOrder(orderResult map[string]interface{}, 
 	}
 
 	// Wait for order to be filled and get actual fill data
-	time.Sleep(500 * time.Millisecond)
-	for i := 0; i < 5; i++ {
+	at.sleepFn(OrderStatusPollInterval)
+	for i := 0; i < OrderStatusPollAttempts; i++ {
 		status, err := at.trader.GetOrderStatus(symbol, orderID)
 		if err == nil {
 			statusStr := status.Status
@@ -330,7 +330,7 @@ func (at *AutoTrader) recordAndConfirmOrder(orderResult map[string]interface{}, 
 				return
 			}
 		}
-		time.Sleep(500 * time.Millisecond)
+		at.sleepFn(OrderStatusPollInterval)
 	}
 
 	// Normalize symbol for position record consistency

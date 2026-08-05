@@ -177,6 +177,11 @@ type AutoTrader struct {
 	breakevenStopCache    map[string]bool    // Breakeven stop applied per position (symbol_side -> true), per-instance to avoid cross-trader pollution
 	breakevenStopCacheMu  sync.RWMutex       // Breakeven stop cache read-write lock
 	lastBalanceSyncTime   time.Time          // Last balance sync time
+
+	// sleepFn abstracts time.Sleep so tests can fast-forward pauses
+	// (fill-confirmation polling, post-execution delay). Defaults to
+	// time.Sleep; override in tests.
+	sleepFn func(time.Duration)
 	userID                string             // User ID
 	gridState             *GridState         // Grid trading state (only used when StrategyType == "grid_trading")
 	claw402WalletAddr     string             // Claw402 wallet address (derived from private key at start)
@@ -352,6 +357,7 @@ func NewAutoTrader(config AutoTraderConfig, st *store.Store, userID string) (*Au
 		breakevenStopCache:    make(map[string]bool),
 		breakevenStopCacheMu:  sync.RWMutex{},
 		lastBalanceSyncTime:   time.Now(),
+		sleepFn:               time.Sleep,
 		userID:                userID,
 	}, nil
 }

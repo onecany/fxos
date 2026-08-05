@@ -355,7 +355,7 @@ func (at *AutoTrader) runCycle() error {
 			actionRecord.Success = true
 			record.ExecutionLog = append(record.ExecutionLog, fmt.Sprintf("✓ %s %s succeeded", d.Symbol, d.Action))
 			// Brief delay after successful execution
-			time.Sleep(1 * time.Second)
+			at.sleepFn(PostExecutionDelay)
 		}
 
 		record.Decisions = append(record.Decisions, actionRecord)

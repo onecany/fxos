@@ -253,7 +253,7 @@ func (at *AutoTrader) handleBreakout(breakoutType BreakoutType, breakoutPct floa
 	logger.Warnf("[Grid] BREAKOUT DETECTED: %s, %.2f%% beyond boundary", breakoutType, breakoutPct)
 
 	// If breakout exceeds 2%, pause grid and cancel orders
-	if breakoutPct >= 2.0 {
+	if breakoutPct >= GridBreakoutThresholdStrong {
 		logger.Warnf("[Grid] Significant breakout (%.2f%%), pausing grid and canceling orders", breakoutPct)
 
 		// Cancel all pending orders to prevent further losses
@@ -270,7 +270,7 @@ func (at *AutoTrader) handleBreakout(breakoutType BreakoutType, breakoutPct floa
 	}
 
 	// If breakout is minor (< 2%), consider adjusting grid
-	if breakoutPct >= 1.0 {
+	if breakoutPct >= GridBreakoutThresholdMild {
 		logger.Infof("[Grid] Minor breakout (%.2f%%), considering grid adjustment", breakoutPct)
 		// Let AI decide whether to adjust
 	}

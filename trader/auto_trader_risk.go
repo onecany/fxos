@@ -66,7 +66,7 @@ func (at *AutoTrader) checkPositionDrawdown() {
 		// Calculate current P&L percentage
 		leverage := pos.Leverage
 		if leverage <= 0 {
-			leverage = 10 // Default value
+			leverage = DefaultLeverageFallback // Default value
 		}
 
 		var currentPnLPct float64
@@ -214,13 +214,13 @@ func (at *AutoTrader) adjustStopLoss(symbol, side string, entryPrice, markPrice,
 	var trailingDrawdown float64   // max drawdown from peak before trailing kicks in
 
 	if isBTCETH(symbol) {
-		breakevenThreshold = 1.5 // 1.5% profit = ~1x risk for typical 1.5% stop
-		trailingThreshold = 3.0  // 3% profit = ~2x risk
-		trailingDrawdown = 50.0  // trail at 50% from peak
+		breakevenThreshold = BreakevenThresholdBTCETH  // 1.5% profit = ~1x risk for typical 1.5% stop
+		trailingThreshold = TrailingThresholdBTCETH   // 3% profit = ~2x risk
+		trailingDrawdown = TrailingDrawdownPct  // trail at 50% from peak
 	} else {
-		breakevenThreshold = 2.5 // 2.5% profit for altcoins (higher vol)
-		trailingThreshold = 5.0  // 5% profit for altcoins
-		trailingDrawdown = 50.0  // trail at 50% from peak
+		breakevenThreshold = BreakevenThresholdAltcoin // 2.5% profit for altcoins (higher vol)
+		trailingThreshold = TrailingThresholdAltcoin  // 5% profit for altcoins
+		trailingDrawdown = TrailingDrawdownPct  // trail at 50% from peak
 	}
 
 	posKey := symbol + "_" + side
@@ -342,12 +342,12 @@ func (at *AutoTrader) enforcePositionValueRatio(positionSizeUSD float64, equity 
 	if isMajorAsset(symbol) {
 		maxPositionValueRatio = riskControl.BTCETHMaxPositionValueRatio
 		if maxPositionValueRatio <= 0 {
-			maxPositionValueRatio = 5.0 // Default: 5x for BTC/ETH and XYZ assets
+			maxPositionValueRatio = DefaultMaxPositionValueRatioBTCETH // Default: 5x for BTC/ETH and XYZ assets
 		}
 	} else {
 		maxPositionValueRatio = riskControl.AltcoinMaxPositionValueRatio
 		if maxPositionValueRatio <= 0 {
-			maxPositionValueRatio = 1.0 // Default: 1x for altcoins
+			maxPositionValueRatio = DefaultMaxPositionValueRatioAltcoin // Default: 1x for altcoins
 		}
 	}
 
@@ -429,7 +429,7 @@ func (at *AutoTrader) enforceMaxPositions(currentPositionCount int) error {
 
 	maxPositions := at.config.StrategyConfig.RiskControl.MaxPositions
 	if maxPositions <= 0 {
-		maxPositions = 3 // Default: 3 positions
+		maxPositions = DefaultMaxPositions // Default: 3 positions
 	}
 
 	if currentPositionCount >= maxPositions {

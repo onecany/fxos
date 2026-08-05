@@ -16,7 +16,7 @@ import (
 // calculateDefaultBounds calculates default bounds based on price
 func (at *AutoTrader) calculateDefaultBounds(price float64, config *store.GridStrategyConfig) {
 	// Default: +/-3% from current price
-	multiplier := 0.03 * float64(config.GridCount) / 10
+	multiplier := GridLevelSpacingBase * float64(config.GridCount) / GridLevelSpacingScale
 	at.gridState.UpperPrice = price * (1 + multiplier)
 	at.gridState.LowerPrice = price * (1 - multiplier)
 }
@@ -35,7 +35,7 @@ func (at *AutoTrader) calculateATRBounds(price float64, mktData *market.Data, co
 
 	multiplier := config.ATRMultiplier
 	if multiplier <= 0 {
-		multiplier = 2.0
+		multiplier = GridLevelSpacingMax
 	}
 
 	halfRange := atr * multiplier
@@ -103,7 +103,7 @@ func (at *AutoTrader) applyGridDirection(currentPrice float64) {
 	// Get bias ratio from config, default to 0.7 (70%/30%)
 	biasRatio := config.DirectionBiasRatio
 	if biasRatio <= 0 || biasRatio > 1 {
-		biasRatio = 0.7
+		biasRatio = GridBiasRatioFallback
 	}
 
 	buyRatio, _ := direction.GetBuySellRatio(biasRatio)
@@ -333,7 +333,7 @@ func (at *AutoTrader) autoAdjustGrid() {
 // calculateDefaultBoundsLocked calculates default bounds (caller must hold lock)
 func (at *AutoTrader) calculateDefaultBoundsLocked(price float64, config *store.GridStrategyConfig) {
 	// Default: +/-3% from current price, scaled by grid count
-	multiplier := 0.03 * float64(config.GridCount) / 10
+	multiplier := GridLevelSpacingBase * float64(config.GridCount) / GridLevelSpacingScale
 	at.gridState.UpperPrice = price * (1 + multiplier)
 	at.gridState.LowerPrice = price * (1 - multiplier)
 }
@@ -352,7 +352,7 @@ func (at *AutoTrader) calculateATRBoundsLocked(price float64, mktData *market.Da
 
 	multiplier := config.ATRMultiplier
 	if multiplier <= 0 {
-		multiplier = 2.0
+		multiplier = GridLevelSpacingMax
 	}
 
 	halfRange := atr * multiplier
@@ -419,7 +419,7 @@ func (at *AutoTrader) applyGridDirectionLocked(currentPrice float64) {
 	// Get bias ratio from config, default to 0.7 (70%/30%)
 	biasRatio := config.DirectionBiasRatio
 	if biasRatio <= 0 || biasRatio > 1 {
-		biasRatio = 0.7
+		biasRatio = GridBiasRatioFallback
 	}
 
 	buyRatio, _ := direction.GetBuySellRatio(biasRatio)

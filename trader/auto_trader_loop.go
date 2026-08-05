@@ -61,7 +61,7 @@ func (at *AutoTrader) runCycle() error {
 	}
 
 	// 2. Reset daily P&L (reset every day)
-	if time.Since(at.lastResetTime) > 24*time.Hour {
+	if time.Since(at.lastResetTime) > DailyPnLResetInterval {
 		at.dailyPnL = 0
 		at.dayStartEquity = 0 // re-anchor on the next cycle
 		at.lastResetTime = time.Now()

@@ -8,6 +8,7 @@ import (
 	"fxos/hook"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"strings"
 	"sync"
@@ -60,6 +61,9 @@ type FuturesTrader struct {
 
 	// Cache validity period (15 seconds)
 	cacheDuration time.Duration
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
 }
 
 // NewFuturesTrader creates futures trader
@@ -79,6 +83,7 @@ func NewFuturesTrader(apiKey, secretKey string, userId string) *FuturesTrader {
 	trader := &FuturesTrader{
 		client:        client,
 		cacheDuration: 15 * time.Second, // 15-second cache
+		syncCursor:    syncloop.NewSyncCursor(),
 	}
 
 	// Set dual-side position mode (Hedge Mode)

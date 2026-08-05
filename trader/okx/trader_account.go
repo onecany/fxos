@@ -187,9 +187,12 @@ func (t *OKXTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Closed
 	}
 
 	// Build query path with parameters
+	// OKX pagination semantics: "after" returns records EARLIER than the
+	// timestamp, "before" returns records LATER than it. startTime is the
+	// last-sync cursor, so we want records AFTER that point -> use "before".
 	path := fmt.Sprintf("/api/v5/account/positions-history?instType=SWAP&limit=%d", limit)
 	if !startTime.IsZero() {
-		path += fmt.Sprintf("&after=%d", startTime.UnixMilli())
+		path += fmt.Sprintf("&before=%d", startTime.UnixMilli())
 	}
 
 	data, err := t.doRequest("GET", path, nil)

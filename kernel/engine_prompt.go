@@ -406,7 +406,7 @@ func writeVergexOutputFormat(sb *strings.Builder, accountEquity float64, riskCon
 	sb.WriteString("- [ ] No stop_loss crosses the liquidation price of any position\n")
 	sb.WriteString("- [ ] Symbols exactly match current candidates or existing positions\n")
 	sb.WriteString(fmt.Sprintf("- [ ] confidence ≥ %d and reflects evidence, not habit\n", riskControl.MinConfidence))
-	sb.WriteString("- [ ] If nothing qualifies → output [{\"symbol\": \"...\", \"action\": \"wait\"}]\n\n")
+	sb.WriteString("- [ ] If nothing qualifies → output a single wait decision (symbol = your primary candidate or the first candidate, action = \"wait\"), do NOT invent a placeholder symbol\n\n")
 
 	sb.WriteString("# Output Format (Strictly Follow)\n\n")
 	sb.WriteString("Use XML tags <reasoning> and <decision> to separate concise analysis from the decision JSON.\n\n")
@@ -718,7 +718,7 @@ func writeOutputFormat(sb *strings.Builder, accountEquity, btcEthPosValueRatio f
 	sb.WriteString("- [ ] No stop_loss crosses the liquidation price of any position\n")
 	sb.WriteString("- [ ] Symbols exactly match current candidates or existing positions\n")
 	sb.WriteString(fmt.Sprintf("- [ ] confidence ≥ %d and reflects evidence, not habit\n", riskControl.MinConfidence))
-	sb.WriteString("- [ ] If nothing qualifies → output [{\"symbol\": \"...\", \"action\": \"wait\"}]\n\n")
+	sb.WriteString("- [ ] If nothing qualifies → output a single wait decision (symbol = your primary candidate or the first candidate, action = \"wait\"), do NOT invent a placeholder symbol\n\n")
 
 	sb.WriteString("# Output Format (Strictly Follow)\n\n")
 	sb.WriteString("**Must use XML tags <reasoning> and <decision> to separate chain of thought and decision JSON, avoiding parsing errors**\n\n")

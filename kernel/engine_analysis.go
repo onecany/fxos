@@ -360,6 +360,7 @@ func extractDecisions(response string) ([]Decision, error) {
 		if err := json.Unmarshal([]byte(jsonContent), &decisions); err != nil {
 			return nil, fmt.Errorf("JSON parsing failed: %w\nJSON content: %s", err, jsonContent)
 		}
+		normalizeDecisionSymbols(decisions)
 		return decisions, nil
 	}
 
@@ -393,7 +394,29 @@ func extractDecisions(response string) ([]Decision, error) {
 		return nil, fmt.Errorf("JSON parsing failed: %w\nJSON content: %s", err, jsonContent)
 	}
 
+	// Defensive normalization: some models copy the placeholder "..." from
+	// the prompt's wait example verbatim, or emit an empty symbol. A
+	// "..."/empty symbol is not a tradable instrument — normalize those
+	// entries to an explicit full-portfolio wait so they never reach the
+	// order layer as a real ticker.
+	normalizeDecisionSymbols(decisions)
+
 	return decisions, nil
+}
+
+// normalizeDecisionSymbols coerces placeholder/empty symbols ("..." from the
+// wait example, or blank) to an explicit full-portfolio "ALL" wait so they
+// never reach the order layer as a fake ticker.
+func normalizeDecisionSymbols(decisions []Decision) {
+	for i := range decisions {
+		sym := strings.TrimSpace(decisions[i].Symbol)
+		if sym == "" || sym == "..." || strings.Contains(sym, "...") {
+			decisions[i].Symbol = "ALL"
+			if strings.TrimSpace(decisions[i].Action) == "" {
+				decisions[i].Action = "wait"
+			}
+		}
+	}
 }
 
 func fixMissingQuotes(jsonStr string) string {

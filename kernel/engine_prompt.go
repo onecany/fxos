@@ -50,8 +50,10 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		}
 	}
 
-	// 2. Trading mode variant
-	writeModeVariant(&sb, variant)
+	// 2. Trading mode variant. If the operator defined custom Entry Standards
+	// (Prompt Studio), those rules override the built-in mode guidance.
+	defaultSections := store.GetDefaultStrategyConfig(e.config.Language).PromptSections
+	writeModeVariant(&sb, variant, promptSections.EntryStandards, defaultSections.EntryStandards)
 
 	// 3. Hard constraints (risk control).
 	//
@@ -208,20 +210,6 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	// re-stated after any custom role instead of being silently replaced.
 	sections := e.config.PromptSections
 	defaultSections := store.GetDefaultStrategyConfig(e.config.Language).PromptSections
-	normalizeForDedup := func(s string) string {
-		s = strings.ToLower(s)
-		s = strings.Map(func(r rune) rune {
-			switch {
-			case r >= 'a' && r <= 'z':
-				return r
-			case r >= '0' && r <= '9':
-				return r
-			default:
-				return ' '
-			}
-		}, s)
-		return strings.Join(strings.Fields(s), " ")
-	}
 	roleUnedited := func(body string) bool {
 		body = strings.TrimSpace(body)
 		return body == "" || normalizeForDedup(body) == normalizeForDedup(defaultSections.RoleDefinition)
@@ -274,7 +262,7 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	// the generic prompt path (writeCommonDiscipline).
 	writeCommonDiscipline(&sb, riskControl)
 
-	writeModeVariant(&sb, variant)
+	writeModeVariant(&sb, variant, sections.EntryStandards, defaultSections.EntryStandards)
 
 	altcoinPosValueRatio := riskControl.AltcoinMaxPositionValueRatio
 	if altcoinPosValueRatio <= 0 {
@@ -525,16 +513,48 @@ func (e *StrategyEngine) singleSymbolInfo() (bool, string) {
 	return false, ""
 }
 
-func writeModeVariant(sb *strings.Builder, variant string) {
+// normalizeForDedup lowercases and strips punctuation/whitespace so two
+// near-identical prompt-section texts (legacy stored copy vs the current
+// default template) compare equal. Used to detect genuine operator edits.
+func normalizeForDedup(s string) string {
+	s = strings.ToLower(s)
+	s = strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		default:
+			return ' '
+		}
+	}, s)
+	return strings.Join(strings.Fields(s), " ")
+}
+
+// writeModeVariant writes the trading-mode block. When the operator edited
+// their Entry Standards (Prompt Studio) to define a custom entry framework
+// (Bollinger, MA cross, etc.), the built-in mode block is demoted to a
+// DEFAULT reference that defers to those custom rules — otherwise
+// "## Mode: Balanced" reads as a hard entry rule that contradicts the custom
+// framework. The demotion only fires for genuine operator edits, not for the
+// default Claw402/vergex template copy that ships in stored configs.
+func writeModeVariant(sb *strings.Builder, variant string, entryStandards string, defaultEntryStandards string) {
+	customEntryFramework := entryStandards != "" &&
+		normalizeForDedup(entryStandards) != normalizeForDedup(defaultEntryStandards)
+
+	defaultPrefix := ""
+	if customEntryFramework {
+		defaultPrefix = "DEFAULT MODE (your custom Entry Standards below override this entry guidance):\n"
+	}
 	switch strings.ToLower(strings.TrimSpace(variant)) {
 	case "careful", "conservative":
-		sb.WriteString("## Mode: Conservative\n- Open positions only when multiple signals resonate\n- Prioritize capital preservation; pause for multiple periods after consecutive losses\n\n")
+		sb.WriteString("## Mode: Conservative\n" + defaultPrefix + "- Open positions only when multiple signals resonate\n- Prioritize capital preservation; pause for multiple periods after consecutive losses\n\n")
 	case "active", "aggressive":
-		sb.WriteString("## Mode: Aggressive\n- Prioritize capturing trend breakouts; may scale in when confidence ≥ 70\n- Allow larger positions, but must strictly set stop-loss and explain the risk-reward ratio\n\n")
+		sb.WriteString("## Mode: Aggressive\n" + defaultPrefix + "- Prioritize capturing trend breakouts; may scale in when confidence ≥ 70\n- Allow larger positions, but must strictly set stop-loss and explain the risk-reward ratio\n\n")
 	case "scalping":
-		sb.WriteString("## Mode: Scalping\n- Focus on short-term momentum, smaller profit targets but require quick action\n- If price doesn't move as expected within two bars, immediately reduce position or stop-loss\n\n")
+		sb.WriteString("## Mode: Scalping\n" + defaultPrefix + "- Focus on short-term momentum, smaller profit targets but require quick action\n- If price doesn't move as expected within two bars, immediately reduce position or stop-loss\n\n")
 	case "balanced", "":
-		sb.WriteString("## Mode: Balanced\n- Open only when multiple signals resonate across timeframes\n- Standard position sizing: confidence-based, no systematic tilt toward aggression or caution\n- Prioritize capital preservation in unclear regimes; pause after consecutive losses\n\n")
+		sb.WriteString("## Mode: Balanced\n" + defaultPrefix + "- Open only when multiple signals resonate across timeframes\n- Standard position sizing: confidence-based, no systematic tilt toward aggression or caution\n- Prioritize capital preservation in unclear regimes; pause after consecutive losses\n\n")
 	}
 }
 

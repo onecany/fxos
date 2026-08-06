@@ -8,6 +8,7 @@ import (
 	"fxos/market"
 	"fxos/provider/hyperliquid"
 	"fxos/provider/nofx"
+	"fxos/provider/okxdata"
 	"fxos/provider/vergex"
 	"fxos/security"
 	"fxos/store"
@@ -193,6 +194,7 @@ type StrategyEngine struct {
 	fxosClient         *nofx.Client
 	vergexClient       *vergex.Client
 	vergexRankingCache map[string]*vergex.SignalRankItem
+	quantCache         map[string]okxdata.CoinQuant // OKX quant snapshots, per decision cycle
 }
 
 // StrategyReader is the subset of StrategyEngine that decision-making and
@@ -1044,81 +1046,63 @@ func extractJSONPath(data interface{}, path string) interface{} {
 	return current
 }
 
-// FetchQuantData fetches quantitative data for a single coin
+// FetchQuantData fetches quantitative data for a single coin.
+// Exchange-direct via OKX bulk snapshots (no claw402/fxosClient). The
+// snapshots are fetched once per batch and cached on the engine for the
+// duration of one decision cycle.
 func (e *StrategyEngine) FetchQuantData(symbol string) (*QuantData, error) {
 	if !e.config.Indicators.EnableQuantData {
 		return nil, nil
 	}
 	if e.usesHyperliquidNativeUniverse() || market.IsXyzDexAsset(symbol) {
-		logger.Infof("⏭️  Skipping FXOS quant data for Hyperliquid symbol %s; using native Hyperliquid klines/mark data only", symbol)
+		logger.Infof("⏭️  Skipping OKX quant data for Hyperliquid symbol %s; using native Hyperliquid klines/mark data only", symbol)
 		return nil, nil
 	}
 
-	// Use fxos client with unified API key
-	include := "oi,price"
-	if e.config.Indicators.EnableQuantNetflow {
-		include = "netflow,oi,price"
-	}
-
-	fxosData, err := e.fxosClient.GetCoinData(symbol, include)
+	snaps, err := e.quantSnapshots()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch quant data: %w", err)
 	}
 
-	if fxosData == nil {
+	base := strings.TrimSuffix(strings.ToUpper(symbol), "USDT")
+	snap, ok := snaps[base]
+	if !ok || snap.Price <= 0 {
 		return nil, nil
 	}
 
-	// Convert fxos.QuantData to kernel.QuantData
 	quantData := &QuantData{
-		Symbol:      fxosData.Symbol,
-		Price:       fxosData.Price,
-		PriceChange: fxosData.PriceChange,
+		Symbol: symbol,
+		Price:  snap.Price,
+		PriceChange: map[string]float64{
+			"24h": snap.PriceChange,
+		},
+		OI: map[string]*OIData{
+			"okx": {
+				CurrentOI: snap.OI,
+				Delta: map[string]*OIDeltaData{
+					"24h": {
+						OIDelta:        snap.OIDelta,
+						OIDeltaValue:   snap.OIDelta,
+						OIDeltaPercent: snap.OIDeltaPct,
+					},
+				},
+			},
+		},
 	}
-
-	// Convert OI data
-	if fxosData.OI != nil {
-		quantData.OI = make(map[string]*OIData)
-		for exchange, oiData := range fxosData.OI {
-			if oiData != nil {
-				kData := &OIData{
-					CurrentOI: oiData.CurrentOI,
-				}
-				if oiData.Delta != nil {
-					kData.Delta = make(map[string]*OIDeltaData)
-					for dur, delta := range oiData.Delta {
-						if delta != nil {
-							kData.Delta[dur] = &OIDeltaData{
-								OIDelta:        delta.OIDelta,
-								OIDeltaValue:   delta.OIDeltaValue,
-								OIDeltaPercent: delta.OIDeltaPercent,
-							}
-						}
-					}
-				}
-				quantData.OI[exchange] = kData
-			}
-		}
-	}
-
-	// Convert Netflow data
-	if fxosData.Netflow != nil {
-		quantData.Netflow = &NetflowData{}
-		if fxosData.Netflow.Institution != nil {
-			quantData.Netflow.Institution = &FlowTypeData{
-				Future: fxosData.Netflow.Institution.Future,
-				Spot:   fxosData.Netflow.Institution.Spot,
-			}
-		}
-		if fxosData.Netflow.Personal != nil {
-			quantData.Netflow.Personal = &FlowTypeData{
-				Future: fxosData.Netflow.Personal.Future,
-				Spot:   fxosData.Netflow.Personal.Spot,
-			}
-		}
-	}
-
 	return quantData, nil
+}
+
+// quantSnapshots returns OKX quant snapshots, fetched once per batch.
+func (e *StrategyEngine) quantSnapshots() (map[string]okxdata.CoinQuant, error) {
+	if e.quantCache != nil {
+		return e.quantCache, nil
+	}
+	snaps, err := okxdata.QuantSnapshots()
+	if err != nil {
+		return nil, err
+	}
+	e.quantCache = snaps
+	return snaps, nil
 }
 
 // FetchQuantDataBatch batch fetches quantitative data
@@ -1129,6 +1113,7 @@ func (e *StrategyEngine) FetchQuantDataBatch(symbols []string) map[string]*Quant
 		return result
 	}
 
+	e.quantCache = nil // fresh snapshots per batch
 	for _, symbol := range symbols {
 		data, err := e.FetchQuantData(symbol)
 		if err != nil {
@@ -1419,20 +1404,21 @@ func uniqueValues(values ...string) []string {
 	return out
 }
 
-// FetchOIRankingData fetches market-wide OI ranking data
+// FetchOIRankingData fetches market-wide OI ranking data.
+// Exchange-direct via OKX bulk open-interest (no claw402/fxosClient).
 func (e *StrategyEngine) FetchOIRankingData() *nofx.OIRankingData {
 	indicators := e.config.Indicators
 	if !indicators.EnableOIRanking {
 		return nil
 	}
 	if e.usesHyperliquidNativeUniverse() {
-		logger.Infof("⏭️  Skipping FXOS OI ranking for Hyperliquid strategy; native Hyperliquid universe is the source of truth")
+		logger.Infof("⏭️  Skipping OKX OI ranking for Hyperliquid strategy; native Hyperliquid universe is the source of truth")
 		return nil
 	}
 
 	duration := indicators.OIRankingDuration
 	if duration == "" {
-		duration = "1h"
+		duration = "24h"
 	}
 
 	limit := indicators.OIRankingLimit
@@ -1440,21 +1426,26 @@ func (e *StrategyEngine) FetchOIRankingData() *nofx.OIRankingData {
 		limit = 10
 	}
 
-	logger.Infof("📊 Fetching OI ranking data (duration: %s, limit: %d)", duration, limit)
+	logger.Infof("📊 Fetching OI ranking data from OKX (duration: %s, limit: %d)", duration, limit)
 
-	data, err := e.fxosClient.GetOIRanking(duration, limit)
+	data, err := okxdata.OIRanking(duration, limit)
 	if err != nil {
-		logger.Warnf("⚠️  Failed to fetch OI ranking data: %v", err)
+		logger.Warnf("⚠️  Failed to fetch OKX OI ranking data: %v", err)
 		return nil
 	}
 
-	logger.Infof("✓ OI ranking data ready: %d top, %d low positions",
+	logger.Infof("✓ OKX OI ranking data ready: %d top, %d low positions",
 		len(data.TopPositions), len(data.LowPositions))
 
 	return data
 }
 
-// FetchNetFlowRankingData fetches market-wide NetFlow ranking data
+// FetchNetFlowRankingData fetches market-wide NetFlow ranking data.
+// NOTE: institution/personal fund-flow rankings are a proprietary fxos
+// signal — neither OKX nor Hyperliquid exposes an equivalent bulk dataset
+// (OKX rubik long-short/taker endpoints are per-coin only, unbatchable).
+// This stays on fxosClient (claw402 when a wallet is configured) and is
+// gated off by default (EnableNetFlowRanking=false).
 func (e *StrategyEngine) FetchNetFlowRankingData() *nofx.NetFlowRankingData {
 	indicators := e.config.Indicators
 	if !indicators.EnableNetFlowRanking {
@@ -1491,19 +1482,20 @@ func (e *StrategyEngine) FetchNetFlowRankingData() *nofx.NetFlowRankingData {
 }
 
 // FetchPriceRankingData fetches market-wide price ranking data (gainers/losers)
+// Exchange-direct via OKX tickers (no claw402/fxosClient).
 func (e *StrategyEngine) FetchPriceRankingData() *nofx.PriceRankingData {
 	indicators := e.config.Indicators
 	if !indicators.EnablePriceRanking {
 		return nil
 	}
 	if e.usesHyperliquidNativeUniverse() {
-		logger.Infof("⏭️  Skipping FXOS price ranking for Hyperliquid strategy; native Hyperliquid universe is the source of truth")
+		logger.Infof("⏭️  Skipping OKX price ranking for Hyperliquid strategy; native Hyperliquid universe is the source of truth")
 		return nil
 	}
 
 	durations := indicators.PriceRankingDuration
 	if durations == "" {
-		durations = "1h"
+		durations = "24h"
 	}
 
 	limit := indicators.PriceRankingLimit
@@ -1511,15 +1503,13 @@ func (e *StrategyEngine) FetchPriceRankingData() *nofx.PriceRankingData {
 		limit = 10
 	}
 
-	logger.Infof("📈 Fetching Price ranking data (durations: %s, limit: %d)", durations, limit)
+	logger.Infof("📈 Fetching Price ranking data from OKX (durations: %s, limit: %d)", durations, limit)
 
-	data, err := e.fxosClient.GetPriceRanking(durations, limit)
+	data, err := okxdata.PriceRanking(durations, limit)
 	if err != nil {
-		logger.Warnf("⚠️  Failed to fetch Price ranking data: %v", err)
+		logger.Warnf("⚠️  Failed to fetch OKX Price ranking data: %v", err)
 		return nil
 	}
-
-	logger.Infof("✓ Price ranking data ready for %d durations", len(data.Durations))
 
 	return data
 }

@@ -2,7 +2,7 @@ package trader
 
 import (
 	"fmt"
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
 	"fxos/trader/types"
 	"math"
@@ -56,7 +56,7 @@ func (at *AutoTrader) checkTotalPositionLimit(symbol string, additionalValue flo
 }
 
 // placeGridLimitOrder places a limit order for grid trading
-func (at *AutoTrader) placeGridLimitOrder(d *kernel.Decision, side string) error {
+func (at *AutoTrader) placeGridLimitOrder(d *ktypes.Decision, side string) error {
 	// Check if trader supports GridTrader interface
 	gridTrader, ok := at.trader.(GridTrader)
 	if !ok {
@@ -152,7 +152,7 @@ func (at *AutoTrader) placeGridLimitOrder(d *kernel.Decision, side string) error
 }
 
 // cancelGridOrder cancels a specific grid order
-func (at *AutoTrader) cancelGridOrder(d *kernel.Decision) error {
+func (at *AutoTrader) cancelGridOrder(d *ktypes.Decision) error {
 	gridTrader, ok := at.trader.(GridTrader)
 	if !ok {
 		gridTrader = NewGridTraderAdapter(at.trader)
@@ -225,7 +225,7 @@ func (at *AutoTrader) resumeGrid() error {
 }
 
 // adjustGrid adjusts grid parameters
-func (at *AutoTrader) adjustGrid(d *kernel.Decision) error {
+func (at *AutoTrader) adjustGrid(d *ktypes.Decision) error {
 	// Cancel existing orders first
 	at.cancelAllGridOrders()
 

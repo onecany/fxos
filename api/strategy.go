@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"sync"
 	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/mcp"
 	_ "fxos/mcp/payment"
 	_ "fxos/mcp/provider"
@@ -681,11 +682,11 @@ func (s *Server) handleStrategyTestRun(c *gin.Context) {
 	priceRankingData := rank.price
 
 	// Build real context (for generating User Prompt)
-	testContext := &kernel.Context{
+	testContext := &ktypes.Context{
 		CurrentTime:    time.Now().UTC().Format("2006-01-02 15:04:05 UTC"),
 		RuntimeMinutes: 0,
 		CallCount:      1,
-		Account: kernel.AccountInfo{
+		Account: ktypes.AccountInfo{
 			TotalEquity:      1000.0,
 			AvailableBalance: 1000.0,
 			UnrealizedPnL:    0,
@@ -695,7 +696,7 @@ func (s *Server) handleStrategyTestRun(c *gin.Context) {
 			MarginUsedPct:    0,
 			PositionCount:    0,
 		},
-		Positions:          []kernel.PositionInfo{},
+		Positions:          []ktypes.PositionInfo{},
 		CandidateCoins:     candidates,
 		PromptVariant:      req.PromptVariant,
 		MarketDataMap:      marketDataMap,

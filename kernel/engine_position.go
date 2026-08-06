@@ -3,15 +3,16 @@ package kernel
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/trader/types"
+	ktypes "fxos/kernel/types"
 )
 
 // ============================================================================
-// Decision Validation
+// ktypes.Decision Validation
 // ============================================================================
 
-func validateDecisions(decisions []Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) error {
+func validateDecisions(decisions []ktypes.Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) error {
 	for i := range decisions {
 		if err := validateDecision(&decisions[i], accountEquity, btcEthLeverage, altcoinLeverage, btcEthPosRatio, altcoinPosRatio, priceMap, posSymbols, minRiskRewardRatio); err != nil {
 			return fmt.Errorf("decision #%d validation failed: %w", i+1, err)
@@ -20,7 +21,7 @@ func validateDecisions(decisions []Decision, accountEquity float64, btcEthLevera
 	return nil
 }
 
-func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) error {
+func validateDecision(d *ktypes.Decision, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) error {
 	validActions := map[string]bool{
 		types.ActionOpenLong:   true,
 		types.ActionOpenShort:  true,

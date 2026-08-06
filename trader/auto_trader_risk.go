@@ -2,9 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/types"
 	"strings"
@@ -364,7 +364,7 @@ func (at *AutoTrader) enforcePositionValueRatio(positionSizeUSD float64, equity 
 	return positionSizeUSD, false
 }
 
-func (at *AutoTrader) applyAutopilotFullSizeOpen(decision *kernel.Decision, equity float64) {
+func (at *AutoTrader) applyAutopilotFullSizeOpen(decision *ktypes.Decision, equity float64) {
 	if at == nil || decision == nil || at.config.StrategyConfig == nil || equity <= 0 {
 		return
 	}

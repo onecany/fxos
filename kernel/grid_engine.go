@@ -4,98 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/mcp"
 	"fxos/store"
 	"fxos/trader/types"
+	ktypes "fxos/kernel/types"
 	"strings"
 	"time"
 )
 
 // ============================================================================
-// Grid Trading Context and Types
+// Grid Trading ktypes.Context and Types
 // ============================================================================
 
-// GridLevelInfo represents a single grid level's current state
-type GridLevelInfo struct {
-	Index         int     `json:"index"`          // Level index (0 = lowest)
-	Price         float64 `json:"price"`          // Target price for this level
-	State         string  `json:"state"`          // "empty", "pending", "filled"
-	Side          string  `json:"side"`           // "buy" or "sell"
-	OrderID       string  `json:"order_id"`       // Current order ID (if pending)
-	OrderQuantity float64 `json:"order_quantity"` // Order quantity
-	PositionSize  float64 `json:"position_size"`  // Position size (if filled)
-	PositionEntry float64 `json:"position_entry"` // Entry price (if filled)
-	AllocatedUSD  float64 `json:"allocated_usd"`  // USD allocated to this level
-	UnrealizedPnL float64 `json:"unrealized_pnl"` // Unrealized P&L (if filled)
-}
 
-// GridContext contains all information needed for AI grid decision making
-type GridContext struct {
-	// Basic info
-	Symbol       string  `json:"symbol"`
-	CurrentTime  string  `json:"current_time"`
-	CurrentPrice float64 `json:"current_price"`
-
-	// Grid configuration
-	GridCount       int     `json:"grid_count"`
-	TotalInvestment float64 `json:"total_investment"`
-	Leverage        int     `json:"leverage"`
-	UpperPrice      float64 `json:"upper_price"`
-	LowerPrice      float64 `json:"lower_price"`
-	GridSpacing     float64 `json:"grid_spacing"`
-	Distribution    string  `json:"distribution"`
-
-	// Grid state
-	Levels           []GridLevelInfo `json:"levels"`
-	ActiveOrderCount int             `json:"active_order_count"`
-	FilledLevelCount int             `json:"filled_level_count"`
-	IsPaused         bool            `json:"is_paused"`
-
-	// Market data
-	ATR14           float64 `json:"atr14"`
-	BollingerUpper  float64 `json:"bollinger_upper"`
-	BollingerMiddle float64 `json:"bollinger_middle"`
-	BollingerLower  float64 `json:"bollinger_lower"`
-	BollingerWidth  float64 `json:"bollinger_width"` // Percentage
-	EMA20           float64 `json:"ema20"`
-	EMA50           float64 `json:"ema50"`
-	EMADistance     float64 `json:"ema_distance"` // Percentage
-	RSI14           float64 `json:"rsi14"`
-	MACD            float64 `json:"macd"`
-	MACDSignal      float64 `json:"macd_signal"`
-	MACDHistogram   float64 `json:"macd_histogram"`
-	FundingRate     float64 `json:"funding_rate"`
-	Volume24h       float64 `json:"volume_24h"`
-	PriceChange1h   float64 `json:"price_change_1h"`
-	PriceChange4h   float64 `json:"price_change_4h"`
-
-	// Account info
-	TotalEquity      float64 `json:"total_equity"`
-	AvailableBalance float64 `json:"available_balance"`
-	CurrentPosition  float64 `json:"current_position"` // Net position size
-	UnrealizedPnL    float64 `json:"unrealized_pnl"`
-
-	// Performance
-	TotalProfit   float64 `json:"total_profit"`
-	TotalTrades   int     `json:"total_trades"`
-	WinningTrades int     `json:"winning_trades"`
-	MaxDrawdown   float64 `json:"max_drawdown"`
-	DailyPnL      float64 `json:"daily_pnl"`
-
-	// Grid-specific metrics
-	GridEfficiency   float64 `json:"grid_efficiency"` // Actual profit / theoretical max profit (%)
-	FillRate         float64 `json:"fill_rate"`       // Filled levels / total levels (%)
-	AvgProfitPerFill float64 `json:"avg_profit_per_fill"`
-
-	// Box indicators (Donchian Channels)
-	BoxData *market.BoxData `json:"box_data,omitempty"`
-
-	// Grid direction (neutral, long, short, long_bias, short_bias)
-	CurrentDirection string `json:"current_direction,omitempty"`
-}
-
-// ============================================================================
 // Grid Prompt Building
 // ============================================================================
 
@@ -116,7 +38,7 @@ You are an experienced grid trading expert managing a grid strategy for %s. Your
 - Leverage: %dx
 - Distribution: %s
 
-## Decision Rules
+## ktypes.Decision Rules
 
 ### Market Regime Assessment
 - **Ranging Market** (ideal for grid): Bollinger width < 3%%, EMA20/50 distance < 1%%, price near middle band
@@ -155,7 +77,7 @@ Output JSON array, each decision contains:
 - level_index: Grid level index
 - order_id: Order ID (for cancel)
 - confidence: Confidence 0-100
-- reasoning: Decision reason
+- reasoning: ktypes.Decision reason
 
 Example:
 [
@@ -166,11 +88,11 @@ Example:
 }
 
 // BuildGridUserPrompt builds the user prompt with current grid context
-func BuildGridUserPrompt(ctx *GridContext, lang string) string {
+func BuildGridUserPrompt(ctx *ktypes.GridContext, lang string) string {
 	return buildGridUserPromptUnified(ctx)
 }
 
-func buildGridUserPromptUnified(ctx *GridContext) string {
+func buildGridUserPromptUnified(ctx *ktypes.GridContext) string {
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf("## Current Time: %s\n\n", ctx.CurrentTime))
@@ -291,11 +213,11 @@ func buildGridUserPromptUnified(ctx *GridContext) string {
 }
 
 // ============================================================================
-// Grid Decision Functions
+// Grid ktypes.Decision Functions
 // ============================================================================
 
 // GetGridDecisions gets AI decisions for grid trading
-func GetGridDecisions(ctx *GridContext, mcpClient mcp.AIClient, config *store.GridStrategyConfig, lang string) (*FullDecision, error) {
+func GetGridDecisions(ctx *ktypes.GridContext, mcpClient mcp.AIClient, config *store.GridStrategyConfig, lang string) (*ktypes.FullDecision, error) {
 	startTime := time.Now()
 
 	// Build prompts
@@ -315,7 +237,7 @@ func GetGridDecisions(ctx *GridContext, mcpClient mcp.AIClient, config *store.Gr
 	if err != nil {
 		logger.Warnf("Failed to parse grid decisions: %v", err)
 		// Return hold decision as fallback
-		decisions = []Decision{{
+		decisions = []ktypes.Decision{{
 			Symbol:     ctx.Symbol,
 			Action:     "hold",
 			Confidence: 50,
@@ -329,7 +251,7 @@ func GetGridDecisions(ctx *GridContext, mcpClient mcp.AIClient, config *store.Gr
 	// Extract chain of thought from response
 	cotTrace := extractCoTTrace(response)
 
-	return &FullDecision{
+	return &ktypes.FullDecision{
 		SystemPrompt:        systemPrompt,
 		UserPrompt:          userPrompt,
 		CoTTrace:            cotTrace,
@@ -341,14 +263,14 @@ func GetGridDecisions(ctx *GridContext, mcpClient mcp.AIClient, config *store.Gr
 }
 
 // parseGridDecisions parses AI response into grid decisions
-func parseGridDecisions(response string, symbol string) ([]Decision, error) {
+func parseGridDecisions(response string, symbol string) ([]ktypes.Decision, error) {
 	// Try to find JSON array in response
 	jsonStr := extractJSONArray(response)
 	if jsonStr == "" {
 		return nil, fmt.Errorf("no JSON array found in response")
 	}
 
-	var decisions []Decision
+	var decisions []ktypes.Decision
 	if err := json.Unmarshal([]byte(jsonStr), &decisions); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
@@ -405,12 +327,12 @@ func isValidGridAction(action string) bool {
 }
 
 // ============================================================================
-// Grid Context Builder Helpers
+// Grid ktypes.Context Builder Helpers
 // ============================================================================
 
 // BuildGridContextFromMarketData builds grid context from market data
-func BuildGridContextFromMarketData(mktData *market.Data, config *store.GridStrategyConfig) *GridContext {
-	ctx := &GridContext{
+func BuildGridContextFromMarketData(mktData *market.Data, config *store.GridStrategyConfig) *ktypes.GridContext {
+	ctx := &ktypes.GridContext{
 		Symbol:       config.Symbol,
 		CurrentTime:  time.Now().Format("2006-01-02 15:04:05"),
 		CurrentPrice: mktData.CurrentPrice,

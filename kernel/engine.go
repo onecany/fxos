@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/provider/hyperliquid"
 	"fxos/provider/nofx"
 	"fxos/provider/okxdata"
 	"fxos/provider/vergex"
 	"fxos/security"
 	"fxos/store"
+	ktypes "fxos/kernel/types"
 	"fxos/trader/types"
 	"io"
 	"net/http"
@@ -26,163 +27,6 @@ import (
 // Type Definitions
 // ============================================================================
 
-// PositionInfo position information
-type PositionInfo struct {
-	Symbol           string  `json:"symbol"`
-	Side             string  `json:"side"` // types.SideLong or types.SideShort
-	EntryPrice       float64 `json:"entry_price"`
-	MarkPrice        float64 `json:"mark_price"`
-	Quantity         float64 `json:"quantity"`
-	Leverage         int     `json:"leverage"`
-	UnrealizedPnL    float64 `json:"unrealized_pnl"`
-	UnrealizedPnLPct float64 `json:"unrealized_pnl_pct"`
-	PeakPnLPct       float64 `json:"peak_pnl_pct"` // Historical peak profit percentage
-	LiquidationPrice float64 `json:"liquidation_price"`
-	MarginUsed       float64 `json:"margin_used"`
-	UpdateTime       int64   `json:"update_time"` // Position update timestamp (milliseconds)
-}
-
-// AccountInfo account information
-type AccountInfo struct {
-	TotalEquity      float64 `json:"total_equity"`      // Account equity
-	AvailableBalance float64 `json:"available_balance"` // Available balance
-	UnrealizedPnL    float64 `json:"unrealized_pnl"`    // Unrealized profit/loss
-	TotalPnL         float64 `json:"total_pnl"`         // Total profit/loss
-	TotalPnLPct      float64 `json:"total_pnl_pct"`     // Total profit/loss percentage
-	MarginUsed       float64 `json:"margin_used"`       // Used margin
-	MarginUsedPct    float64 `json:"margin_used_pct"`   // Margin usage rate
-	PositionCount    int     `json:"position_count"`    // Number of positions
-}
-
-// CandidateCoin candidate coin (from coin pool)
-type CandidateCoin struct {
-	Symbol  string   `json:"symbol"`
-	Sources []string `json:"sources"` // Sources: "ai500" and/or "oi_top"
-}
-
-// OITopData open interest growth top data (for AI decision reference)
-type OITopData struct {
-	Rank              int     // OI Top ranking
-	OIDeltaPercent    float64 // Open interest change percentage (1 hour)
-	OIDeltaValue      float64 // Open interest change value
-	PriceDeltaPercent float64 // Price change percentage
-}
-
-// TradingStats trading statistics (for AI input)
-type TradingStats struct {
-	TotalTrades    int     `json:"total_trades"`     // Total number of trades (closed)
-	WinRate        float64 `json:"win_rate"`         // Win rate (%)
-	ProfitFactor   float64 `json:"profit_factor"`    // Profit factor
-	SharpeRatio    float64 `json:"sharpe_ratio"`     // Sharpe ratio
-	TotalPnL       float64 `json:"total_pnl"`        // Total profit/loss
-	AvgWin         float64 `json:"avg_win"`          // Average win
-	AvgLoss        float64 `json:"avg_loss"`         // Average loss
-	MaxDrawdownPct float64 `json:"max_drawdown_pct"` // Maximum drawdown (%)
-}
-
-// RecentOrder recently completed order (for AI input)
-type RecentOrder struct {
-	Symbol       string  `json:"symbol"`        // Trading pair
-	Side         string  `json:"side"`          // long/short
-	EntryPrice   float64 `json:"entry_price"`   // Entry price
-	ExitPrice    float64 `json:"exit_price"`    // Exit price
-	RealizedPnL  float64 `json:"realized_pnl"`  // Realized profit/loss
-	PnLPct       float64 `json:"pnl_pct"`       // Profit/loss percentage
-	EntryTime    string  `json:"entry_time"`    // Entry time
-	ExitTime     string  `json:"exit_time"`     // Exit time
-	HoldDuration string  `json:"hold_duration"` // Hold duration, e.g. "2h30m"
-}
-
-// Context trading context (complete information passed to AI)
-type Context struct {
-	CurrentTime        string                             `json:"current_time"`
-	RuntimeMinutes     int                                `json:"runtime_minutes"`
-	CallCount          int                                `json:"call_count"`
-	Account            AccountInfo                        `json:"account"`
-	Positions          []PositionInfo                     `json:"positions"`
-	CandidateCoins     []CandidateCoin                    `json:"candidate_coins"`
-	PromptVariant      string                             `json:"prompt_variant,omitempty"`
-	TradingStats       *TradingStats                      `json:"trading_stats,omitempty"`
-	RecentOrders       []RecentOrder                      `json:"recent_orders,omitempty"`
-	MarketDataMap      map[string]*market.Data            `json:"-"`
-	MultiTFMarket      map[string]map[string]*market.Data `json:"-"`
-	OITopDataMap       map[string]*OITopData              `json:"-"`
-	QuantDataMap       map[string]*QuantData              `json:"-"`
-	VergexDataMap      map[string]*vergex.MarketAnalysis  `json:"-"`
-	OIRankingData      *nofx.OIRankingData                `json:"-"` // Market-wide OI ranking data
-	NetFlowRankingData *nofx.NetFlowRankingData           `json:"-"` // Market-wide fund flow ranking data
-	PriceRankingData   *nofx.PriceRankingData             `json:"-"` // Market-wide price gainers/losers
-	BTCETHLeverage     int                                `json:"-"`
-	AltcoinLeverage    int                                `json:"-"`
-	Timeframes         []string                           `json:"-"`
-	RegimeHint         string                             `json:"-"` // Pre-computed regime: "trending", "ranging", "high_vol", "low_vol"
-	SessionCtx         string                             `json:"-"` // Trading session: "Asian", "European", "US", "US-Europe Overlap"
-}
-
-// Decision AI trading decision
-type Decision struct {
-	Symbol string `json:"symbol"`
-	Action string `json:"action"` // Standard: "open_long", "open_short", "close_long", "close_short", "hold", "wait"
-	// Grid actions: "place_buy_limit", "place_sell_limit", "cancel_order", "cancel_all_orders", "pause_grid", "resume_grid", "adjust_grid"
-
-	// Opening position parameters
-	Leverage        int     `json:"leverage,omitempty"`
-	PositionSizeUSD float64 `json:"position_size_usd,omitempty"`
-	StopLoss        float64 `json:"stop_loss,omitempty"`
-	TakeProfit      float64 `json:"take_profit,omitempty"`
-
-	// Grid trading parameters
-	Price      float64 `json:"price,omitempty"`       // Limit order price (for grid)
-	Quantity   float64 `json:"quantity,omitempty"`    // Order quantity (for grid)
-	LevelIndex int     `json:"level_index,omitempty"` // Grid level index
-	OrderID    string  `json:"order_id,omitempty"`    // Order ID (for cancel)
-
-	// Common parameters
-	Confidence int     `json:"confidence,omitempty"` // Confidence level (0-100)
-	RiskUSD    float64 `json:"risk_usd,omitempty"`   // Maximum USD risk
-	Reasoning  string  `json:"reasoning"`
-}
-
-// FullDecision AI's complete decision (including chain of thought)
-type FullDecision struct {
-	SystemPrompt        string     `json:"system_prompt"`
-	UserPrompt          string     `json:"user_prompt"`
-	CoTTrace            string     `json:"cot_trace"`
-	Decisions           []Decision `json:"decisions"`
-	RawResponse         string     `json:"raw_response"`
-	Timestamp           time.Time  `json:"timestamp"`
-	AIRequestDurationMs int64      `json:"ai_request_duration_ms,omitempty"`
-}
-
-// QuantData quantitative data structure (fund flow, position changes, price changes)
-type QuantData struct {
-	Symbol      string             `json:"symbol"`
-	Price       float64            `json:"price"`
-	Netflow     *NetflowData       `json:"netflow,omitempty"`
-	OI          map[string]*OIData `json:"oi,omitempty"`
-	PriceChange map[string]float64 `json:"price_change,omitempty"`
-}
-
-type NetflowData struct {
-	Institution *FlowTypeData `json:"institution,omitempty"`
-	Personal    *FlowTypeData `json:"personal,omitempty"`
-}
-
-type FlowTypeData struct {
-	Future map[string]float64 `json:"future,omitempty"`
-	Spot   map[string]float64 `json:"spot,omitempty"`
-}
-
-type OIData struct {
-	CurrentOI float64                 `json:"current_oi"`
-	Delta     map[string]*OIDeltaData `json:"delta,omitempty"`
-}
-
-type OIDeltaData struct {
-	OIDelta        float64 `json:"oi_delta"`
-	OIDeltaValue   float64 `json:"oi_delta_value"`
-	OIDeltaPercent float64 `json:"oi_delta_percent"`
-}
 
 // ============================================================================
 // StrategyEngine - Core Strategy Execution Engine
@@ -203,15 +47,15 @@ type StrategyEngine struct {
 type StrategyReader interface {
 	GetConfig() *store.StrategyConfig
 	GetRiskControlConfig() store.RiskControlConfig
-	GetCandidateCoins() ([]CandidateCoin, error)
-	DirectionalCandidates() (bullish []DirectionalCandidate, bearish []DirectionalCandidate)
-	FetchQuantDataBatch(symbols []string) map[string]*QuantData
+	GetCandidateCoins() ([]ktypes.CandidateCoin, error)
+	DirectionalCandidates() (bullish []ktypes.DirectionalCandidate, bearish []ktypes.DirectionalCandidate)
+	FetchQuantDataBatch(symbols []string) map[string]*ktypes.QuantData
 	FetchOIRankingData() *nofx.OIRankingData
 	FetchNetFlowRankingData() *nofx.NetFlowRankingData
 	FetchPriceRankingData() *nofx.PriceRankingData
 	FetchVergexDataBatch(ctx context.Context, symbols []string) map[string]*vergex.MarketAnalysis
 	BuildSystemPrompt(accountEquity float64, variant string) string
-	BuildUserPrompt(ctx *Context) string
+	BuildUserPrompt(ctx *ktypes.Context) string
 }
 
 // NewStrategyEngine creates strategy execution engine.
@@ -310,8 +154,8 @@ func (e *StrategyEngine) GetConfig() *store.StrategyConfig {
 // ============================================================================
 
 // GetCandidateCoins gets candidate coins based on strategy configuration
-func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
-	var candidates []CandidateCoin
+func (e *StrategyEngine) GetCandidateCoins() ([]ktypes.CandidateCoin, error) {
+	var candidates []ktypes.CandidateCoin
 	symbolSources := make(map[string][]string)
 
 	coinSource := e.config.CoinSource
@@ -320,7 +164,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 	case "static":
 		for _, symbol := range coinSource.StaticCoins {
 			symbol = market.Normalize(symbol)
-			candidates = append(candidates, CandidateCoin{
+			candidates = append(candidates, ktypes.CandidateCoin{
 				Symbol:  symbol,
 				Sources: []string{"static"},
 			})
@@ -334,7 +178,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 			logger.Infof("⚠️  source_type is 'ai500' but use_ai500 is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
 				symbol = market.Normalize(symbol)
-				candidates = append(candidates, CandidateCoin{
+				candidates = append(candidates, ktypes.CandidateCoin{
 					Symbol:  symbol,
 					Sources: []string{"static"},
 				})
@@ -354,7 +198,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 			logger.Infof("⚠️  source_type is 'oi_top' but use_oi_top is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
 				symbol = market.Normalize(symbol)
-				candidates = append(candidates, CandidateCoin{
+				candidates = append(candidates, ktypes.CandidateCoin{
 					Symbol:  symbol,
 					Sources: []string{"static"},
 				})
@@ -374,7 +218,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 			logger.Infof("⚠️  source_type is 'oi_low' but use_oi_low is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
 				symbol = market.Normalize(symbol)
-				candidates = append(candidates, CandidateCoin{
+				candidates = append(candidates, ktypes.CandidateCoin{
 					Symbol:  symbol,
 					Sources: []string{"static"},
 				})
@@ -394,7 +238,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 			logger.Infof("⚠️  source_type is 'hyper_all' but use_hyper_all is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
 				symbol = market.Normalize(symbol)
-				candidates = append(candidates, CandidateCoin{
+				candidates = append(candidates, ktypes.CandidateCoin{
 					Symbol:  symbol,
 					Sources: []string{"static"},
 				})
@@ -413,7 +257,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 			logger.Infof("⚠️  source_type is 'hyper_main' but use_hyper_main is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
 				symbol = market.Normalize(symbol)
-				candidates = append(candidates, CandidateCoin{
+				candidates = append(candidates, ktypes.CandidateCoin{
 					Symbol:  symbol,
 					Sources: []string{"static"},
 				})
@@ -513,7 +357,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		}
 
 		for symbol, sources := range symbolSources {
-			candidates = append(candidates, CandidateCoin{
+			candidates = append(candidates, ktypes.CandidateCoin{
 				Symbol:  symbol,
 				Sources: sources,
 			})
@@ -526,7 +370,7 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 }
 
 // filterExcludedCoins removes excluded coins from the candidates list
-func (e *StrategyEngine) filterExcludedCoins(candidates []CandidateCoin) []CandidateCoin {
+func (e *StrategyEngine) filterExcludedCoins(candidates []ktypes.CandidateCoin) []ktypes.CandidateCoin {
 	if len(e.config.CoinSource.ExcludedCoins) == 0 {
 		return candidates
 	}
@@ -539,7 +383,7 @@ func (e *StrategyEngine) filterExcludedCoins(candidates []CandidateCoin) []Candi
 	}
 
 	// Filter out excluded coins
-	filtered := make([]CandidateCoin, 0, len(candidates))
+	filtered := make([]ktypes.CandidateCoin, 0, len(candidates))
 	for _, c := range candidates {
 		if !excluded[c.Symbol] {
 			filtered = append(filtered, c)
@@ -555,7 +399,7 @@ func (e *StrategyEngine) filterExcludedCoins(candidates []CandidateCoin) []Candi
 // Hyperliquid exchange. The AI500 label is kept for compatibility with the
 // prompt/UI naming, but the underlying feed is the native 24h-volume ranking
 // (no fxos client, no claw402 wallet, no third-party gateway).
-func (e *StrategyEngine) getAI500Coins(limit int) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getAI500Coins(limit int) ([]ktypes.CandidateCoin, error) {
 	if limit <= 0 {
 		limit = 30
 	}
@@ -570,9 +414,9 @@ func (e *StrategyEngine) getAI500Coins(limit int) ([]CandidateCoin, error) {
 	if len(coins) > limit {
 		coins = coins[:limit]
 	}
-	candidates := make([]CandidateCoin, 0, len(coins))
+	candidates := make([]ktypes.CandidateCoin, 0, len(coins))
 	for _, coin := range coins {
-		candidates = append(candidates, CandidateCoin{
+		candidates = append(candidates, ktypes.CandidateCoin{
 			Symbol:  market.Normalize(coin.Symbol + "USDT"),
 			Sources: []string{"ai500"},
 		})
@@ -583,7 +427,7 @@ func (e *StrategyEngine) getAI500Coins(limit int) ([]CandidateCoin, error) {
 // getHyperliquidCoinsByOI returns Hyperliquid coins sorted by open interest.
 // direction=true → highest OI first (oi_top), direction=false → lowest OI first
 // (oi_low). Exchange-direct replacement for the claw402-routed OI feeds.
-func (e *StrategyEngine) getHyperliquidCoinsByOI(limit int, direction bool) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getHyperliquidCoinsByOI(limit int, direction bool) ([]ktypes.CandidateCoin, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -605,9 +449,9 @@ func (e *StrategyEngine) getHyperliquidCoinsByOI(limit int, direction bool) ([]C
 	if !direction {
 		source = "oi_low"
 	}
-	candidates := make([]CandidateCoin, 0, len(coins))
+	candidates := make([]ktypes.CandidateCoin, 0, len(coins))
 	for _, coin := range coins {
-		candidates = append(candidates, CandidateCoin{
+		candidates = append(candidates, ktypes.CandidateCoin{
 			Symbol:  market.Normalize(coin.Symbol + "USDT"),
 			Sources: []string{source},
 		})
@@ -615,27 +459,27 @@ func (e *StrategyEngine) getHyperliquidCoinsByOI(limit int, direction bool) ([]C
 	return candidates, nil
 }
 
-func (e *StrategyEngine) getOITopCoins(limit int) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getOITopCoins(limit int) ([]ktypes.CandidateCoin, error) {
 	return e.getHyperliquidCoinsByOI(limit, true)
 }
 
-func (e *StrategyEngine) getOILowCoins(limit int) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getOILowCoins(limit int) ([]ktypes.CandidateCoin, error) {
 	return e.getHyperliquidCoinsByOI(limit, false)
 }
 
 // getHyperAllCoins returns all available Hyperliquid perpetual coins
-func (e *StrategyEngine) getHyperAllCoins() ([]CandidateCoin, error) {
+func (e *StrategyEngine) getHyperAllCoins() ([]ktypes.CandidateCoin, error) {
 	ctx := context.Background()
 	symbols, err := hyperliquid.GetAllCoinSymbols(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Hyperliquid coins: %w", err)
 	}
 
-	var candidates []CandidateCoin
+	var candidates []ktypes.CandidateCoin
 	for _, symbol := range symbols {
 		// Add USDT suffix for compatibility
 		normalizedSymbol := market.Normalize(symbol + "USDT")
-		candidates = append(candidates, CandidateCoin{
+		candidates = append(candidates, ktypes.CandidateCoin{
 			Symbol:  normalizedSymbol,
 			Sources: []string{"hyper_all"},
 		})
@@ -645,7 +489,7 @@ func (e *StrategyEngine) getHyperAllCoins() ([]CandidateCoin, error) {
 }
 
 // getHyperMainCoins returns top N Hyperliquid coins by 24h volume
-func (e *StrategyEngine) getHyperMainCoins(limit int) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getHyperMainCoins(limit int) ([]ktypes.CandidateCoin, error) {
 	if limit <= 0 {
 		limit = 20
 	}
@@ -656,11 +500,11 @@ func (e *StrategyEngine) getHyperMainCoins(limit int) ([]CandidateCoin, error) {
 		return nil, fmt.Errorf("failed to get Hyperliquid main coins: %w", err)
 	}
 
-	var candidates []CandidateCoin
+	var candidates []ktypes.CandidateCoin
 	for _, symbol := range symbols {
 		// Add USDT suffix for compatibility
 		normalizedSymbol := market.Normalize(symbol + "USDT")
-		candidates = append(candidates, CandidateCoin{
+		candidates = append(candidates, ktypes.CandidateCoin{
 			Symbol:  normalizedSymbol,
 			Sources: []string{"hyper_main"},
 		})
@@ -679,7 +523,7 @@ func clampHyperRankLimit(limit int) int {
 	return limit
 }
 
-func (e *StrategyEngine) getHyperRankCoins(category, direction string, limit int) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getHyperRankCoins(category, direction string, limit int) ([]ktypes.CandidateCoin, error) {
 	category = strings.ToLower(strings.TrimSpace(category))
 	if category == "" {
 		category = "stock"
@@ -744,16 +588,16 @@ func (e *StrategyEngine) getHyperRankCoins(category, direction string, limit int
 	if len(ranked) > limit {
 		ranked = ranked[:limit]
 	}
-	candidates := make([]CandidateCoin, 0, len(ranked))
+	candidates := make([]ktypes.CandidateCoin, 0, len(ranked))
 	source := fmt.Sprintf("hyper_rank_%s_%s", category, direction)
 	for _, item := range ranked {
-		candidates = append(candidates, CandidateCoin{Symbol: item.symbol, Sources: []string{source}})
+		candidates = append(candidates, ktypes.CandidateCoin{Symbol: item.symbol, Sources: []string{source}})
 	}
 	logger.Infof("✅ Loaded %d Hyperliquid rank coins (%s/%s, capped at %d)", len(candidates), category, direction, limit)
 	return candidates, nil
 }
 
-func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqBand, category string, selectedSymbols []string) ([]CandidateCoin, error) {
+func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqBand, category string, selectedSymbols []string) ([]ktypes.CandidateCoin, error) {
 	if e.vergexClient == nil {
 		return nil, fmt.Errorf("vergex signal source requires a configured claw402 wallet")
 	}
@@ -802,14 +646,14 @@ func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqB
 	}
 
 	if len(selectedSymbols) > 0 {
-		candidates := make([]CandidateCoin, 0, minInt(len(selectedSymbols), limit))
+		candidates := make([]ktypes.CandidateCoin, 0, minInt(len(selectedSymbols), limit))
 		seen := make(map[string]bool)
 		for _, raw := range selectedSymbols {
 			symbol := vergex.TradableSymbolForMarket(marketType, raw)
 			if symbol == "" || seen[symbol] {
 				continue
 			}
-			candidates = append(candidates, CandidateCoin{
+			candidates = append(candidates, ktypes.CandidateCoin{
 				Symbol:  symbol,
 				Sources: []string{"vergex_signal"},
 			})
@@ -879,7 +723,7 @@ func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqB
 		return nil, fmt.Errorf("vergex signal ranking returned no tradable %s items", marketType)
 	}
 
-	candidates := make([]CandidateCoin, 0, len(items))
+	candidates := make([]ktypes.CandidateCoin, 0, len(items))
 	for _, item := range items {
 		itemCopy := item
 		symbol := vergex.TradableSymbolForMarket(item.MarketType, item.Symbol)
@@ -887,7 +731,7 @@ func (e *StrategyEngine) getVergexSignalCoins(limit int, marketType, chain, liqB
 			continue
 		}
 		e.vergexRankingCache[symbol] = &itemCopy
-		candidates = append(candidates, CandidateCoin{
+		candidates = append(candidates, ktypes.CandidateCoin{
 			Symbol:  symbol,
 			Sources: []string{"vergex_signal"},
 		})
@@ -903,24 +747,17 @@ func minInt(a, b int) int {
 	return b
 }
 
-// DirectionalCandidate is a Vergex board candidate with its directional
-// signal strength (the board z-score; sign follows the bias direction).
-type DirectionalCandidate struct {
-	Symbol string
-	Score  float64
-}
-
 // DirectionalCandidates returns bullish (long) and bearish (short) candidates
 // from the most recent Vergex signal ranking, each ordered by upstream rank
 // (strongest first) and carrying the signal score so callers can require a
 // minimum strength. Only populated for vergex_signal coin sources, since that
 // is the only source carrying a per-symbol directional bias.
-func (e *StrategyEngine) DirectionalCandidates() (bullish []DirectionalCandidate, bearish []DirectionalCandidate) {
+func (e *StrategyEngine) DirectionalCandidates() (bullish []ktypes.DirectionalCandidate, bearish []ktypes.DirectionalCandidate) {
 	if e == nil || len(e.vergexRankingCache) == 0 {
 		return nil, nil
 	}
 	type ranked struct {
-		cand DirectionalCandidate
+		cand ktypes.DirectionalCandidate
 		rank int
 	}
 	rankKey := func(r int) int {
@@ -934,7 +771,7 @@ func (e *StrategyEngine) DirectionalCandidates() (bullish []DirectionalCandidate
 		if item == nil {
 			continue
 		}
-		entry := ranked{DirectionalCandidate{Symbol: sym, Score: item.Score}, item.Rank}
+		entry := ranked{ktypes.DirectionalCandidate{Symbol: sym, Score: item.Score}, item.Rank}
 		switch strings.ToLower(strings.TrimSpace(item.Bias)) {
 		case "bearish", types.SideShort, "sell":
 			br = append(br, entry)
@@ -1050,7 +887,7 @@ func extractJSONPath(data interface{}, path string) interface{} {
 // Exchange-direct via OKX bulk snapshots (no claw402/fxosClient). The
 // snapshots are fetched once per batch and cached on the engine for the
 // duration of one decision cycle.
-func (e *StrategyEngine) FetchQuantData(symbol string) (*QuantData, error) {
+func (e *StrategyEngine) FetchQuantData(symbol string) (*ktypes.QuantData, error) {
 	if !e.config.Indicators.EnableQuantData {
 		return nil, nil
 	}
@@ -1070,16 +907,16 @@ func (e *StrategyEngine) FetchQuantData(symbol string) (*QuantData, error) {
 		return nil, nil
 	}
 
-	quantData := &QuantData{
+	quantData := &ktypes.QuantData{
 		Symbol: symbol,
 		Price:  snap.Price,
 		PriceChange: map[string]float64{
 			"24h": snap.PriceChange,
 		},
-		OI: map[string]*OIData{
+		OI: map[string]*ktypes.OIData{
 			"okx": {
 				CurrentOI: snap.OI,
-				Delta: map[string]*OIDeltaData{
+				Delta: map[string]*ktypes.OIDeltaData{
 					"24h": {
 						OIDelta:        snap.OIDelta,
 						OIDeltaValue:   snap.OIDelta,
@@ -1106,8 +943,8 @@ func (e *StrategyEngine) quantSnapshots() (map[string]okxdata.CoinQuant, error) 
 }
 
 // FetchQuantDataBatch batch fetches quantitative data
-func (e *StrategyEngine) FetchQuantDataBatch(symbols []string) map[string]*QuantData {
-	result := make(map[string]*QuantData)
+func (e *StrategyEngine) FetchQuantDataBatch(symbols []string) map[string]*ktypes.QuantData {
+	result := make(map[string]*ktypes.QuantData)
 
 	if !e.config.Indicators.EnableQuantData {
 		return result

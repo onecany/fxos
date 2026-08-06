@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/types"
 	"sync"
@@ -24,7 +25,7 @@ type GridState struct {
 	Config *store.GridStrategyConfig
 
 	// Grid levels
-	Levels []kernel.GridLevelInfo
+	Levels []ktypes.GridLevelInfo
 
 	// Calculated bounds
 	UpperPrice  float64
@@ -76,7 +77,7 @@ type GridState struct {
 func NewGridState(config *store.GridStrategyConfig) *GridState {
 	return &GridState{
 		Config:           config,
-		Levels:           make([]kernel.GridLevelInfo, 0),
+		Levels:           make([]ktypes.GridLevelInfo, 0),
 		OrderBook:        make(map[string]int),
 		CurrentDirection: market.GridDirectionNeutral,
 	}
@@ -459,7 +460,7 @@ func (at *AutoTrader) RunGridCycle() error {
 }
 
 // buildGridContext builds the context for AI grid decisions
-func (at *AutoTrader) buildGridContext() (*kernel.GridContext, error) {
+func (at *AutoTrader) buildGridContext() (*ktypes.GridContext, error) {
 	gridConfig := at.config.StrategyConfig.GridConfig
 
 	// Get market data
@@ -516,7 +517,7 @@ func (at *AutoTrader) buildGridContext() (*kernel.GridContext, error) {
 }
 
 // executeGridDecision executes a single grid decision
-func (at *AutoTrader) executeGridDecision(d *kernel.Decision) error {
+func (at *AutoTrader) executeGridDecision(d *ktypes.Decision) error {
 	switch d.Action {
 	case "place_buy_limit":
 		return at.placeGridLimitOrder(d, "BUY")
@@ -557,7 +558,7 @@ func (at *AutoTrader) IsGridStrategy() bool {
 }
 
 // saveGridDecisionRecord saves the grid decision to database
-func (at *AutoTrader) saveGridDecisionRecord(decision *kernel.FullDecision) {
+func (at *AutoTrader) saveGridDecisionRecord(decision *ktypes.FullDecision) {
 	if at.store == nil {
 		return
 	}
@@ -580,7 +581,7 @@ func (at *AutoTrader) saveGridDecisionRecord(decision *kernel.FullDecision) {
 		decisionJSON, _ := json.MarshalIndent(decision.Decisions, "", "  ")
 		record.DecisionJSON = string(decisionJSON)
 
-		// Convert kernel.Decision to store.DecisionAction for frontend display
+		// Convert ktypes.Decision to store.DecisionAction for frontend display
 		for _, d := range decision.Decisions {
 			actionRecord := store.DecisionAction{
 				Action:     d.Action,

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/mcp"
+	ktypes "fxos/kernel/types"
 	"fxos/store"
 	"regexp"
 	"strings"
@@ -35,14 +36,14 @@ var (
 
 // GetFullDecision gets AI's complete trading decision (batch analysis of all coins and positions)
 // Uses default strategy configuration - for production use GetFullDecisionWithStrategy with explicit config
-func GetFullDecision(ctx *Context, mcpClient mcp.AIClient) (*FullDecision, error) {
+func GetFullDecision(ctx *ktypes.Context, mcpClient mcp.AIClient) (*ktypes.FullDecision, error) {
 	defaultConfig := store.GetDefaultStrategyConfig("en")
 	engine := NewStrategyEngine(&defaultConfig)
 	return GetFullDecisionWithStrategy(ctx, mcpClient, engine, "")
 }
 
 // GetFullDecisionWithStrategy uses StrategyEngine to get AI decision (unified prompt generation)
-func GetFullDecisionWithStrategy(ctx *Context, mcpClient mcp.AIClient, engine StrategyReader, variant string) (*FullDecision, error) {
+func GetFullDecisionWithStrategy(ctx *ktypes.Context, mcpClient mcp.AIClient, engine StrategyReader, variant string) (*ktypes.FullDecision, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context is nil")
 	}
@@ -142,7 +143,7 @@ func GetFullDecisionWithStrategy(ctx *Context, mcpClient mcp.AIClient, engine St
 	return decision, nil
 }
 
-func enrichVergexDataWithStrategy(ctx *Context, engine StrategyReader) {
+func enrichVergexDataWithStrategy(ctx *ktypes.Context, engine StrategyReader) {
 	if ctx == nil || engine == nil || ctx.VergexDataMap != nil {
 		return
 	}
@@ -171,7 +172,7 @@ func enrichVergexDataWithStrategy(ctx *Context, engine StrategyReader) {
 // ============================================================================
 
 // fetchMarketDataWithStrategy fetches market data using strategy config (multiple timeframes)
-func fetchMarketDataWithStrategy(ctx *Context, engine StrategyReader) error {
+func fetchMarketDataWithStrategy(ctx *ktypes.Context, engine StrategyReader) error {
 	config := engine.GetConfig()
 	ctx.MarketDataMap = make(map[string]*market.Data)
 
@@ -270,11 +271,11 @@ func shouldSkipCoinByOIFilter(symbol string, data *market.Data, positionSymbols 
 	return false
 }
 
-func pruneCandidateCoinsWithoutMarketData(ctx *Context) {
+func pruneCandidateCoinsWithoutMarketData(ctx *ktypes.Context) {
 	if ctx == nil || len(ctx.CandidateCoins) == 0 || len(ctx.MarketDataMap) == 0 {
 		return
 	}
-	kept := make([]CandidateCoin, 0, len(ctx.CandidateCoins))
+	kept := make([]ktypes.CandidateCoin, 0, len(ctx.CandidateCoins))
 	for _, coin := range ctx.CandidateCoins {
 		if _, ok := ctx.MarketDataMap[coin.Symbol]; ok {
 			kept = append(kept, coin)
@@ -289,25 +290,25 @@ func pruneCandidateCoinsWithoutMarketData(ctx *Context) {
 // AI Response Parsing
 // ============================================================================
 
-func parseFullDecisionResponse(aiResponse string, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) (*FullDecision, error) {
+func parseFullDecisionResponse(aiResponse string, accountEquity float64, btcEthLeverage, altcoinLeverage int, btcEthPosRatio, altcoinPosRatio float64, priceMap map[string]float64, posSymbols map[string]bool, minRiskRewardRatio float64) (*ktypes.FullDecision, error) {
 	cotTrace := extractCoTTrace(aiResponse)
 
 	decisions, err := extractDecisions(aiResponse)
 	if err != nil {
-		return &FullDecision{
+		return &ktypes.FullDecision{
 			CoTTrace:  cotTrace,
-			Decisions: []Decision{},
+			Decisions: []ktypes.Decision{},
 		}, fmt.Errorf("failed to extract decisions: %w", err)
 	}
 
 	if err := validateDecisions(decisions, accountEquity, btcEthLeverage, altcoinLeverage, btcEthPosRatio, altcoinPosRatio, priceMap, posSymbols, minRiskRewardRatio); err != nil {
-		return &FullDecision{
+		return &ktypes.FullDecision{
 			CoTTrace:  cotTrace,
 			Decisions: decisions,
 		}, fmt.Errorf("decision validation failed: %w", err)
 	}
 
-	return &FullDecision{
+	return &ktypes.FullDecision{
 		CoTTrace:  cotTrace,
 		Decisions: decisions,
 	}, nil
@@ -333,7 +334,7 @@ func extractCoTTrace(response string) string {
 	return strings.TrimSpace(response)
 }
 
-func extractDecisions(response string) ([]Decision, error) {
+func extractDecisions(response string) ([]ktypes.Decision, error) {
 	s := removeInvisibleRunes(response)
 	s = strings.TrimSpace(s)
 	s = fixMissingQuotes(s)
@@ -356,7 +357,7 @@ func extractDecisions(response string) ([]Decision, error) {
 		if err := validateJSONFormat(jsonContent); err != nil {
 			return nil, fmt.Errorf("JSON format validation failed: %w\nJSON content: %s\nFull response:\n%s", err, jsonContent, response)
 		}
-		var decisions []Decision
+		var decisions []ktypes.Decision
 		if err := json.Unmarshal([]byte(jsonContent), &decisions); err != nil {
 			return nil, fmt.Errorf("JSON parsing failed: %w\nJSON content: %s", err, jsonContent)
 		}
@@ -373,13 +374,13 @@ func extractDecisions(response string) ([]Decision, error) {
 			cotSummary = cotSummary[:240] + "..."
 		}
 
-		fallbackDecision := Decision{
+		fallbackDecision := ktypes.Decision{
 			Symbol:    "ALL",
 			Action:    "wait",
 			Reasoning: fmt.Sprintf("Model didn't output structured JSON decision, entering safe wait; summary: %s", cotSummary),
 		}
 
-		return []Decision{fallbackDecision}, nil
+		return []ktypes.Decision{fallbackDecision}, nil
 	}
 
 	jsonContent = compactArrayOpen(jsonContent)
@@ -389,7 +390,7 @@ func extractDecisions(response string) ([]Decision, error) {
 		return nil, fmt.Errorf("JSON format validation failed: %w\nJSON content: %s\nFull response:\n%s", err, jsonContent, response)
 	}
 
-	var decisions []Decision
+	var decisions []ktypes.Decision
 	if err := json.Unmarshal([]byte(jsonContent), &decisions); err != nil {
 		return nil, fmt.Errorf("JSON parsing failed: %w\nJSON content: %s", err, jsonContent)
 	}
@@ -407,7 +408,7 @@ func extractDecisions(response string) ([]Decision, error) {
 // normalizeDecisionSymbols coerces placeholder/empty symbols ("..." from the
 // wait example, or blank) to an explicit full-portfolio "ALL" wait so they
 // never reach the order layer as a fake ticker.
-func normalizeDecisionSymbols(decisions []Decision) {
+func normalizeDecisionSymbols(decisions []ktypes.Decision) {
 	for i := range decisions {
 		sym := strings.TrimSpace(decisions[i].Symbol)
 		if sym == "" || sym == "..." || strings.Contains(sym, "...") {

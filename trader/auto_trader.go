@@ -3,6 +3,7 @@ package trader
 import (
 	"fmt"
 	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
 	"fxos/mcp"
 	_ "fxos/mcp/payment"
@@ -572,7 +573,7 @@ func (at *AutoTrader) GetSystemPromptTemplate() string {
 }
 
 // GetCandidateCoins returns the current candidate coin set from the trader's strategy engine.
-func (at *AutoTrader) GetCandidateCoins() ([]kernel.CandidateCoin, error) {
+func (at *AutoTrader) GetCandidateCoins() ([]ktypes.CandidateCoin, error) {
 	if at.strategyEngine == nil {
 		return nil, fmt.Errorf("strategy engine not configured")
 	}

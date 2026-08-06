@@ -2,9 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/types"
 	"time"
@@ -25,7 +25,7 @@ const (
 )
 
 // executeDecisionWithRecord executes AI decision and records detailed information
-func (at *AutoTrader) executeDecisionWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeDecisionWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	switch decision.Action {
 	case types.ActionOpenLong:
 		return at.executeOpenLongWithRecord(decision, actionRecord)
@@ -46,7 +46,7 @@ func (at *AutoTrader) executeDecisionWithRecord(decision *kernel.Decision, actio
 }
 
 // executeOpenLongWithRecord executes open long position and records detailed information
-func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeOpenLongWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	logger.Infof("  📈 Open long: %s", decision.Symbol)
 
 	// ⚠️ Get current positions for multiple checks
@@ -158,7 +158,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *kernel.Decision, actio
 }
 
 // executeOpenShortWithRecord executes open short position and records detailed information
-func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeOpenShortWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	logger.Infof("  📉 Open short: %s", decision.Symbol)
 
 	// ⚠️ Get current positions for multiple checks
@@ -270,7 +270,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *kernel.Decision, acti
 }
 
 // executeCloseLongWithRecord executes close long position and records detailed information
-func (at *AutoTrader) executeCloseLongWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeCloseLongWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	logger.Infof("  🔄 Close long: %s", decision.Symbol)
 
 	// Get current price
@@ -338,7 +338,7 @@ func (at *AutoTrader) executeCloseLongWithRecord(decision *kernel.Decision, acti
 }
 
 // executeCloseShortWithRecord executes close short position and records detailed information
-func (at *AutoTrader) executeCloseShortWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeCloseShortWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	logger.Infof("  🔄 Close short: %s", decision.Symbol)
 
 	// Get current price
@@ -406,7 +406,7 @@ func (at *AutoTrader) executeCloseShortWithRecord(decision *kernel.Decision, act
 }
 
 // executeModifyWithRecord executes modify action to adjust SL/TP on existing positions
-func (at *AutoTrader) executeModifyWithRecord(decision *kernel.Decision, actionRecord *store.DecisionAction) error {
+func (at *AutoTrader) executeModifyWithRecord(decision *ktypes.Decision, actionRecord *store.DecisionAction) error {
 	logger.Infof("  🔧 Modify: %s | SL=%.4f TP=%.4f", decision.Symbol, decision.StopLoss, decision.TakeProfit)
 
 	// Get current positions to find the one we're modifying

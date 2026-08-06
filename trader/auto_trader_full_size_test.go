@@ -1,7 +1,7 @@
 package trader
 
 import (
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/store"
 	"fxos/trader/types"
 	"testing"
@@ -16,7 +16,7 @@ func TestApplyAutopilotFullSizeOpenForClaw402(t *testing.T) {
 	cfg.RiskControl.AltcoinMaxPositionValueRatio = 10
 
 	at := &AutoTrader{config: AutoTraderConfig{StrategyConfig: &cfg}}
-	decision := &kernel.Decision{
+	decision := &ktypes.Decision{
 		Symbol:          "xyz:INTC",
 		Action:          types.ActionOpenLong,
 		Leverage:        3,
@@ -40,7 +40,7 @@ func TestApplyAutopilotFullSizeOpenSkipsNonClaw402Strategies(t *testing.T) {
 	cfg.RiskControl.AltcoinMaxLeverage = 10
 
 	at := &AutoTrader{config: AutoTraderConfig{StrategyConfig: &cfg}}
-	decision := &kernel.Decision{
+	decision := &ktypes.Decision{
 		Symbol:          "BTCUSDT",
 		Action:          types.ActionOpenLong,
 		Leverage:        3,

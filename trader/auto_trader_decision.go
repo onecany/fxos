@@ -2,9 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/telemetry"
 	"fxos/trader/types"
@@ -13,7 +13,7 @@ import (
 )
 
 // saveEquitySnapshot saves equity snapshot independently (for drawing profit curve, decoupled from AI decision)
-func (at *AutoTrader) saveEquitySnapshot(ctx *kernel.Context) {
+func (at *AutoTrader) saveEquitySnapshot(ctx *ktypes.Context) {
 	if at.store == nil || ctx == nil {
 		return
 	}

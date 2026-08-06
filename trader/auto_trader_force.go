@@ -4,7 +4,7 @@ import (
 	"math"
 	"strings"
 
-	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/trader/types"
 )
 
@@ -31,7 +31,7 @@ const forcedCoverageMinScore = 0.4
 //   - requires |signal score| >= forcedCoverageMinScore,
 //   - never exceeds MaxPositions,
 //   - never doubles a base symbol already held or already in the decision set.
-func (at *AutoTrader) ensureLongShortCoverage(decisions []kernel.Decision, ctx *kernel.Context, equity float64) []kernel.Decision {
+func (at *AutoTrader) ensureLongShortCoverage(decisions []ktypes.Decision, ctx *ktypes.Context, equity float64) []ktypes.Decision {
 	if at == nil || ctx == nil || at.isSafeMode() {
 		return decisions
 	}
@@ -78,7 +78,7 @@ func (at *AutoTrader) ensureLongShortCoverage(decisions []kernel.Decision, ctx *
 	// fill a direction up to its target, drawing from the strongest unused
 	// candidates that clear the signal-strength floor, never exceeding
 	// MaxPositions.
-	fill := func(action string, cands []kernel.DirectionalCandidate, have, target int) {
+	fill := func(action string, cands []ktypes.DirectionalCandidate, have, target int) {
 		for _, c := range cands {
 			if have >= target {
 				return
@@ -102,7 +102,7 @@ func (at *AutoTrader) ensureLongShortCoverage(decisions []kernel.Decision, ctx *
 				at.logInfof("⚖️ Skipped forced %s %s: xyz instruments not available on %s", action, c.Symbol, at.exchange)
 				continue
 			}
-			d := kernel.Decision{
+			d := ktypes.Decision{
 				Action:     action,
 				Symbol:     c.Symbol,
 				Confidence: 70,

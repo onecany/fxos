@@ -2,11 +2,12 @@ package kernel
 
 import (
 	"fmt"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/provider/nofx"
 	"fxos/provider/vergex"
 	"fxos/store"
 	"fxos/trader/types"
+	ktypes "fxos/kernel/types"
 	"strings"
 	"time"
 )
@@ -115,13 +116,13 @@ func (e *StrategyEngine) BuildSystemPrompt(accountEquity float64, variant string
 		sb.WriteString(fmt.Sprintf("\nFeel free to use any effective analysis method, but **confidence ≥ %d** is required to open positions; avoid low-quality behaviors such as single-indicator entries, contradictory signals, sideways chop, or re-entering immediately after a close.\n\n", riskControl.MinConfidence))
 	}
 
-	// 6. Decision process (editable)
+	// 6. ktypes.Decision process (editable)
 	decisionProcess := userPromptSection(promptSections.DecisionProcess)
 	if decisionProcess != "" {
 		sb.WriteString(decisionProcess)
 		sb.WriteString("\n\n")
 	} else {
-		sb.WriteString("# 📋 Decision Process\n\n")
+		sb.WriteString("# 📋 ktypes.Decision Process\n\n")
 		sb.WriteString("1. **REGIME**: Use the pre-computed Regime hint from the user prompt. If it says \"unknown\", classify yourself using the criteria below.\n")
 		sb.WriteString("   - Trending: price above EMA20 > EMA50, ADX > 25, breakout patterns\n")
 		sb.WriteString("   - Ranging: Bollinger width < 3%, EMA20 ≈ EMA50, price oscillating around mean\n")
@@ -224,7 +225,7 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 		sb.WriteString("System constraint (never override): trade only the Hyperliquid instruments returned by this cycle's Claw402.ai/Vergex board and existing positions; never invent tickers or rotate outside the provided universe.\n\n")
 	}
 
-	sb.WriteString("# Decision Data Priority\n\n")
+	sb.WriteString("# ktypes.Decision Data Priority\n\n")
 	sb.WriteString("1. Claw402.ai Signal Ranking: candidate pool, rank, direction and category.\n")
 	sb.WriteString("2. Claw402.ai Signal Lab: trend, momentum, event/model confirmation; this is the core pre-entry confirmation source.\n")
 	sb.WriteString("3. Claw402.ai Cost/Liquidation Heatmap: crowded liquidation/cost zones, stop placement and target zones.\n")
@@ -300,7 +301,7 @@ func (e *StrategyEngine) buildVergexSystemPrompt(accountEquity float64, variant 
 	}
 	writeUserSection("Trading Frequency", sections.TradingFrequency, defaultSections.TradingFrequency)
 	writeUserSection("Entry Standards", sections.EntryStandards, defaultSections.EntryStandards)
-	writeUserSection("Decision Process", sections.DecisionProcess, defaultSections.DecisionProcess)
+	writeUserSection("ktypes.Decision Process", sections.DecisionProcess, defaultSections.DecisionProcess)
 
 	customPrompt := vergexCustomPromptSection(e.config.CustomPrompt)
 	if customPrompt != "" {
@@ -837,7 +838,7 @@ func (e *StrategyEngine) writeAvailableIndicators(sb *strings.Builder) {
 // ============================================================================
 
 // BuildUserPrompt builds User Prompt based on strategy configuration
-func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
+func (e *StrategyEngine) BuildUserPrompt(ctx *ktypes.Context) string {
 	var sb strings.Builder
 
 	// System status
@@ -965,9 +966,9 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 		sb.WriteString("\n")
 	}
 
-	// Decision Quality Feedback (helps AI learn from recent patterns)
+	// ktypes.Decision Quality Feedback (helps AI learn from recent patterns)
 	if len(ctx.RecentOrders) >= 3 {
-		sb.WriteString("## Decision Quality Feedback\n")
+		sb.WriteString("## ktypes.Decision Quality Feedback\n")
 
 		// Recent win rate (last 10 trades for better statistical significance)
 		recentN := 10
@@ -1158,7 +1159,7 @@ func (e *StrategyEngine) BuildUserPrompt(ctx *Context) string {
 	return sb.String()
 }
 
-func (e *StrategyEngine) formatPositionInfo(index int, pos PositionInfo, ctx *Context) string {
+func (e *StrategyEngine) formatPositionInfo(index int, pos ktypes.PositionInfo, ctx *ktypes.Context) string {
 	var sb strings.Builder
 
 	holdingDuration := ""
@@ -1509,7 +1510,7 @@ func (e *StrategyEngine) formatTimeframeSeriesData(sb *strings.Builder, data *ma
 	sb.WriteString("\n")
 }
 
-func (e *StrategyEngine) formatQuantData(data *QuantData) string {
+func (e *StrategyEngine) formatQuantData(data *ktypes.QuantData) string {
 	if data == nil {
 		return ""
 	}

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/mcp/payment"
 	"fxos/provider/hyperliquid"
 	"fxos/store"
@@ -295,7 +296,7 @@ func (at *AutoTrader) runCycle() error {
 
 	// Safe mode: filter out open positions, only allow close/hold
 	if at.isSafeMode() {
-		filtered := make([]kernel.Decision, 0)
+		filtered := make([]ktypes.Decision, 0)
 		for _, d := range sortedDecisions {
 			if d.Action == types.ActionOpenLong || d.Action == types.ActionOpenShort {
 				at.logWarnf("🛡️ Safe mode: BLOCKED %s %s (no new positions allowed)", d.Action, d.Symbol)
@@ -411,7 +412,7 @@ func isOpenDecision(action string) bool {
 	return a == types.ActionOpenLong || a == types.ActionOpenShort
 }
 
-func (at *AutoTrader) filterDecisionsToStrategyUniverse(decisions []kernel.Decision, ctx *kernel.Context) []kernel.Decision {
+func (at *AutoTrader) filterDecisionsToStrategyUniverse(decisions []ktypes.Decision, ctx *ktypes.Context) []ktypes.Decision {
 	if ctx == nil || len(decisions) == 0 {
 		return decisions
 	}
@@ -434,7 +435,7 @@ func (at *AutoTrader) filterDecisionsToStrategyUniverse(decisions []kernel.Decis
 		}
 	}
 
-	filtered := make([]kernel.Decision, 0, len(decisions))
+	filtered := make([]ktypes.Decision, 0, len(decisions))
 	for _, d := range decisions {
 		sym := normalizeUniverseSymbol(d.Symbol)
 		if sym == "" || sym == "ALL" {
@@ -483,7 +484,7 @@ func (at *AutoTrader) filterDecisionsToStrategyUniverse(decisions []kernel.Decis
 // canonicalUniverseSymbolForBase finds the canonical candidate or position
 // symbol that has the given base. Used to rewrite an AI decision's symbol
 // (e.g. "QNTUSDC") to the form our order pipeline expects ("xyz:QNT").
-func canonicalUniverseSymbolForBase(ctx *kernel.Context, base string) string {
+func canonicalUniverseSymbolForBase(ctx *ktypes.Context, base string) string {
 	for _, coin := range ctx.CandidateCoins {
 		if universeBaseKey(coin.Symbol) == base {
 			return coin.Symbol
@@ -498,7 +499,7 @@ func canonicalUniverseSymbolForBase(ctx *kernel.Context, base string) string {
 }
 
 // buildTradingContext builds trading context
-func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
+func (at *AutoTrader) buildTradingContext() (*ktypes.Context, error) {
 	// 1. Get account information
 	balance, err := at.trader.GetBalance()
 	if err != nil {
@@ -522,7 +523,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 		return nil, fmt.Errorf("failed to get positions: %w", err)
 	}
 
-	var positionInfos []kernel.PositionInfo
+	var positionInfos []ktypes.PositionInfo
 	totalMarginUsed := 0.0
 
 	// Current position key set (for cleaning up closed position records)
@@ -591,7 +592,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 		peakPnlPct := at.peakPnLCache[posKey]
 		at.peakPnLCacheMutex.RUnlock()
 
-		positionInfos = append(positionInfos, kernel.PositionInfo{
+		positionInfos = append(positionInfos, ktypes.PositionInfo{
 			Symbol:           symbol,
 			Side:             side,
 			EntryPrice:       entryPrice,
@@ -615,7 +616,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 	}
 
 	// 3. Use strategy engine to get candidate coins (must have strategy engine)
-	var candidateCoins []kernel.CandidateCoin
+	var candidateCoins []ktypes.CandidateCoin
 	if at.strategyEngine == nil {
 		at.logWarnf("⚠️ No strategy engine configured, skipping candidate coins")
 	} else {
@@ -648,13 +649,13 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 	logger.Infof("📋 [%s] Strategy leverage config: BTC/ETH=%dx, Altcoin=%dx", at.name, btcEthLeverage, altcoinLeverage)
 
 	// 6. Build context
-	ctx := &kernel.Context{
+	ctx := &ktypes.Context{
 		CurrentTime:     time.Now().UTC().Format("2006-01-02 15:04:05 UTC"),
 		RuntimeMinutes:  int(time.Since(at.startTime).Minutes()),
 		CallCount:       at.callCount,
 		BTCETHLeverage:  btcEthLeverage,
 		AltcoinLeverage: altcoinLeverage,
-		Account: kernel.AccountInfo{
+		Account: ktypes.AccountInfo{
 			TotalEquity:      totalEquity,
 			AvailableBalance: availableBalance,
 			UnrealizedPnL:    totalUnrealizedProfit,
@@ -687,7 +688,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 					exitTimeStr = time.Unix(trade.ExitTime, 0).UTC().Format("01-02 15:04 UTC")
 				}
 
-				ctx.RecentOrders = append(ctx.RecentOrders, kernel.RecentOrder{
+				ctx.RecentOrders = append(ctx.RecentOrders, ktypes.RecentOrder{
 					Symbol:       trade.Symbol,
 					Side:         trade.Side,
 					EntryPrice:   trade.EntryPrice,
@@ -709,7 +710,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 		} else if stats.TotalTrades == 0 {
 			at.logWarnf("⚠️ GetFullStats returned 0 trades")
 		} else {
-			ctx.TradingStats = &kernel.TradingStats{
+			ctx.TradingStats = &ktypes.TradingStats{
 				TotalTrades:    stats.TotalTrades,
 				WinRate:        stats.WinRate,
 				ProfitFactor:   stats.ProfitFactor,
@@ -782,7 +783,7 @@ func (at *AutoTrader) buildTradingContext() (*kernel.Context, error) {
 
 // sortDecisionsByPriority sorts decisions: close positions first, then open positions, finally hold/wait
 // This avoids position stacking overflow when changing positions
-func sortDecisionsByPriority(decisions []kernel.Decision) []kernel.Decision {
+func sortDecisionsByPriority(decisions []ktypes.Decision) []ktypes.Decision {
 	if len(decisions) <= 1 {
 		return decisions
 	}
@@ -802,7 +803,7 @@ func sortDecisionsByPriority(decisions []kernel.Decision) []kernel.Decision {
 	}
 
 	// Copy decision list
-	sorted := make([]kernel.Decision, len(decisions))
+	sorted := make([]ktypes.Decision, len(decisions))
 	copy(sorted, decisions)
 
 	// Sort by priority

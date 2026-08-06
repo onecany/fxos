@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"fxos/kernel"
+	ktypes "fxos/kernel/types"
 	"fxos/store"
 	"fxos/trader/types"
 )
@@ -22,7 +23,7 @@ func baseForceTrader() *AutoTrader {
 func TestEnsureLongShortCoverageSafeModeSkips(t *testing.T) {
 	at := baseForceTrader()
 	at.safeMode = true
-	out := at.ensureLongShortCoverage(nil, &kernel.Context{}, 100)
+	out := at.ensureLongShortCoverage(nil, &ktypes.Context{}, 100)
 	if len(out) != 0 {
 		t.Fatalf("safe mode must not force opens, got %d", len(out))
 	}
@@ -31,7 +32,7 @@ func TestEnsureLongShortCoverageSafeModeSkips(t *testing.T) {
 func TestEnsureLongShortCoverageNonVergexSkips(t *testing.T) {
 	at := baseForceTrader()
 	at.config.StrategyConfig.CoinSource.SourceType = "static"
-	out := at.ensureLongShortCoverage(nil, &kernel.Context{}, 100)
+	out := at.ensureLongShortCoverage(nil, &ktypes.Context{}, 100)
 	if len(out) != 0 {
 		t.Fatalf("non-vergex source must not force opens, got %d", len(out))
 	}
@@ -39,11 +40,11 @@ func TestEnsureLongShortCoverageNonVergexSkips(t *testing.T) {
 
 func TestEnsureLongShortCoverageBothPresentNoop(t *testing.T) {
 	at := baseForceTrader()
-	in := []kernel.Decision{
+	in := []ktypes.Decision{
 		{Action: types.ActionOpenLong, Symbol: "xyz:AAPL"},
 		{Action: types.ActionOpenShort, Symbol: "BTC"},
 	}
-	out := at.ensureLongShortCoverage(in, &kernel.Context{}, 100)
+	out := at.ensureLongShortCoverage(in, &ktypes.Context{}, 100)
 	if len(out) != 2 {
 		t.Fatalf("both directions already present -> no force, got %d", len(out))
 	}
@@ -51,7 +52,7 @@ func TestEnsureLongShortCoverageBothPresentNoop(t *testing.T) {
 
 func TestEnsureLongShortCoverageNoCandidatesNoForce(t *testing.T) {
 	at := baseForceTrader() // empty ranking cache -> no directional candidates
-	out := at.ensureLongShortCoverage(nil, &kernel.Context{}, 100)
+	out := at.ensureLongShortCoverage(nil, &ktypes.Context{}, 100)
 	if len(out) != 0 {
 		t.Fatalf("no candidates available -> nothing to force, got %d", len(out))
 	}

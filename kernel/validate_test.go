@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"fxos/trader/types"
+	ktypes "fxos/kernel/types"
 	"testing"
 )
 
@@ -9,7 +10,7 @@ import (
 func TestLeverageFallback(t *testing.T) {
 	tests := []struct {
 		name            string
-		decision        Decision
+		decision        ktypes.Decision
 		accountEquity   float64
 		btcEthLeverage  int
 		altcoinLeverage int
@@ -18,7 +19,7 @@ func TestLeverageFallback(t *testing.T) {
 	}{
 		{
 			name: "Altcoin leverage exceeded - auto-correct to limit",
-			decision: Decision{
+			decision: ktypes.Decision{
 				Symbol:          "SOLUSDT",
 				Action:          types.ActionOpenLong,
 				Leverage:        20, // Exceeds limit
@@ -34,7 +35,7 @@ func TestLeverageFallback(t *testing.T) {
 		},
 		{
 			name: "BTC leverage exceeded - auto-correct to limit",
-			decision: Decision{
+			decision: ktypes.Decision{
 				Symbol:          "BTCUSDT",
 				Action:          types.ActionOpenLong,
 				Leverage:        20, // Exceeds limit
@@ -50,7 +51,7 @@ func TestLeverageFallback(t *testing.T) {
 		},
 		{
 			name: "Leverage within limit - no correction",
-			decision: Decision{
+			decision: ktypes.Decision{
 				Symbol:          "ETHUSDT",
 				Action:          types.ActionOpenShort,
 				Leverage:        5, // Not exceeded
@@ -66,7 +67,7 @@ func TestLeverageFallback(t *testing.T) {
 		},
 		{
 			name: "Leverage is 0 - should error",
-			decision: Decision{
+			decision: ktypes.Decision{
 				Symbol:          "SOLUSDT",
 				Action:          types.ActionOpenLong,
 				Leverage:        0, // Invalid
@@ -102,7 +103,7 @@ func TestLeverageFallback(t *testing.T) {
 }
 
 func TestClaw402XyzAllowsFullTenXNotional(t *testing.T) {
-	decision := Decision{
+	decision := ktypes.Decision{
 		Symbol:          "xyz:SP500",
 		Action:          types.ActionOpenLong,
 		Leverage:        10,

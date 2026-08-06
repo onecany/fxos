@@ -2,8 +2,8 @@ package trader
 
 import (
 	"fmt"
-	"fxos/kernel"
-	"fxos/market"
+	ktypes "fxos/kernel/types"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/types"
 	"strings"
@@ -74,7 +74,7 @@ func normalizedDecisionSymbol(symbol string) string {
 	return market.Normalize(strings.TrimSpace(symbol))
 }
 
-func (at *AutoTrader) tradeThrottleReason(decision kernel.Decision, ctx *kernel.Context, opensQueuedThisCycle int) string {
+func (at *AutoTrader) tradeThrottleReason(decision ktypes.Decision, ctx *ktypes.Context, opensQueuedThisCycle int) string {
 	if ctx == nil {
 		return ""
 	}
@@ -89,7 +89,7 @@ func (at *AutoTrader) tradeThrottleReason(decision kernel.Decision, ctx *kernel.
 	}
 }
 
-func (at *AutoTrader) openThrottleReason(decision kernel.Decision, ctx *kernel.Context, opensQueuedThisCycle int) string {
+func (at *AutoTrader) openThrottleReason(decision ktypes.Decision, ctx *ktypes.Context, opensQueuedThisCycle int) string {
 	symbol := normalizedDecisionSymbol(decision.Symbol)
 	if symbol == "" {
 		return ""
@@ -122,7 +122,7 @@ func (at *AutoTrader) openThrottleReason(decision kernel.Decision, ctx *kernel.C
 	return ""
 }
 
-func (at *AutoTrader) closeThrottleReason(decision kernel.Decision, ctx *kernel.Context) string {
+func (at *AutoTrader) closeThrottleReason(decision ktypes.Decision, ctx *ktypes.Context) string {
 	symbol := normalizedDecisionSymbol(decision.Symbol)
 	side := closeActionSide(decision.Action)
 	if symbol == "" || side == "" {
@@ -186,7 +186,7 @@ func (at *AutoTrader) closeThrottleReason(decision kernel.Decision, ctx *kernel.
 	) + fmt.Sprintf("; wait about %s", roundDuration(remaining))
 }
 
-func findContextPosition(ctx *kernel.Context, symbol string, side string) *kernel.PositionInfo {
+func findContextPosition(ctx *ktypes.Context, symbol string, side string) *ktypes.PositionInfo {
 	if ctx == nil {
 		return nil
 	}
@@ -199,7 +199,7 @@ func findContextPosition(ctx *kernel.Context, symbol string, side string) *kerne
 	return nil
 }
 
-func findAnyContextPosition(ctx *kernel.Context, symbol string) *kernel.PositionInfo {
+func findAnyContextPosition(ctx *ktypes.Context, symbol string) *ktypes.PositionInfo {
 	if ctx == nil {
 		return nil
 	}

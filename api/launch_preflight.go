@@ -66,6 +66,9 @@ type LaunchPreflightResult struct {
 	CheckedAt      time.Time     `json:"checked_at"`
 }
 
+
+
+
 func (r LaunchPreflightResult) failedChecks() []LaunchCheck {
 	var failed []LaunchCheck
 	for _, check := range r.Checks {

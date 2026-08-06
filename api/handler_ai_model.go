@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"fxos/config"
+	"fxos/api/schema"
 	"fxos/crypto"
 	"fxos/logger"
 	"fxos/security"
@@ -16,42 +17,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ModelConfig struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Provider     string `json:"provider"`
-	Enabled      bool   `json:"enabled"`
-	APIKey       string `json:"apiKey,omitempty"`
-	CustomAPIURL string `json:"customApiUrl,omitempty"`
-}
 
-// SafeModelConfig Safe model configuration structure (does not contain sensitive information)
-type SafeModelConfig struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	Provider        string `json:"provider"`
-	Enabled         bool   `json:"enabled"`
-	HasAPIKey       bool   `json:"has_api_key"`
-	CustomAPIURL    string `json:"customApiUrl"`    // Custom API URL (usually not sensitive)
-	CustomModelName string `json:"customModelName"` // Custom model name (not sensitive)
-	WalletAddress   string `json:"walletAddress,omitempty"`
-	BalanceUSDC     string `json:"balanceUsdc,omitempty"`
-}
+// schema.SafeModelConfig Safe model configuration structure (does not contain sensitive information)
 
-// ModelConfigUpdate is a single model's update payload. It is a named type
+// schema.ModelConfigUpdate is a single model's update payload. It is a named type
 // (rather than an inline anonymous struct) so the log-sanitizer in utils.go is
 // guaranteed to stay in sync with this shape — a mismatch there is what let
 // plaintext credentials reach the logs previously.
-type ModelConfigUpdate struct {
-	Enabled         bool   `json:"enabled"`
-	APIKey          string `json:"api_key"`
-	CustomAPIURL    string `json:"custom_api_url"`
-	CustomModelName string `json:"custom_model_name"`
-}
 
-type UpdateModelConfigRequest struct {
-	Models map[string]ModelConfigUpdate `json:"models"`
-}
 
 // handleGetModelConfigs Get AI model configurations
 func (s *Server) handleGetModelConfigs(c *gin.Context) {
@@ -67,7 +40,7 @@ func (s *Server) handleGetModelConfigs(c *gin.Context) {
 	// If no models in database, return default models
 	if len(models) == 0 {
 		logger.Infof("⚠️ No AI models in database, returning defaults")
-		defaultModels := []SafeModelConfig{
+		defaultModels := []schema.SafeModelConfig{
 			{ID: "deepseek", Name: "DeepSeek AI", Provider: "deepseek", Enabled: false, HasAPIKey: false},
 			{ID: "qwen", Name: "Qwen AI", Provider: "qwen", Enabled: false, HasAPIKey: false},
 			{ID: "openai", Name: "OpenAI", Provider: "openai", Enabled: false, HasAPIKey: false},
@@ -84,12 +57,12 @@ func (s *Server) handleGetModelConfigs(c *gin.Context) {
 	logger.Infof("✅ Found %d AI model configs", len(models))
 
 	// Convert to safe response structure, remove sensitive information
-	safeModels := make([]SafeModelConfig, 0, len(models))
+	safeModels := make([]schema.SafeModelConfig, 0, len(models))
 	for _, model := range models {
 		if !store.IsVisibleAIModel(model) {
 			continue
 		}
-		safeModel := SafeModelConfig{
+		safeModel := schema.SafeModelConfig{
 			ID:              model.ID,
 			Name:            model.Name,
 			Provider:        model.Provider,
@@ -115,7 +88,7 @@ func (s *Server) handleGetModelConfigs(c *gin.Context) {
 
 	if len(safeModels) == 0 {
 		logger.Infof("⚠️ No visible AI models in database, returning defaults")
-		defaultModels := []SafeModelConfig{
+		defaultModels := []schema.SafeModelConfig{
 			{ID: "deepseek", Name: "DeepSeek AI", Provider: "deepseek", Enabled: false, HasAPIKey: false},
 			{ID: "qwen", Name: "Qwen AI", Provider: "qwen", Enabled: false, HasAPIKey: false},
 			{ID: "openai", Name: "OpenAI", Provider: "openai", Enabled: false, HasAPIKey: false},
@@ -144,7 +117,7 @@ func (s *Server) handleUpdateModelConfigs(c *gin.Context) {
 		return
 	}
 
-	var req UpdateModelConfigRequest
+	var req schema.UpdateModelConfigRequest
 
 	// Check if transport encryption is enabled
 	if !cfg.TransportEncryption {

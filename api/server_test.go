@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"fxos/store"
+	"fxos/api/schema"
 
 	"github.com/gin-gonic/gin"
 )
@@ -99,8 +100,8 @@ func TestUpdateTraderRequest_SystemPromptTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test whether UpdateTraderRequest struct can correctly parse system_prompt_template field
-			var req UpdateTraderRequest
+			// Test whether schema.UpdateTraderRequest struct can correctly parse system_prompt_template field
+			var req schema.UpdateTraderRequest
 			err := json.Unmarshal([]byte(tt.requestJSON), &req)
 			if err != nil {
 				t.Fatalf("Failed to unmarshal JSON: %v", err)
@@ -216,7 +217,7 @@ func TestGetTraderConfigResponse_SystemPromptTemplate(t *testing.T) {
 	}
 }
 
-// TestUpdateTraderRequest_CompleteFields Verify UpdateTraderRequest struct definition completeness
+// TestUpdateTraderRequest_CompleteFields Verify schema.UpdateTraderRequest struct definition completeness
 func TestUpdateTraderRequest_CompleteFields(t *testing.T) {
 	jsonData := `{
 		"name": "Test Trader",
@@ -233,7 +234,7 @@ func TestUpdateTraderRequest_CompleteFields(t *testing.T) {
 		"system_prompt_template": "nof1"
 	}`
 
-	var req UpdateTraderRequest
+	var req schema.UpdateTraderRequest
 	err := json.Unmarshal([]byte(jsonData), &req)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal JSON: %v", err)

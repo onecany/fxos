@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"fxos/trader/types"
+	"fxos/api/schema"
 	"strings"
 	"testing"
 )
@@ -51,7 +52,7 @@ func TestMaskSensitiveString(t *testing.T) {
 }
 
 func TestSanitizeModelConfigForLog(t *testing.T) {
-	models := map[string]ModelConfigUpdate{
+	models := map[string]schema.ModelConfigUpdate{
 		"deepseek": {
 			Enabled:         true,
 			APIKey:          "sk-1234567890abcdefghijklmnopqrstuvwxyz",
@@ -86,7 +87,7 @@ func TestSanitizeModelConfigForLog(t *testing.T) {
 }
 
 func TestSanitizeExchangeConfigForLog(t *testing.T) {
-	exchanges := map[string]ExchangeConfigUpdate{
+	exchanges := map[string]schema.ExchangeConfigUpdate{
 		"binance": {
 			Enabled:   true,
 			APIKey:    "binance_api_key_1234567890abcdef",
@@ -195,7 +196,7 @@ func TestSanitizeExchangeConfigForLog_NoPlaintextSecrets(t *testing.T) {
 		"lighter_api_key_private_key": "lighter_api_key_private_key_1234567890abcdef",
 	}
 
-	exchanges := map[string]ExchangeConfigUpdate{
+	exchanges := map[string]schema.ExchangeConfigUpdate{
 		"okx": {
 			Enabled:                 true,
 			APIKey:                  secrets["api_key"],

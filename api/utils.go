@@ -1,6 +1,10 @@
 package api
 
-import "strings"
+import (
+	"strings"
+
+	"fxos/api/schema"
+)
 
 // MaskSensitiveString Mask sensitive strings, showing only first 4 and last 4 characters
 // Used to mask API Key, Secret Key, Private Key and other sensitive information
@@ -16,9 +20,9 @@ func MaskSensitiveString(s string) string {
 }
 
 // SanitizeModelConfigForLog Sanitize model configuration for log output.
-// Takes the same ModelConfigUpdate type used by the request handler so the two
+// Takes the same schema.ModelConfigUpdate type used by the request handler so the two
 // can never drift out of sync.
-func SanitizeModelConfigForLog(models map[string]ModelConfigUpdate) map[string]interface{} {
+func SanitizeModelConfigForLog(models map[string]schema.ModelConfigUpdate) map[string]interface{} {
 	safe := make(map[string]interface{})
 	for modelID, cfg := range models {
 		safe[modelID] = map[string]interface{}{
@@ -32,11 +36,11 @@ func SanitizeModelConfigForLog(models map[string]ModelConfigUpdate) map[string]i
 }
 
 // SanitizeExchangeConfigForLog Sanitize exchange configuration for log output.
-// Takes the same ExchangeConfigUpdate type used by the request handler so every
+// Takes the same schema.ExchangeConfigUpdate type used by the request handler so every
 // sensitive field is guaranteed to be masked — adding a field to the request
 // type without masking it here would not compile around this helper, but more
 // importantly keeps the masking exhaustive.
-func SanitizeExchangeConfigForLog(exchanges map[string]ExchangeConfigUpdate) map[string]interface{} {
+func SanitizeExchangeConfigForLog(exchanges map[string]schema.ExchangeConfigUpdate) map[string]interface{} {
 	safe := make(map[string]interface{})
 	for exchangeID, cfg := range exchanges {
 		safeExchange := map[string]interface{}{

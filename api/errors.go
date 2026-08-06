@@ -6,16 +6,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"fxos/logger"
+	"fxos/api/schema"
 )
 
-type APIErrorResponse struct {
-	Error      string            `json:"error"`
-	ErrorKey   string            `json:"error_key,omitempty"`
-	ErrorParams map[string]string `json:"error_params,omitempty"`
-}
 
 func writeAPIError(c *gin.Context, statusCode int, publicMsg, errorKey string, errorParams map[string]string) {
-	resp := APIErrorResponse{
+	resp := schema.APIErrorResponse{
 		Error: publicMsg,
 	}
 	if errorKey != "" {

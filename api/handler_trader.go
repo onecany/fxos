@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"fxos/logger"
+	"fxos/api/schema"
 	"fxos/store"
 
 	"github.com/gin-gonic/gin"
@@ -20,44 +21,8 @@ const (
 )
 
 // AI trader management related structures
-type CreateTraderRequest struct {
-	Name                string  `json:"name" binding:"required"`
-	AIModelID           string  `json:"ai_model_id" binding:"required"`
-	ExchangeID          string  `json:"exchange_id" binding:"required"`
-	StrategyID          string  `json:"strategy_id"` // Strategy ID (new version)
-	InitialBalance      float64 `json:"initial_balance"`
-	ScanIntervalMinutes int     `json:"scan_interval_minutes"`
-	IsCrossMargin       *bool   `json:"is_cross_margin"`     // Pointer type, nil means use default value true
-	ShowInCompetition   *bool   `json:"show_in_competition"` // Pointer type, nil means use default value true
-	// The following fields are kept for backward compatibility, new version uses strategy config
-	BTCETHLeverage       int    `json:"btc_eth_leverage"`
-	AltcoinLeverage      int    `json:"altcoin_leverage"`
-	TradingSymbols       string `json:"trading_symbols"`
-	CustomPrompt         string `json:"custom_prompt"`
-	OverrideBasePrompt   bool   `json:"override_base_prompt"`
-	SystemPromptTemplate string `json:"system_prompt_template"` // System prompt template name
-	UseAI500             bool   `json:"use_ai500"`
-	UseOITop             bool   `json:"use_oi_top"`
-}
 
-// UpdateTraderRequest Update trader request
-type UpdateTraderRequest struct {
-	Name                string  `json:"name" binding:"required"`
-	AIModelID           string  `json:"ai_model_id" binding:"required"`
-	ExchangeID          string  `json:"exchange_id" binding:"required"`
-	StrategyID          string  `json:"strategy_id"` // Strategy ID (new version)
-	InitialBalance      float64 `json:"initial_balance"`
-	ScanIntervalMinutes int     `json:"scan_interval_minutes"`
-	IsCrossMargin       *bool   `json:"is_cross_margin"`
-	ShowInCompetition   *bool   `json:"show_in_competition"`
-	// The following fields are kept for backward compatibility, new version uses strategy config
-	BTCETHLeverage       int    `json:"btc_eth_leverage"`
-	AltcoinLeverage      int    `json:"altcoin_leverage"`
-	TradingSymbols       string `json:"trading_symbols"`
-	CustomPrompt         string `json:"custom_prompt"`
-	OverrideBasePrompt   bool   `json:"override_base_prompt"`
-	SystemPromptTemplate string `json:"system_prompt_template"`
-}
+// schema.UpdateTraderRequest Update trader request
 
 func formatTraderCreationError(reason, nextStep string) string {
 	if nextStep == "" {
@@ -323,7 +288,7 @@ func formatTraderStartError(reason, nextStep string) string {
 // handleCreateTrader Create new AI trader
 func (s *Server) handleCreateTrader(c *gin.Context) {
 	userID := c.GetString("user_id")
-	var req CreateTraderRequest
+	var req schema.CreateTraderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		SafeBadRequestWithDetails(c, traderCreationRequestError("The submitted information is incomplete or has an invalid format"), "trader.create.invalid_request", nil)
 		return
@@ -571,7 +536,7 @@ func (s *Server) handleUpdateTrader(c *gin.Context) {
 	userID := c.GetString("user_id")
 	traderID := c.Param("id")
 
-	var req UpdateTraderRequest
+	var req schema.UpdateTraderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		SafeBadRequest(c, "Invalid request parameters")
 		return

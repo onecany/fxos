@@ -77,6 +77,15 @@ func (s *Server) handleUnbindTelegram(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to unbind"})
 		return
 	}
+	// Signal bot hot-reload so the in-memory allowedChatID snapshot drops the
+	// old binding. Without this the bot keeps treating the old chat as bound
+	// while the DB says unbound (and /start refresh below is the backstop).
+	if s.telegramReloadCh != nil {
+		select {
+		case s.telegramReloadCh <- struct{}{}:
+		default: // non-blocking
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Telegram binding removed"})
 }
 

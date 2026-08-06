@@ -133,6 +133,15 @@ func runBot(token string, cfg *config.Config, st *store.Store) bool {
 		// ── /start ────────────────────────────────────────────────────────────
 		if text == "/start" {
 			resolveBotUser()
+			// Refresh the allowed chat ID from the DB on every /start: a
+			// binding or unbind performed via the Web UI does NOT restart the
+			// bot (unbind handler doesn't send a reload signal), so the
+			// startup snapshot would be stale — a user who unbound and re-sent
+			// /start would be bounced by the stale allowedChatID instead of
+			// re-binding.
+			if id, err := st.TelegramConfig().GetBoundChatID(); err == nil {
+				allowedChatID = id
+			}
 			if botUserID == "" {
 				sendMsg(bot, chatID,
 					"No account found.\nOpen the web dashboard to register, then send /start.")

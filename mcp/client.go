@@ -311,8 +311,30 @@ func (client *Client) ParseMCPResponseFull(body []byte) (*LLMResponse, error) {
 	}
 
 	msg := result.Choices[0].Message
+
+	// Empty-output guard (deepseek thinking-mode regression): the model can
+	// return a completely empty turn — content="", reasoning_content="",
+	// no tool_calls (out=0) — when its reasoning budget is exhausted or the
+	// upstream has a hiccup. An empty message is NOT a valid decision; treat
+	// it as a retryable error so CallWithMessages retries instead of silently
+	// entering safe-wait with no model output at all.
+	if strings.TrimSpace(msg.Content) == "" &&
+		strings.TrimSpace(msg.ReasoningContent) == "" &&
+		len(msg.ToolCalls) == 0 {
+		return nil, fmt.Errorf("upstream_empty_output: API returned empty message (no content, no reasoning, no tool calls)")
+	}
+
+	// Reasoning-content fallback: when the model produced only a thinking
+	// trace (content="", reasoning_content="..."), surface the reasoning as
+	// the response so downstream parsing (CoT extraction, safe-wait decision)
+	// still has something to work with instead of an empty prompt.
+	content := msg.Content
+	if strings.TrimSpace(content) == "" && strings.TrimSpace(msg.ReasoningContent) != "" {
+		content = "<reasoning>\n" + msg.ReasoningContent + "\n</reasoning>"
+	}
+
 	return &LLMResponse{
-		Content:          msg.Content,
+		Content:          content,
 		ReasoningContent: msg.ReasoningContent,
 		ToolCalls:        msg.ToolCalls,
 	}, nil

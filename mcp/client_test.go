@@ -1,8 +1,11 @@
 package mcp
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -231,6 +234,83 @@ func TestClient_Retry_NonRetryableError(t *testing.T) {
 	requests := mockHTTP.GetRequests()
 	if len(requests) != 1 {
 		t.Errorf("should not retry for 400 error, got %d requests", len(requests))
+	}
+}
+
+// TestClient_RetryOnEmptyResponse locks the empty-output regression guard:
+// a 200 response whose message has NO content, NO reasoning_content and NO
+// tool calls must be treated as a retryable error (deepseek thinking-mode
+// can return out=0 turns), not as a successful empty answer. The client
+// must retry, and only give up after max retries.
+func TestClient_RetryOnEmptyResponse(t *testing.T) {
+	mockHTTP := NewMockHTTPClient()
+	mockLogger := NewMockLogger()
+
+	callCount := 0
+	mockHTTP.ResponseFunc = func(req *http.Request) (*http.Response, error) {
+		callCount++
+		// Always return an empty message: content="", reasoning_content=""
+		body := `{"choices":[{"message":{"content":"","reasoning_content":""}}],"usage":{"total_tokens":10}}`
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewBufferString(body)),
+			Header:     make(http.Header),
+		}, nil
+	}
+
+	client := NewClient(
+		WithHTTPClient(mockHTTP.ToHTTPClient()),
+		WithLogger(mockLogger),
+		WithAPIKey("test-key"),
+		WithMaxRetries(3),
+	)
+
+	_, err := client.CallWithMessages("system", "user")
+
+	if err == nil {
+		t.Fatal("empty response must produce an error after retries")
+	}
+	if !strings.Contains(err.Error(), "upstream_empty_output") {
+		t.Errorf("error should mention upstream_empty_output, got: %v", err)
+	}
+	if callCount < 2 {
+		t.Errorf("empty response must trigger retry, got %d calls", callCount)
+	}
+}
+
+// TestClient_ReasoningOnlyFallback locks the reasoning-content fallback: when
+// the model returns content="" but a non-empty reasoning_content (thinking
+// trace only), the client must surface the reasoning as the response instead
+// of returning an empty string, so downstream CoT extraction and decision
+// parsing still have input.
+func TestClient_ReasoningOnlyFallback(t *testing.T) {
+	mockHTTP := NewMockHTTPClient()
+	mockLogger := NewMockLogger()
+
+	mockHTTP.ResponseFunc = func(req *http.Request) (*http.Response, error) {
+		body := `{"choices":[{"message":{"content":"","reasoning_content":"considering regime LOW_VOL, no trade"}}],"usage":{"total_tokens":50}}`
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewBufferString(body)),
+			Header:     make(http.Header),
+		}, nil
+	}
+
+	client := NewClient(
+		WithHTTPClient(mockHTTP.ToHTTPClient()),
+		WithLogger(mockLogger),
+		WithAPIKey("test-key"),
+	)
+
+	result, err := client.CallWithMessages("system", "user")
+	if err != nil {
+		t.Fatalf("reasoning-only response should not error: %v", err)
+	}
+	if !strings.Contains(result, "considering regime LOW_VOL") {
+		t.Errorf("reasoning content should be surfaced, got: %q", result)
+	}
+	if !strings.Contains(result, "<reasoning>") {
+		t.Errorf("reasoning fallback should wrap in <reasoning> tags, got: %q", result)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"fxos/httpclient"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"strings"
 	"sync"
@@ -14,10 +15,13 @@ import (
 
 // GateTrader implements types.Trader interface for Gate.io Futures
 type GateTrader struct {
-	apiKey    string
-	secretKey string
-	client    *gateapi.APIClient
-	ctx       context.Context
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
+	apiKey     string
+	secretKey  string
+	client     *gateapi.APIClient
+	ctx        context.Context
 
 	// Cache fields
 	cachedBalance       *types.Account
@@ -49,6 +53,7 @@ func NewGateTrader(apiKey, secretKey string) *GateTrader {
 	)
 
 	return &GateTrader{
+		syncCursor:     syncloop.NewSyncCursor(),
 		apiKey:         apiKey,
 		secretKey:      secretKey,
 		client:         client,

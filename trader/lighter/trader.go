@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/syncloop"
 	"io"
 	"math"
 	"net/http"
@@ -60,6 +61,9 @@ type AccountResponse struct {
 
 // LighterTraderV2 New implementation using official lighter-go SDK
 type LighterTraderV2 struct {
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
 	ctx        context.Context
 	walletAddr string // Ethereum wallet address
 
@@ -128,6 +132,7 @@ func NewLighterTraderV2(walletAddr, apiKeyPrivateKeyHex string, apiKeyIndex int,
 	httpClient := lighterHTTP.NewClient(baseURL)
 
 	trader := &LighterTraderV2{
+		syncCursor:       syncloop.NewSyncCursor(),
 		ctx:              context.Background(),
 		walletAddr:       walletAddr,
 		client:           httpclient.New(30 * time.Second),

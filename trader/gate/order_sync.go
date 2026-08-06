@@ -223,7 +223,9 @@ func (t *GateTrader) SyncOrdersFromGate(traderID string, exchangeID string, exch
 	}
 
 	// Get recent trades (last 24 hours)
-	startTime := time.Now().Add(-24 * time.Hour)
+	// Sync cursor: memory + DB recovery; falls back to a 24h lookback on first sync
+	nowMs := time.Now().UTC().UnixMilli()
+	startTime := time.UnixMilli(t.syncCursor.GetOrInit(exchangeID, st, nowMs))
 
 	logger.Infof("🔄 Syncing Gate trades from: %s", startTime.Format(time.RFC3339))
 
@@ -256,6 +258,12 @@ func (t *GateTrader) SyncOrdersFromGate(traderID string, exchangeID string, exch
 		SideNormalize:          true,
 		DefaultCommissionAsset: "USDT",
 	})
+
+	// Advance the sync cursor to the latest processed trade (only after a
+	// fully successful sync so failures retry from the same position).
+	if len(trades) > 0 {
+		t.syncCursor.Advance(exchangeID, trades[len(trades)-1].ExecTime.UTC().UnixMilli())
+	}
 
 	logger.Infof("✅ Gate order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil

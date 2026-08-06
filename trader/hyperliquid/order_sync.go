@@ -19,7 +19,9 @@ func (t *HyperliquidTrader) SyncOrdersFromHyperliquid(traderID string, exchangeI
 	}
 
 	// Get recent trades (last 24 hours)
-	startTime := time.Now().Add(-24 * time.Hour)
+	// Sync cursor: memory + DB recovery; falls back to a 24h lookback on first sync
+	nowMs := time.Now().UTC().UnixMilli()
+	startTime := time.UnixMilli(t.syncCursor.GetOrInit(exchangeID, st, nowMs))
 
 	logger.Infof("🔄 Syncing Hyperliquid trades from: %s", startTime.Format(time.RFC3339))
 
@@ -45,6 +47,12 @@ func (t *HyperliquidTrader) SyncOrdersFromHyperliquid(traderID string, exchangeI
 		PositionSideFallback:   "LONG",
 		DefaultCommissionAsset: "USDT",
 	})
+
+	// Advance the sync cursor to the latest processed trade (only after a
+	// fully successful sync so failures retry from the same position).
+	if len(trades) > 0 {
+		t.syncCursor.Advance(exchangeID, trades[len(trades)-1].Time.UTC().UnixMilli())
+	}
 
 	logger.Infof("✅ Order sync completed: %d new trades synced", syncedCount)
 

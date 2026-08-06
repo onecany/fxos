@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"fxos/logger"
 	hlprovider "fxos/provider/hyperliquid"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"strconv"
 	"strings"
@@ -17,6 +18,9 @@ import (
 
 // HyperliquidTrader Hyperliquid trader
 type HyperliquidTrader struct {
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor       *syncloop.SyncCursor
 	exchange         *hyperliquid.Exchange
 	ctx              context.Context
 	walletAddr       string
@@ -208,6 +212,7 @@ func NewHyperliquidTrader(privateKeyHex string, walletAddr string, testnet bool,
 	}
 
 	return &HyperliquidTrader{
+		syncCursor:       syncloop.NewSyncCursor(),
 		exchange:         exchange,
 		ctx:              ctx,
 		walletAddr:       walletAddr,

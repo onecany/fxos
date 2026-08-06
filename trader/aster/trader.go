@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"fxos/hook"
 	"fxos/httpclient"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"io"
 	"math"
@@ -27,6 +28,9 @@ import (
 
 // AsterTrader Aster trading platform implementation
 type AsterTrader struct {
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
 	ctx        context.Context
 	user       string            // Main wallet address (ERC20)
 	signer     string            // API wallet address
@@ -64,6 +68,7 @@ func NewAsterTrader(user, signer, privateKeyHex string) (*AsterTrader, error) {
 	}
 
 	return &AsterTrader{
+		syncCursor:      syncloop.NewSyncCursor(),
 		ctx:             context.Background(),
 		user:            user,
 		signer:          signer,

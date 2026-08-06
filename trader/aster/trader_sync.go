@@ -20,7 +20,9 @@ func (t *AsterTrader) SyncOrdersFromAster(traderID string, exchangeID string, ex
 	}
 
 	// Get recent trades (last 24 hours)
-	startTime := time.Now().Add(-24 * time.Hour)
+	// Sync cursor: memory + DB recovery; falls back to a 24h lookback on first sync
+	nowMs := time.Now().UTC().UnixMilli()
+	startTime := time.UnixMilli(t.syncCursor.GetOrInit(exchangeID, st, nowMs))
 
 	logger.Infof("🔄 Syncing Aster trades from: %s", startTime.Format(time.RFC3339))
 
@@ -48,6 +50,12 @@ func (t *AsterTrader) SyncOrdersFromAster(traderID string, exchangeID string, ex
 			return deriveAsterOrderAction(trade.Side, trade.PositionSide, trade.RealizedPnL)
 		},
 	})
+
+	// Advance the sync cursor to the latest processed trade (only after a
+	// fully successful sync so failures retry from the same position).
+	if len(trades) > 0 {
+		t.syncCursor.Advance(exchangeID, trades[len(trades)-1].Time.UTC().UnixMilli())
+	}
 
 	logger.Infof("✅ Aster order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil

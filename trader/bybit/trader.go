@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"io"
 	"math"
@@ -19,9 +20,12 @@ import (
 
 // BybitTrader Bybit USDT Perpetual Futures Trader
 type BybitTrader struct {
-	client    *bybit.Client
-	apiKey    string
-	secretKey string
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
+	client     *bybit.Client
+	apiKey     string
+	secretKey  string
 
 	// Balance cache
 	cachedBalance     *types.Account
@@ -61,6 +65,7 @@ func NewBybitTrader(apiKey, secretKey string) *BybitTrader {
 	}
 
 	trader := &BybitTrader{
+		syncCursor:    syncloop.NewSyncCursor(),
 		client:        client,
 		apiKey:        apiKey,
 		secretKey:     secretKey,

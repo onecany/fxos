@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"io"
 	"net/http"
@@ -39,6 +40,9 @@ const (
 
 // OKXTrader OKX futures trader
 type OKXTrader struct {
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
 	apiKey     string
 	secretKey  string
 	passphrase string
@@ -117,6 +121,7 @@ func NewOKXTrader(apiKey, secretKey, passphrase string) *OKXTrader {
 	httpClient := httpclient.New(30 * time.Second)
 
 	trader := &OKXTrader{
+		syncCursor:       syncloop.NewSyncCursor(),
 		apiKey:           apiKey,
 		secretKey:        secretKey,
 		passphrase:       passphrase,

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"fxos/httpclient"
 	"fxos/logger"
+	"fxos/trader/syncloop"
 	"fxos/trader/types"
 	"io"
 	"net/http"
@@ -36,6 +37,9 @@ const (
 
 // BitgetTrader Bitget futures trader
 type BitgetTrader struct {
+
+	// syncCursor tracks the incremental order-sync cursor (memory + DB).
+	syncCursor *syncloop.SyncCursor
 	apiKey     string
 	secretKey  string
 	passphrase string
@@ -87,6 +91,7 @@ func NewBitgetTrader(apiKey, secretKey, passphrase string) *BitgetTrader {
 	httpClient := httpclient.New(30 * time.Second)
 
 	trader := &BitgetTrader{
+		syncCursor:     syncloop.NewSyncCursor(),
 		apiKey:         apiKey,
 		secretKey:      secretKey,
 		passphrase:     passphrase,

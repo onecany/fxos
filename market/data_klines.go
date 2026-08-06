@@ -2,7 +2,9 @@ package market
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"fxos/logger"
 	"fxos/provider/coinank/coinank_api"
 	"fxos/provider/coinank/coinank_enum"
@@ -13,6 +15,141 @@ import (
 )
 
 // Note: Kline data now uses free/open API (coinank_api.Kline) which doesn't require authentication
+
+// okxKlinesURL is the OKX public market candles endpoint (no auth required).
+// SWAP instId format: BTC-USDT-SWAP. Bar units: 1m/3m/5m/15m/30m/1H/2H/4H/6H/12H/1D...
+const okxKlinesURL = "https://www.okx.com/api/v5/market/candles"
+
+// getKlinesFromOKX fetches kline data from the OKX public market API
+// (exchange-direct, no claw402/third-party gateway). Used as the default
+// source for regular crypto assets; xyz dex assets keep Hyperliquid.
+func getKlinesFromOKX(symbol, interval string, limit int) ([]Kline, error) {
+	base := okxBaseSymbol(symbol)
+	instID := base + "-USDT-SWAP"
+
+	bar := okxMapInterval(interval)
+	if bar == "" {
+		return nil, fmt.Errorf("unsupported interval for OKX: %s", interval)
+	}
+	if limit <= 0 || limit > 300 {
+		limit = 200
+	}
+
+	apiClient := NewAPIClient()
+	url := fmt.Sprintf("%s?instId=%s&bar=%s&limit=%d", okxKlinesURL, instID, bar, limit)
+	resp, err := apiClient.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Code string     `json:"code"`
+		Data [][]string `json:"data"`
+		Msg  string     `json:"msg"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if result.Code != "0" || len(result.Data) == 0 {
+		return nil, fmt.Errorf("okx klines failed: code=%s msg=%s", result.Code, result.Msg)
+	}
+
+	// OKX candle format: [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm]
+	klines := make([]Kline, 0, len(result.Data))
+	for _, row := range result.Data {
+		if len(row) < 6 {
+			continue
+		}
+		openTime, _ := strconv.ParseInt(row[0], 10, 64)
+		open, _ := strconv.ParseFloat(row[1], 64)
+		high, _ := strconv.ParseFloat(row[2], 64)
+		low, _ := strconv.ParseFloat(row[3], 64)
+		closePrice, _ := strconv.ParseFloat(row[4], 64)
+		volume, _ := strconv.ParseFloat(row[5], 64)
+		klines = append(klines, Kline{
+			OpenTime:  openTime,
+			Open:      open,
+			High:      high,
+			Low:       low,
+			Close:     closePrice,
+			Volume:    volume,
+			CloseTime: openTime + okxBarMillis(bar) - 1,
+		})
+	}
+
+	// OKX returns newest-first; the rest of the pipeline expects oldest-first.
+	for i, j := 0, len(klines)-1; i < j; i, j = i+1, j-1 {
+		klines[i], klines[j] = klines[j], klines[i]
+	}
+	return klines, nil
+}
+
+// GetOKXKlines fetches kline data from OKX (exchange-direct, no auth).
+// Exported for the API layer (handler_klines); the kernel uses
+// getKlinesFromOKX directly.
+func GetOKXKlines(symbol, interval string, limit int) ([]Kline, error) {
+	return getKlinesFromOKX(symbol, interval, limit)
+}
+
+// okxMapInterval maps the market package's interval names to OKX bar units.
+// Matches on the exact interval first so "1M" (monthly, unsupported) is not
+// swallowed by the lowercase "1m" (minute) case.
+func okxMapInterval(interval string) string {
+	switch interval {
+	case "1m", "3m", "5m", "15m", "30m":
+		return interval
+	case "1h":
+		return "1H"
+	case "2h":
+		return "2H"
+	case "4h":
+		return "4H"
+	case "6h":
+		return "6H"
+	case "12h":
+		return "12H"
+	case "1d":
+		return "1D"
+	default:
+		return ""
+	}
+}
+
+// okxBarMillis returns the duration of an OKX bar in milliseconds.
+func okxBarMillis(bar string) int64 {
+	switch bar {
+	case "1m":
+		return 60_000
+	case "3m":
+		return 180_000
+	case "5m":
+		return 300_000
+	case "15m":
+		return 900_000
+	case "30m":
+		return 1_800_000
+	case "1H":
+		return 3_600_000
+	case "2H":
+		return 7_200_000
+	case "4H":
+		return 14_400_000
+	case "6H":
+		return 21_600_000
+	case "12H":
+		return 43_200_000
+	case "1D":
+		return 86_400_000
+	default:
+		return 60_000
+	}
+}
 
 // getKlinesFromCoinAnk fetches kline data from CoinAnk API (replacement for WSMonitorCli)
 func getKlinesFromCoinAnk(symbol, interval, exchange string, limit int) ([]Kline, error) {

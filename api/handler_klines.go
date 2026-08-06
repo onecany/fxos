@@ -69,16 +69,28 @@ func (s *Server) handleKlines(c *gin.Context) {
 			return
 		}
 	default:
-		// Crypto exchanges via CoinAnk
+		// Crypto exchanges: OKX exchange-direct by default, CoinAnk fallback.
 		symbol = market.Normalize(symbol)
-		klines, err = s.getKlinesFromCoinank(symbol, interval, exchange, limit)
+		klines, err = s.getKlinesFromOKX(symbol, interval, limit)
 		if err != nil {
-			SafeInternalError(c, "Get klines from CoinAnk", err)
-			return
+			logger.Infof("⚠️ OKX klines failed for %s (%v), falling back to CoinAnk", symbol, err)
+			klines, err = s.getKlinesFromCoinank(symbol, interval, exchange, limit)
+			if err != nil {
+				SafeInternalError(c, "Get klines from OKX/CoinAnk", err)
+				return
+			}
 		}
 	}
 
 	c.JSON(http.StatusOK, klines)
+}
+
+// getKlinesFromOKX fetches kline data from OKX (exchange-direct, no auth).
+func (s *Server) getKlinesFromOKX(symbol, interval string, limit int) ([]market.Kline, error) {
+	// market.getKlinesFromOKX is unexported; reuse the public OKX fetch via
+	// the market package's exported path. Symbols are already normalized by
+	// the caller.
+	return market.GetOKXKlines(symbol, interval, limit)
 }
 
 // getKlinesFromCoinank fetches kline data from coinank free/open API for multiple exchanges

@@ -52,10 +52,14 @@ func GetWithExchange(symbol, exchange string) (*Data, error) {
 			return nil, fmt.Errorf("Failed to get 5-minute K-line from Hyperliquid: %v", err)
 		}
 	} else {
-		// Use CoinAnk for regular crypto assets with exchange-specific data
-		klines3m, err = getKlinesFromCoinAnk(symbol, "3m", exchange, 100)
+		// Default: OKX exchange-direct for regular crypto assets; CoinAnk as fallback.
+		klines3m, err = getKlinesFromOKX(symbol, "3m", 100)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get 3-minute K-line from CoinAnk (%s): %v", exchange, err)
+			logger.Infof("⚠️ Failed to get 3m K-line from OKX (%v), falling back to CoinAnk (%s)", err, exchange)
+			klines3m, err = getKlinesFromCoinAnk(symbol, "3m", exchange, 100)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to get 3-minute K-line from OKX/CoinAnk (%s): %v", exchange, err)
+			}
 		}
 	}
 
@@ -72,9 +76,14 @@ func GetWithExchange(symbol, exchange string) (*Data, error) {
 			return nil, fmt.Errorf("Failed to get 4-hour K-line from Hyperliquid: %v", err)
 		}
 	} else {
-		klines4h, err = getKlinesFromCoinAnk(symbol, "4h", exchange, 100)
+		// Default: OKX exchange-direct; CoinAnk as fallback.
+		klines4h, err = getKlinesFromOKX(symbol, "4h", 100)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get 4-hour K-line from CoinAnk (%s): %v", exchange, err)
+			logger.Infof("⚠️ Failed to get 4h K-line from OKX (%v), falling back to CoinAnk (%s)", err, exchange)
+			klines4h, err = getKlinesFromCoinAnk(symbol, "4h", exchange, 100)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to get 4-hour K-line from OKX/CoinAnk (%s): %v", exchange, err)
+			}
 		}
 	}
 
@@ -190,11 +199,16 @@ func GetWithTimeframes(symbol string, timeframes []string, primaryTimeframe stri
 				continue
 			}
 		} else {
-			// Use CoinAnk for regular crypto assets (default to Binance)
-			klines, err = getKlinesFromCoinAnk(symbol, tf, "binance", 200)
+			// Default: OKX exchange-direct for regular crypto assets.
+			// Fall back to CoinAnk if OKX is unreachable.
+			klines, err = getKlinesFromOKX(symbol, tf, 200)
 			if err != nil {
-				logger.Infof("⚠️ Failed to get %s %s K-line from CoinAnk: %v", symbol, tf, err)
-				continue
+				logger.Infof("⚠️ Failed to get %s %s K-line from OKX (%v), falling back to CoinAnk", symbol, tf, err)
+				klines, err = getKlinesFromCoinAnk(symbol, tf, "binance", 200)
+				if err != nil {
+					logger.Infof("⚠️ Failed to get %s %s K-line from CoinAnk: %v", symbol, tf, err)
+					continue
+				}
 			}
 		}
 

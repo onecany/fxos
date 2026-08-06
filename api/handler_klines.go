@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/provider/alpaca"
 	"fxos/provider/coinank/coinank_api"
 	"fxos/provider/coinank/coinank_enum"

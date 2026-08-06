@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 
 	"github.com/gin-gonic/gin"
 )

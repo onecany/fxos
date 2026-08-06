@@ -1,7 +1,7 @@
 package trader
 
 import (
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/trader/types"
 	"testing"
 )

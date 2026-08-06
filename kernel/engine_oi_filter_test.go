@@ -3,7 +3,7 @@ package kernel
 import (
 	"testing"
 
-	"fxos/market"
+	"fxos/trader/market"
 )
 
 // TestOIFilterSkipsLowRealOI locks the liquidity filter: a REAL OI value below

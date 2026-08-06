@@ -3,7 +3,7 @@ package gate
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
 	"fxos/trader/types"

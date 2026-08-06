@@ -3,7 +3,7 @@ package trader
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/trader/types"
 	"time"
 )

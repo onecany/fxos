@@ -3,7 +3,7 @@ package hyperliquid
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
+	"fxos/trader/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
 	"time"

@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"fxos/api"
 	"fxos/config"
 	"fxos/logger"
 	"fxos/mcp"
@@ -17,10 +16,16 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+// APIDocsProvider supplies the formatted API route documentation injected
+// into the agent system prompt. The HTTP layer's api.GetAPIDocs (a
+// func() string) satisfies it directly; telegram depends on this alias,
+// not on the api package.
+type APIDocsProvider = func() string
+
 // Start initializes and runs the Telegram bot in a blocking supervisor loop.
 // Supports hot-reload: when a signal is sent on reloadCh, the bot restarts
 // with the latest token (re-read from DB or env). Must be called as a goroutine from main.go.
-func Start(cfg *config.Config, st *store.Store, reloadCh <-chan struct{}) {
+func Start(cfg *config.Config, st *store.Store, reloadCh <-chan struct{}, apiDocs APIDocsProvider) {
 	for {
 		token := resolveToken(cfg, st)
 		if token == "" {
@@ -29,7 +34,7 @@ func Start(cfg *config.Config, st *store.Store, reloadCh <-chan struct{}) {
 			continue
 		}
 
-		stopped := runBot(token, cfg, st)
+		stopped := runBot(token, cfg, st, apiDocs)
 		if !stopped {
 			return
 		}
@@ -51,7 +56,7 @@ func resolveToken(cfg *config.Config, st *store.Store) string {
 }
 
 // runBot runs the bot until the updates channel closes (clean stop → true) or a fatal error (false).
-func runBot(token string, cfg *config.Config, st *store.Store) bool {
+func runBot(token string, cfg *config.Config, st *store.Store, apiDocs APIDocsProvider) bool {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		logger.Errorf("Telegram bot failed to start: %v", err)
@@ -93,7 +98,12 @@ func runBot(token string, cfg *config.Config, st *store.Store) bool {
 		botToken = newToken
 		agents = agent.NewManager(cfg.APIServerPort, botToken, botUserEmail, botUserID,
 			func() mcp.AIClient { return newLLMClient(st, botUserID) },
-			api.GetAPIDocs(),
+			func() string {
+				if apiDocs != nil {
+					return apiDocs()
+				}
+				return ""
+			},
 		)
 		if prev == "" {
 			logger.Infof("Bot: resolved user %s (%s)", botUserID, botUserEmail)

@@ -20,10 +20,18 @@ type Manager struct {
 	systemPrompt string
 }
 
-// NewManager creates a Manager. Call api.GetAPIDocs() before this and pass the result as apiDocs.
+// NewManager creates a Manager. apiDocs is a provider for the live API
+// documentation (injected by the caller, e.g. api.GetAPIDocs); it is called
+// once at manager creation to build the agent system prompt. Keeping it as
+// func() string (instead of a pre-rendered string) lets the caller defer
+// rendering until all routes are registered.
 // userEmail is the registered email shown to the user when they ask "who am I".
 // userID is the internal DB UUID used for API authentication.
-func NewManager(apiPort int, botToken, userEmail, userID string, getLLM func() mcp.AIClient, apiDocs string) *Manager {
+func NewManager(apiPort int, botToken, userEmail, userID string, getLLM func() mcp.AIClient, apiDocs func() string) *Manager {
+	docs := ""
+	if apiDocs != nil {
+		docs = apiDocs()
+	}
 	return &Manager{
 		agents:       make(map[int64]*Agent),
 		lanes:        make(map[int64]chan struct{}),
@@ -31,7 +39,7 @@ func NewManager(apiPort int, botToken, userEmail, userID string, getLLM func() m
 		botToken:     botToken,
 		userID:       userID,
 		getLLM:       getLLM,
-		systemPrompt: BuildAgentPrompt(apiDocs, userEmail, userID),
+		systemPrompt: BuildAgentPrompt(docs, userEmail, userID),
 	}
 }
 

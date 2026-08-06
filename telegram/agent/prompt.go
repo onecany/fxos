@@ -3,7 +3,7 @@ package agent
 import "fmt"
 
 // BuildAgentPrompt constructs the full system prompt with live API documentation injected.
-// apiDocs is the output of api.GetAPIDocs() — reflects all currently registered routes with full schemas.
+// apiDocs is the output of apidocs.GetAPIDocs() — reflects all currently registered routes with full schemas.
 // userEmail is the registered email of the bound user (shown when user asks "who am I").
 // userID is the internal DB UUID used for API authentication only.
 func BuildAgentPrompt(apiDocs, userEmail, userID string) string {

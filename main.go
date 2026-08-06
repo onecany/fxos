@@ -151,9 +151,11 @@ func main() {
 
 	// Start Telegram bot. The bot reads its token from the DB (configured via
 	// the Web UI) and hot-reloads when the API handler saves a new token.
+	// api.GetAPIDocs satisfies telegram.APIDocsProvider — telegram depends on
+	// the interface, not on the api package.
 	telegramReloadCh := make(chan struct{})
 	server.SetTelegramReloadCh(telegramReloadCh)
-	go telegram.Start(cfg, st, telegramReloadCh)
+	go telegram.Start(cfg, st, telegramReloadCh, api.GetAPIDocs)
 
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)

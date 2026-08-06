@@ -11,6 +11,7 @@ import (
 	_ "fxos/mcp/payment"
 	_ "fxos/mcp/provider"
 	"fxos/store"
+	"fxos/telegram"
 	"fxos/telemetry"
 	"os"
 	"os/signal"
@@ -147,6 +148,12 @@ func main() {
 			logger.Fatalf("❌ Failed to start API server: %v", err)
 		}
 	}()
+
+	// Start Telegram bot. The bot reads its token from the DB (configured via
+	// the Web UI) and hot-reloads when the API handler saves a new token.
+	telegramReloadCh := make(chan struct{})
+	server.SetTelegramReloadCh(telegramReloadCh)
+	go telegram.Start(cfg, st, telegramReloadCh)
 
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)

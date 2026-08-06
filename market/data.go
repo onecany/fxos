@@ -1,6 +1,7 @@
 package market
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -256,33 +257,24 @@ func GetWithTimeframes(symbol string, timeframes []string, primaryTimeframe stri
 	}, nil
 }
 
-// getOpenInterestData retrieves OI data
+// getOpenInterestData retrieves OI data.
+// Primary source: OKX SWAP open-interest (coin-quantity oiCcy). When OKX is
+// unreachable, falls back to Hyperliquid metaAndAssetCtxs, which reports OI in
+// coin quantity — same unit, so the caller's USD conversion (OI * price)
+// stays valid.
 func getOpenInterestData(symbol string) (*OIData, error) {
-	url := fmt.Sprintf("https://fapi.binance.com/fapi/v1/openInterest?symbol=%s", symbol)
-
-	apiClient := NewAPIClient()
-	resp, err := apiClient.client.Get(url)
+	oi, err := getOpenInterestFromOKX(symbol)
 	if err != nil {
-		return nil, err
+		// OKX outage / coin not listed — try Hyperliquid. Both report
+		// openInterest in coin quantity (e.g. 31152.05 BTC on OKX,
+		// 34844.12 BTC on Hyperliquid), so downstream USD conversion is
+		// unaffected by which venue answered.
+		logger.Infof("⚠️  OKX OI failed for %s (%v), falling back to Hyperliquid", symbol, err)
+		oi, err = getOpenInterestFromHyperliquid(symbol)
+		if err != nil {
+			return nil, err
+		}
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		OpenInterest string `json:"openInterest"`
-		Symbol       string `json:"symbol"`
-		Time         int64  `json:"time"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
-	}
-
-	oi, _ := strconv.ParseFloat(result.OpenInterest, 64)
 
 	return &OIData{
 		Latest:  oi,
@@ -290,7 +282,70 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 	}, nil
 }
 
+// getOpenInterestFromOKX fetches coin-quantity OI from the OKX SWAP
+// open-interest endpoint. instId is the base-USDT-SWAP pair (BTCUSDT →
+// BTC-USDT-SWAP); the oiCcy field is coin quantity (31152.05 = 31152.05 BTC),
+// matching the legacy Binance fapi openInterest unit.
+func getOpenInterestFromOKX(symbol string) (float64, error) {
+	base := okxBaseSymbol(symbol)
+	instID := base + "-USDT-SWAP"
+	url := fmt.Sprintf("https://www.okx.com/api/v5/public/open-interest?instType=SWAP&instId=%s", instID)
+
+	apiClient := NewAPIClient()
+	resp, err := apiClient.client.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	var result struct {
+		Code string `json:"code"`
+		Data []struct {
+			OICcy string `json:"oiCcy"`
+		} `json:"data"`
+		Msg string `json:"msg"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return 0, err
+	}
+	if result.Code != "0" || len(result.Data) == 0 {
+		return 0, fmt.Errorf("okx open-interest failed: code=%s msg=%s", result.Code, result.Msg)
+	}
+
+	return strconv.ParseFloat(result.Data[0].OICcy, 64)
+}
+
+// getOpenInterestFromHyperliquid fetches coin-quantity OI from the Hyperliquid
+// metaAndAssetCtxs endpoint. Symbol is normalized to the bare base (BTCUSDT →
+// BTC); xyz dex assets (stocks/forex/commodities) have no perp OI on
+// Hyperliquid and are skipped by the caller before this is reached.
+func getOpenInterestFromHyperliquid(symbol string) (float64, error) {
+	ctx := context.Background()
+	coins, err := hyperliquid.GetPerpDexCoins(ctx, "")
+	if err != nil {
+		return 0, fmt.Errorf("hyperliquid OI unavailable: %w", err)
+	}
+
+	base := strings.TrimSuffix(strings.ToUpper(symbol), "USDT")
+	for _, coin := range coins {
+		if strings.EqualFold(coin.Symbol, base) {
+			if coin.OpenInterest <= 0 {
+				return 0, fmt.Errorf("hyperliquid has no OI data for %s", symbol)
+			}
+			return coin.OpenInterest, nil
+		}
+	}
+	return 0, fmt.Errorf("hyperliquid has no market for %s", symbol)
+}
+
 // getFundingRate retrieves funding rate (optimized: uses 1-hour cache)
+// Primary source: OKX SWAP funding-rate. Falls back to Hyperliquid
+// metaAndAssetCtxs funding when OKX is unreachable.
 func getFundingRate(symbol string) (float64, error) {
 	// Check cache (1-hour validity)
 	// Funding Rate only updates every 8 hours, 1-hour cache is very reasonable
@@ -303,7 +358,32 @@ func getFundingRate(symbol string) (float64, error) {
 	}
 
 	// Cache expired or doesn't exist, call API
-	url := fmt.Sprintf("https://fapi.binance.com/fapi/v1/premiumIndex?symbol=%s", symbol)
+	rate, err := getFundingRateFromOKX(symbol)
+	if err != nil {
+		// OKX outage / coin not listed — try Hyperliquid. Same funding rate
+		// semantics (8h period, fraction of notional), just a different venue.
+		logger.Infof("⚠️  OKX funding failed for %s (%v), falling back to Hyperliquid", symbol, err)
+		rate, err = getFundingRateFromHyperliquid(symbol)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	// Update cache
+	fundingRateMap.Store(symbol, &FundingRateCache{
+		Rate:      rate,
+		UpdatedAt: time.Now(),
+	})
+
+	return rate, nil
+}
+
+// getFundingRateFromOKX fetches the current funding rate from the OKX SWAP
+// funding-rate endpoint (instId base-USDT-SWAP, field "fundingRate").
+func getFundingRateFromOKX(symbol string) (float64, error) {
+	base := okxBaseSymbol(symbol)
+	instID := base + "-USDT-SWAP"
+	url := fmt.Sprintf("https://www.okx.com/api/v5/public/funding-rate?instId=%s", instID)
 
 	apiClient := NewAPIClient()
 	resp, err := apiClient.client.Get(url)
@@ -318,28 +398,51 @@ func getFundingRate(symbol string) (float64, error) {
 	}
 
 	var result struct {
-		Symbol          string `json:"symbol"`
-		MarkPrice       string `json:"markPrice"`
-		IndexPrice      string `json:"indexPrice"`
-		LastFundingRate string `json:"lastFundingRate"`
-		NextFundingTime int64  `json:"nextFundingTime"`
-		InterestRate    string `json:"interestRate"`
-		Time            int64  `json:"time"`
+		Code string `json:"code"`
+		Data []struct {
+			FundingRate string `json:"fundingRate"`
+		} `json:"data"`
+		Msg string `json:"msg"`
 	}
-
 	if err := json.Unmarshal(body, &result); err != nil {
 		return 0, err
 	}
+	if result.Code != "0" || len(result.Data) == 0 {
+		return 0, fmt.Errorf("okx funding-rate failed: code=%s msg=%s", result.Code, result.Msg)
+	}
 
-	rate, _ := strconv.ParseFloat(result.LastFundingRate, 64)
+	return strconv.ParseFloat(result.Data[0].FundingRate, 64)
+}
 
-	// Update cache
-	fundingRateMap.Store(symbol, &FundingRateCache{
-		Rate:      rate,
-		UpdatedAt: time.Now(),
-	})
+// okxBaseSymbol normalizes a trading symbol to the OKX SWAP base name
+// (BTCUSDT → BTC, SOLUSDT → SOL). Non-USDT suffixes are stripped the same way;
+// xyz dex assets never reach this code (skipped by the OI filter upstream).
+func okxBaseSymbol(symbol string) string {
+	upper := strings.ToUpper(strings.TrimSpace(symbol))
+	for _, suffix := range []string{"USDT", "USDC", "USD"} {
+		if strings.HasSuffix(upper, suffix) {
+			return strings.TrimSuffix(upper, suffix)
+		}
+	}
+	return upper
+}
 
-	return rate, nil
+// getFundingRateFromHyperliquid fetches the current funding rate from the
+// Hyperliquid metaAndAssetCtxs endpoint (field "funding", e.g. 0.0000125).
+func getFundingRateFromHyperliquid(symbol string) (float64, error) {
+	ctx := context.Background()
+	coins, err := hyperliquid.GetPerpDexCoins(ctx, "")
+	if err != nil {
+		return 0, fmt.Errorf("hyperliquid funding unavailable: %w", err)
+	}
+
+	base := strings.TrimSuffix(strings.ToUpper(symbol), "USDT")
+	for _, coin := range coins {
+		if strings.EqualFold(coin.Symbol, base) {
+			return coin.FundingRate, nil
+		}
+	}
+	return 0, fmt.Errorf("hyperliquid has no market for %s", symbol)
 }
 
 // Format formats and outputs market data

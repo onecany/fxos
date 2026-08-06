@@ -26,7 +26,8 @@ type CoinInfo struct {
 	MarkPrice    float64 `json:"mark_price"`
 	PrevDayPrice float64 `json:"prev_day_price,omitempty"`
 	Change24hPct float64 `json:"change_24h_pct,omitempty"`
-	OpenInterest float64 `json:"open_interest,omitempty"` // open interest in USD (from assetCtx.openInterest)
+	OpenInterest float64 `json:"open_interest,omitempty"` // open interest in coin quantity (from assetCtx.openInterest)
+	FundingRate  float64 `json:"funding_rate,omitempty"`  // current funding rate (from assetCtx.funding)
 	MaxLeverage  int     `json:"max_leverage,omitempty"`
 	SzDecimals   int     `json:"sz_decimals,omitempty"`
 }
@@ -85,10 +86,11 @@ type metaResponse struct {
 
 // assetCtx represents asset context with market data.
 type assetCtx struct {
-	DayNtlVlm     string `json:"dayNtlVlm"`     // 24h notional volume
-	MarkPx        string `json:"markPx"`
-	PrevDayPx     string `json:"prevDayPx"`
-	OpenInterestPx string `json:"openInterest"` // open interest in USD (e.g. "1234567.89")
+	DayNtlVlm      string `json:"dayNtlVlm"`      // 24h notional volume
+	MarkPx         string `json:"markPx"`
+	PrevDayPx      string `json:"prevDayPx"`
+	OpenInterestPx string `json:"openInterest"` // open interest in coin quantity (e.g. "34844.12256")
+	FundingPx      string `json:"funding"`      // current funding rate (e.g. "0.0000125")
 }
 
 func fetchPerpDexCoins(ctx context.Context, client *http.Client, dex string) ([]CoinInfo, error) {
@@ -128,12 +130,13 @@ func fetchPerpDexCoins(ctx context.Context, client *http.Client, dex string) ([]
 
 	coins := make([]CoinInfo, 0, len(meta.Universe))
 	for i, u := range meta.Universe {
-		var vol, mark, prevDay, change24hPct, openInterest float64
+		var vol, mark, prevDay, change24hPct, openInterest, funding float64
 		if i < len(ctxs) {
 			vol, _ = strconv.ParseFloat(ctxs[i].DayNtlVlm, 64)
 			mark, _ = strconv.ParseFloat(ctxs[i].MarkPx, 64)
 			prevDay, _ = strconv.ParseFloat(ctxs[i].PrevDayPx, 64)
 			openInterest, _ = strconv.ParseFloat(ctxs[i].OpenInterestPx, 64)
+			funding, _ = strconv.ParseFloat(ctxs[i].FundingPx, 64)
 			if prevDay > 0 && mark > 0 {
 				change24hPct = ((mark - prevDay) / prevDay) * 100
 			}
@@ -145,6 +148,7 @@ func fetchPerpDexCoins(ctx context.Context, client *http.Client, dex string) ([]
 			PrevDayPrice: prevDay,
 			Change24hPct: change24hPct,
 			OpenInterest: openInterest,
+			FundingRate:  funding,
 			MaxLeverage:  u.MaxLeverage,
 			SzDecimals:   u.SzDecimals,
 		})

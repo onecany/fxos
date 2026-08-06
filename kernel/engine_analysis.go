@@ -215,8 +215,6 @@ func fetchMarketDataWithStrategy(ctx *Context, engine StrategyReader) error {
 		positionSymbols[pos.Symbol] = true
 	}
 
-	const minOIThresholdMillions = 15.0 // 15M USD minimum open interest value
-
 	for _, coin := range ctx.CandidateCoins {
 		if _, exists := ctx.MarketDataMap[coin.Symbol]; exists {
 			continue
@@ -229,16 +227,8 @@ func fetchMarketDataWithStrategy(ctx *Context, engine StrategyReader) error {
 		}
 
 		// Liquidity filter (skip for xyz dex assets - they don't have OI data from Binance)
-		isExistingPosition := positionSymbols[coin.Symbol]
-		isXyzAsset := market.IsXyzDexAsset(coin.Symbol)
-		if !isExistingPosition && !isXyzAsset && data.OpenInterest != nil && data.CurrentPrice > 0 {
-			oiValue := data.OpenInterest.Latest * data.CurrentPrice
-			oiValueInMillions := oiValue / 1_000_000
-			if oiValueInMillions < minOIThresholdMillions {
-				logger.Infof("⚠️  %s OI value too low (%.2fM USD < %.1fM), skipping coin",
-					coin.Symbol, oiValueInMillions, minOIThresholdMillions)
-				continue
-			}
+		if shouldSkipCoinByOIFilter(coin.Symbol, data, positionSymbols) {
+			continue
 		}
 
 		ctx.MarketDataMap[coin.Symbol] = data
@@ -246,6 +236,38 @@ func fetchMarketDataWithStrategy(ctx *Context, engine StrategyReader) error {
 
 	logger.Infof("📊 Successfully fetched multi-timeframe market data for %d coins", len(ctx.MarketDataMap))
 	return nil
+}
+
+const minOIThresholdMillions = 15.0 // 15M USD minimum open interest value
+
+// shouldSkipCoinByOIFilter decides whether a candidate coin passes the
+// liquidity filter. Guard: when OI data is unavailable (nil or zero — e.g. the
+// upstream OI source is geo-blocked or the coin has no perp OI), DO NOT skip
+// the coin. A missing data point is not evidence of low liquidity; filtering
+// on it would silently empty the candidate universe and starve the AI prompt.
+// Only a REAL OI value below the threshold triggers the skip. Existing
+// positions and xyz dex assets (no perp OI) are never skipped.
+func shouldSkipCoinByOIFilter(symbol string, data *market.Data, positionSymbols map[string]bool) bool {
+	if data == nil {
+		return false
+	}
+	if positionSymbols[symbol] {
+		return false
+	}
+	if market.IsXyzDexAsset(symbol) {
+		return false
+	}
+	if data.OpenInterest == nil || data.OpenInterest.Latest <= 0 || data.CurrentPrice <= 0 {
+		return false
+	}
+	oiValue := data.OpenInterest.Latest * data.CurrentPrice
+	oiValueInMillions := oiValue / 1_000_000
+	if oiValueInMillions < minOIThresholdMillions {
+		logger.Infof("⚠️  %s OI value too low (%.2fM USD < %.1fM), skipping coin",
+			symbol, oiValueInMillions, minOIThresholdMillions)
+		return true
+	}
+	return false
 }
 
 func pruneCandidateCoinsWithoutMarketData(ctx *Context) {

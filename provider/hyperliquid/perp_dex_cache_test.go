@@ -111,3 +111,41 @@ func TestGetPerpDexCoinsCachesPerDex(t *testing.T) {
 		t.Fatalf("cache keys collided: xyz=%v default=%v", xyz, def)
 	}
 }
+
+// TestGetPerpDexCoinsParsesFundingRate locks the assetCtx funding field
+// mapping: CoinInfo.FundingRate must come from the "funding" JSON field so the
+// market-package fallback (funding rate when Binance is geo-blocked) gets a
+// real value instead of 0.
+func TestGetPerpDexCoinsParsesFundingRate(t *testing.T) {
+	withStubbedPerpDexFetch(t, func(ctx context.Context, client *http.Client, dex string) ([]CoinInfo, error) {
+		return []CoinInfo{{Symbol: "BTC", FundingRate: 0.0000125}}, nil
+	})
+
+	coins, err := GetPerpDexCoins(context.Background(), "")
+	if err != nil {
+		t.Fatalf("GetPerpDexCoins: %v", err)
+	}
+	if len(coins) != 1 {
+		t.Fatalf("got %d coins, want 1", len(coins))
+	}
+	if coins[0].FundingRate != 0.0000125 {
+		t.Fatalf("FundingRate = %v, want 0.0000125", coins[0].FundingRate)
+	}
+}
+
+// TestGetPerpDexCoinsParsesOpenInterest locks the openInterest field mapping:
+// coin-quantity OI must survive the parse so USD conversion (OI * price) works
+// downstream in the engine's liquidity filter.
+func TestGetPerpDexCoinsParsesOpenInterest(t *testing.T) {
+	withStubbedPerpDexFetch(t, func(ctx context.Context, client *http.Client, dex string) ([]CoinInfo, error) {
+		return []CoinInfo{{Symbol: "BTC", OpenInterest: 34844.12}}, nil
+	})
+
+	coins, err := GetPerpDexCoins(context.Background(), "")
+	if err != nil {
+		t.Fatalf("GetPerpDexCoins: %v", err)
+	}
+	if coins[0].OpenInterest != 34844.12 {
+		t.Fatalf("OpenInterest = %v, want 34844.12", coins[0].OpenInterest)
+	}
+}

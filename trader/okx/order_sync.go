@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
 	"fxos/trader/types"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -169,107 +167,45 @@ func (t *OKXTrader) SyncOrdersFromOKX(traderID string, exchangeID string, exchan
 
 	logger.Infof("📥 Received %d trades from OKX", len(trades))
 
-	// Sort trades by time ASC (oldest first) for proper position building
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].ExecTime.UnixMilli() < trades[j].ExecTime.UnixMilli()
-	})
-
-	// Process trades one by one (no transaction to avoid deadlock)
-	orderStore := st.Order()
-	positionStore := st.Position()
-	posBuilder := store.NewPositionBuilder(positionStore)
-	syncedCount := 0
-
+	// Convert exchange trades to the shared TradeRecord shape and persist via
+	// the shared sync engine (sort ASC, dedup, symbol normalization,
+	// order/fill/position records). OKX fills report quantity in base asset
+	// terms (contracts * contract value) and carry no per-trade PnL; the
+	// position side is inferred from the order action (matches the original
+	// inference logic). The per-fill fee currency (feeCcy) is carried
+	// through CommissionAssetFunc.
+	feeAssetByTrade := make(map[string]string, len(trades))
+	records := make([]types.TradeRecord, 0, len(trades))
 	for _, trade := range trades {
-		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
-		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
-		if err == nil && existing != nil {
-			continue // Order already exists, skip
-		}
-
-		// Normalize symbol
-		symbol := market.Normalize(trade.Symbol)
-
-		// Determine position side from order action
-		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, types.SideShort) {
-			positionSide = "SHORT"
-		}
-
-		// Normalize side for storage
-		side := strings.ToUpper(trade.Side)
-
-		// Create order record - use UTC time in milliseconds to avoid timezone issues
-		execTimeMs := trade.ExecTime.UTC().UnixMilli()
-		orderRecord := &store.TraderOrder{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			ExchangeOrderID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			PositionSide:    positionSide,
-			Type:            trade.OrderType,
-			OrderAction:     trade.OrderAction,
-			Quantity:        trade.FillQtyBase,
-			Price:           trade.FillPrice,
-			Status:          "FILLED",
-			FilledQuantity:  trade.FillQtyBase,
-			AvgFillPrice:    trade.FillPrice,
-			Commission:      trade.Fee,
-			FilledAt:        execTimeMs,
-			CreatedAt:       execTimeMs,
-			UpdatedAt:       execTimeMs,
-		}
-
-		// Insert order record
-		if err := orderStore.CreateOrder(orderRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync trade %s: %v", trade.TradeID, err)
-			continue
-		}
-
-		// Create fill record - use UTC time in milliseconds
-		fillRecord := &store.TraderFill{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			OrderID:         orderRecord.ID,
-			ExchangeOrderID: trade.OrderID,
-			ExchangeTradeID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			Price:           trade.FillPrice,
-			Quantity:        trade.FillQtyBase,
-			QuoteQuantity:   trade.FillPrice * trade.FillQtyBase,
-			Commission:      trade.Fee,
-			CommissionAsset: trade.FeeAsset,
-			RealizedPnL:     0, // OKX fills don't include PnL per trade
-			IsMaker:         trade.IsMaker,
-			CreatedAt:       execTimeMs,
-		}
-
-		if err := orderStore.CreateFill(fillRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync fill for trade %s: %v", trade.TradeID, err)
-		}
-
-		// Create/update position record using PositionBuilder
-		if err := posBuilder.ProcessTrade(
-			traderID, exchangeID, exchangeType,
-			symbol, positionSide, trade.OrderAction,
-			trade.FillQtyBase, trade.FillPrice, trade.Fee, 0, // No per-trade PnL from OKX
-			execTimeMs, trade.TradeID,
-		); err != nil {
-			logger.Infof("  ⚠️ Failed to sync position for trade %s: %v", trade.TradeID, err)
-		} else {
-			logger.Infof("  📍 Position updated for trade: %s (action: %s, qty: %.6f)", trade.TradeID, trade.OrderAction, trade.FillQtyBase)
-		}
-
-		syncedCount++
-		logger.Infof("  ✅ Synced trade: %s %s %s qty=%.6f price=%.6f fee=%.6f action=%s",
-			trade.TradeID, trade.Symbol, side, trade.FillQtyBase, trade.FillPrice, trade.Fee, trade.OrderAction)
+		feeAssetByTrade[trade.TradeID] = trade.FeeAsset
+		records = append(records, types.TradeRecord{
+			TradeID:      trade.TradeID,
+			Symbol:       trade.Symbol,
+			Side:         trade.Side,
+			PositionSide: "", // inferred from the order action by the shared engine
+			OrderAction:  trade.OrderAction,
+			OrderType:    trade.OrderType,
+			Price:        trade.FillPrice,
+			Quantity:     trade.FillQtyBase,
+			RealizedPnL:  0, // OKX fills don't include PnL per trade
+			Fee:          trade.Fee,
+			Time:         trade.ExecTime,
+		})
 	}
 
-	logger.Infof("✅ OKX order sync completed: %d new trades synced", syncedCount)
+	syncedCount, skippedCount := syncloop.PersistTrades(st, records, syncloop.PersistOptions{
+		TraderID:               traderID,
+		ExchangeID:             exchangeID,
+		ExchangeType:           exchangeType,
+		PositionSideFallback:   "LONG",
+		SideNormalize:          true,
+		DefaultCommissionAsset: "USDT",
+		CommissionAssetFunc: func(trade types.TradeRecord) string {
+			return feeAssetByTrade[trade.TradeID]
+		},
+	})
+
+	logger.Infof("✅ OKX order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil
 }
 

@@ -29,17 +29,18 @@ type PersistOptions struct {
 	SideNormalize bool
 
 	// DefaultCommissionAsset for fill records when the trade does not
-	// carry an asset.
+	// carry an asset (and CommissionAssetFunc is nil).
 	DefaultCommissionAsset string
+
+	// CommissionAssetFunc returns the fill commission asset per trade;
+	// overrides DefaultCommissionAsset when set (bitget/gate/kucoin
+	// report a per-trade fee asset).
+	CommissionAssetFunc func(trade types.TradeRecord) string
 
 	// DetermineOrderAction maps a trade to an order action; when nil the
 	// trade's own OrderAction field is used (hyperliquid parses it from
 	// the exchange Dir field).
 	DetermineOrderAction func(trade types.TradeRecord) string
-
-	// IsMaker is the fixed maker flag for fills that lack maker/taker
-	// information.
-	IsMaker bool
 }
 
 // PersistTrades dedups, normalizes and writes trades to the order, fill
@@ -59,10 +60,6 @@ func PersistTrades(st *store.Store, trades []types.TradeRecord, opts PersistOpti
 	orderStore := st.Order()
 	positionStore := st.Position()
 	posBuilder := store.NewPositionBuilder(positionStore)
-	commissionAsset := opts.DefaultCommissionAsset
-	if commissionAsset == "" {
-		commissionAsset = "USDT"
-	}
 
 	for _, trade := range trades {
 		// Check if trade already exists (use exchangeID which is UUID)
@@ -101,6 +98,10 @@ func PersistTrades(st *store.Store, trades []types.TradeRecord, opts PersistOpti
 
 		// Create order record - use Unix milliseconds UTC
 		tradeTimeMs := trade.Time.UTC().UnixMilli()
+		orderType := trade.OrderType
+		if orderType == "" {
+			orderType = "MARKET"
+		}
 		orderRecord := &store.TraderOrder{
 			TraderID:        opts.TraderID,
 			ExchangeID:      opts.ExchangeID,
@@ -109,7 +110,7 @@ func PersistTrades(st *store.Store, trades []types.TradeRecord, opts PersistOpti
 			Symbol:          symbol,
 			Side:            side,
 			PositionSide:    positionSide,
-			Type:            "MARKET",
+			Type:            orderType,
 			OrderAction:     orderAction,
 			Quantity:        trade.Quantity,
 			Price:           trade.Price,
@@ -129,6 +130,13 @@ func PersistTrades(st *store.Store, trades []types.TradeRecord, opts PersistOpti
 		}
 
 		// Create fill record
+		commissionAsset := opts.DefaultCommissionAsset
+		if opts.CommissionAssetFunc != nil {
+			commissionAsset = opts.CommissionAssetFunc(trade)
+		}
+		if commissionAsset == "" {
+			commissionAsset = "USDT"
+		}
 		fillRecord := &store.TraderFill{
 			TraderID:        opts.TraderID,
 			ExchangeID:      opts.ExchangeID,
@@ -144,7 +152,7 @@ func PersistTrades(st *store.Store, trades []types.TradeRecord, opts PersistOpti
 			Commission:      trade.Fee,
 			CommissionAsset: commissionAsset,
 			RealizedPnL:     trade.RealizedPnL,
-			IsMaker:         opts.IsMaker,
+			IsMaker:         trade.IsMaker,
 			CreatedAt:       tradeTimeMs,
 		}
 

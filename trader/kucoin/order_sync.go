@@ -295,107 +295,26 @@ func (t *KuCoinTrader) SyncOrdersFromKuCoin(traderID string, exchangeID string, 
 
 	logger.Infof("📥 Received %d trades from KuCoin", len(trades))
 
-	// Sort trades by time ASC (oldest first) for proper position building
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].ExecTime.UnixMilli() < trades[j].ExecTime.UnixMilli()
-	})
-
-	// Process trades one by one (no transaction to avoid deadlock)
-	orderStore := st.Order()
-	positionStore := st.Position()
-	posBuilder := store.NewPositionBuilder(positionStore)
-	syncedCount := 0
-
+	// Convert to unified TradeRecord format (ToTradeRecord infers the
+	// position side from the order action) and persist via the shared
+	// sync engine (sort ASC, dedup, symbol normalization, order/fill/
+	// position records). KuCoin returns one-way-mode fills; the position
+	// side is inferred per trade.
+	records := make([]types.TradeRecord, 0, len(trades))
 	for _, trade := range trades {
-		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
-		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
-		if err == nil && existing != nil {
-			continue // Order already exists, skip
-		}
-
-		// Symbol is already normalized in GetTrades
-		symbol := trade.Symbol
-
-		// Determine position side from order action
-		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, types.SideShort) {
-			positionSide = "SHORT"
-		}
-
-		// Normalize side for storage
-		side := strings.ToUpper(trade.Side)
-
-		// Create order record - use UTC time in milliseconds to avoid timezone issues
-		execTimeMs := trade.ExecTime.UTC().UnixMilli()
-		orderRecord := &store.TraderOrder{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			ExchangeOrderID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			PositionSide:    "BOTH", // KuCoin uses one-way position mode
-			Type:            "MARKET",
-			OrderAction:     trade.OrderAction,
-			Quantity:        trade.FillQty,
-			Price:           trade.FillPrice,
-			Status:          "FILLED",
-			FilledQuantity:  trade.FillQty,
-			AvgFillPrice:    trade.FillPrice,
-			Commission:      trade.Fee,
-			FilledAt:        execTimeMs,
-			CreatedAt:       execTimeMs,
-			UpdatedAt:       execTimeMs,
-		}
-
-		// Insert order record
-		if err := orderStore.CreateOrder(orderRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync trade %s: %v", trade.TradeID, err)
-			continue
-		}
-
-		// Create fill record - use UTC time in milliseconds
-		fillRecord := &store.TraderFill{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			OrderID:         orderRecord.ID,
-			ExchangeOrderID: trade.OrderID,
-			ExchangeTradeID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			Price:           trade.FillPrice,
-			Quantity:        trade.FillQty,
-			QuoteQuantity:   trade.FillPrice * trade.FillQty,
-			Commission:      trade.Fee,
-			CommissionAsset: trade.FeeAsset,
-			RealizedPnL:     trade.ProfitLoss,
-			IsMaker:         false,
-			CreatedAt:       execTimeMs,
-		}
-
-		if err := orderStore.CreateFill(fillRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync fill for trade %s: %v", trade.TradeID, err)
-		}
-
-		// Create/update position record using PositionBuilder
-		if err := posBuilder.ProcessTrade(
-			traderID, exchangeID, exchangeType,
-			symbol, positionSide, trade.OrderAction,
-			trade.FillQty, trade.FillPrice, trade.Fee, trade.ProfitLoss,
-			execTimeMs, trade.TradeID,
-		); err != nil {
-			logger.Infof("  ⚠️ Failed to sync position for trade %s: %v", trade.TradeID, err)
-		} else {
-			logger.Infof("  📍 Position updated for trade: %s (action: %s, qty: %.6f)", trade.TradeID, trade.OrderAction, trade.FillQty)
-		}
-
-		syncedCount++
-		logger.Infof("  ✅ Synced trade: %s %s %s qty=%.6f price=%.6f pnl=%.2f fee=%.6f action=%s",
-			trade.TradeID, symbol, side, trade.FillQty, trade.FillPrice, trade.ProfitLoss, trade.Fee, trade.OrderAction)
+		records = append(records, trade.ToTradeRecord())
 	}
 
-	logger.Infof("✅ KuCoin order sync completed: %d new trades synced", syncedCount)
+	syncedCount, skippedCount := syncloop.PersistTrades(st, records, syncloop.PersistOptions{
+		TraderID:               traderID,
+		ExchangeID:             exchangeID,
+		ExchangeType:           exchangeType,
+		PositionSideFallback:   "LONG",
+		SideNormalize:          true,
+		DefaultCommissionAsset: "USDT",
+	})
+
+	logger.Infof("✅ KuCoin order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil
 }
 

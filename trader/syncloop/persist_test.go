@@ -88,7 +88,6 @@ func TestPersistTradesDedup(t *testing.T) {
 		PositionSideFallback:   "LONG",
 		SideNormalize:          true,
 		DefaultCommissionAsset: "USDT",
-		IsMaker:                false,
 	}
 
 	synced, skipped := PersistTrades(st, trades, opts)

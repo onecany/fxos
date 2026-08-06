@@ -3,11 +3,9 @@ package aster
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
 	"fxos/trader/types"
-	"sort"
 	"strings"
 	"time"
 )
@@ -34,113 +32,24 @@ func (t *AsterTrader) SyncOrdersFromAster(traderID string, exchangeID string, ex
 
 	logger.Infof("📥 Received %d trades from Aster", len(trades))
 
-	// Sort trades by time ASC (oldest first) for proper position building
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].Time.UnixMilli() < trades[j].Time.UnixMilli()
+	// Persist via the shared sync engine (sort ASC, dedup, symbol
+	// normalization, order/fill/position records). Aster's GetTrades
+	// already returns types.TradeRecord; the order action is derived
+	// exchange-specifically from side/positionSide/realized PnL via
+	// DetermineOrderAction (Aster uses one-way position mode).
+	syncedCount, skippedCount := syncloop.PersistTrades(st, trades, syncloop.PersistOptions{
+		TraderID:               traderID,
+		ExchangeID:             exchangeID,
+		ExchangeType:           exchangeType,
+		PositionSideFallback:   "LONG",
+		SideNormalize:          true,
+		DefaultCommissionAsset: "USDT",
+		DetermineOrderAction: func(trade types.TradeRecord) string {
+			return deriveAsterOrderAction(trade.Side, trade.PositionSide, trade.RealizedPnL)
+		},
 	})
 
-	// Process trades one by one (no transaction to avoid deadlock)
-	orderStore := st.Order()
-	positionStore := st.Position()
-	posBuilder := store.NewPositionBuilder(positionStore)
-	syncedCount := 0
-
-	for _, trade := range trades {
-		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
-		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
-		if err == nil && existing != nil {
-			continue // Order already exists, skip
-		}
-
-		// Normalize symbol
-		symbol := market.Normalize(trade.Symbol)
-
-		// Determine order action based on side, positionSide, and realizedPnL
-		// Aster uses one-way position mode (BOTH), so we need to infer from PnL
-		// - RealizedPnL != 0 means it's a close trade
-		// - RealizedPnL == 0 means it's an open trade
-		orderAction := deriveAsterOrderAction(trade.Side, trade.PositionSide, trade.RealizedPnL)
-
-		// Determine position side from order action
-		positionSide := "LONG"
-		if strings.Contains(orderAction, types.SideShort) {
-			positionSide = "SHORT"
-		}
-
-		// Normalize side for storage
-		side := strings.ToUpper(trade.Side)
-
-		// Create order record - use Unix milliseconds UTC
-		tradeTimeMs := trade.Time.UTC().UnixMilli()
-		orderRecord := &store.TraderOrder{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			ExchangeOrderID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			PositionSide:    "BOTH", // Aster uses one-way position mode
-			Type:            "LIMIT",
-			OrderAction:     orderAction,
-			Quantity:        trade.Quantity,
-			Price:           trade.Price,
-			Status:          "FILLED",
-			FilledQuantity:  trade.Quantity,
-			AvgFillPrice:    trade.Price,
-			Commission:      trade.Fee,
-			FilledAt:        tradeTimeMs,
-			CreatedAt:       tradeTimeMs,
-			UpdatedAt:       tradeTimeMs,
-		}
-
-		// Insert order record
-		if err := orderStore.CreateOrder(orderRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync trade %s: %v", trade.TradeID, err)
-			continue
-		}
-
-		// Create fill record - use Unix milliseconds UTC
-		fillRecord := &store.TraderFill{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			OrderID:         orderRecord.ID,
-			ExchangeOrderID: trade.TradeID,
-			ExchangeTradeID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			Price:           trade.Price,
-			Quantity:        trade.Quantity,
-			QuoteQuantity:   trade.Price * trade.Quantity,
-			Commission:      trade.Fee,
-			CommissionAsset: "USDT",
-			RealizedPnL:     trade.RealizedPnL,
-			IsMaker:         false,
-			CreatedAt:       tradeTimeMs,
-		}
-
-		if err := orderStore.CreateFill(fillRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync fill for trade %s: %v", trade.TradeID, err)
-		}
-
-		// Create/update position record using PositionBuilder
-		if err := posBuilder.ProcessTrade(
-			traderID, exchangeID, exchangeType,
-			symbol, positionSide, orderAction,
-			trade.Quantity, trade.Price, trade.Fee, trade.RealizedPnL,
-			tradeTimeMs, trade.TradeID,
-		); err != nil {
-			logger.Infof("  ⚠️ Failed to sync position for trade %s: %v", trade.TradeID, err)
-		} else {
-			logger.Infof("  📍 Position updated for trade: %s (action: %s, qty: %.6f)", trade.TradeID, orderAction, trade.Quantity)
-		}
-
-		syncedCount++
-		logger.Infof("  ✅ Synced trade: %s %s %s qty=%.6f price=%.6f pnl=%.2f fee=%.6f action=%s",
-			trade.TradeID, symbol, side, trade.Quantity, trade.Price, trade.RealizedPnL, trade.Fee, orderAction)
-	}
-
-	logger.Infof("✅ Aster order sync completed: %d new trades synced", syncedCount)
+	logger.Infof("✅ Aster order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil
 }
 

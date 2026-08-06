@@ -141,7 +141,6 @@ func (t *FuturesTrader) SyncOrdersFromBinance(traderID string, exchangeID string
 		DetermineOrderAction: func(trade types.TradeRecord) string {
 			return t.determineOrderAction(trade.Side, trade.PositionSide, trade.RealizedPnL)
 		},
-		IsMaker: false,
 	})
 
 	// Update lastSyncTime to the LATEST trade time (not current time!)

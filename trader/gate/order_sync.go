@@ -7,7 +7,6 @@ import (
 	"fxos/store"
 	"fxos/trader/syncloop"
 	"fxos/trader/types"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -148,6 +147,72 @@ func (t *GateTrader) GetTrades(startTime time.Time, limit int) ([]GateTrade, err
 	return result, nil
 }
 
+// toTradeRecord converts a GateTrade to the unified TradeRecord format.
+// The symbol keeps its underscore form here (BTC_USDT); the shared engine
+// runs market.Normalize which strips "_" (equivalent to the old explicit
+// strings.ReplaceAll before Normalize). Position side is inferred from the
+// order action, matching the value the position builder used to receive.
+func (g GateTrade) toTradeRecord() types.TradeRecord {
+	// Determine position side from order action (Gate uses one-way mode)
+	positionSide := "LONG"
+	if strings.Contains(g.OrderAction, types.SideShort) {
+		positionSide = "SHORT"
+	}
+
+	return types.TradeRecord{
+		TradeID:      g.TradeID,
+		Symbol:       g.Symbol,
+		Side:         g.Side,
+		PositionSide: positionSide,
+		OrderAction:  g.OrderAction,
+		OrderType:    g.OrderType,
+		Price:        g.FillPrice,
+		Quantity:     g.FillQty,
+		Fee:          g.Fee,
+		RealizedPnL:  g.ProfitLoss,
+		Time:         g.ExecTime,
+	}
+}
+
+// retryClosePositionUpdates is Gate-specific compensation logic: when a
+// close trade's order already exists but its position update previously
+// failed, retry the position update. The shared sync engine skips existing
+// orders entirely, so this retry stays exchange-specific.
+func (t *GateTrader) retryClosePositionUpdates(traderID string, exchangeID string, exchangeType string, st *store.Store, trades []GateTrade) {
+	orderStore := st.Order()
+	posBuilder := store.NewPositionBuilder(st.Position())
+
+	for _, trade := range trades {
+		if !strings.HasPrefix(trade.OrderAction, "close_") || trade.FillPrice <= 0 {
+			continue
+		}
+
+		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
+		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
+		if err != nil || existing == nil {
+			continue
+		}
+
+		// Normalize symbol (Gate uses BTC_USDT, normalize to BTCUSDT)
+		symbol := market.Normalize(strings.ReplaceAll(trade.Symbol, "_", ""))
+
+		// Determine position side from order action
+		positionSide := "LONG"
+		if strings.Contains(trade.OrderAction, types.SideShort) {
+			positionSide = "SHORT"
+		}
+
+		if err := posBuilder.ProcessTrade(
+			traderID, exchangeID, exchangeType,
+			symbol, positionSide, trade.OrderAction,
+			trade.FillQty, trade.FillPrice, trade.Fee, trade.ProfitLoss,
+			trade.ExecTime.UTC().UnixMilli(), trade.TradeID,
+		); err != nil {
+			logger.Infof("  ⚠️ Retry position update for existing trade %s failed: %v", trade.TradeID, err)
+		}
+	}
+}
+
 // SyncOrdersFromGate syncs Gate exchange order history to local database
 // Also creates/updates position records to ensure orders/fills/positions data consistency
 // exchangeID: Exchange account UUID (from exchanges.id)
@@ -170,125 +235,29 @@ func (t *GateTrader) SyncOrdersFromGate(traderID string, exchangeID string, exch
 
 	logger.Infof("📥 Received %d trades from Gate", len(trades))
 
-	// Sort trades by time ASC (oldest first) for proper position building
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].ExecTime.UnixMilli() < trades[j].ExecTime.UnixMilli()
-	})
+	// Gate-specific: retry position updates for close trades whose order
+	// already exists but whose position update previously failed.
+	t.retryClosePositionUpdates(traderID, exchangeID, exchangeType, st, trades)
 
-	// Process trades one by one (no transaction to avoid deadlock)
-	orderStore := st.Order()
-	positionStore := st.Position()
-	posBuilder := store.NewPositionBuilder(positionStore)
-	syncedCount := 0
-
+	// Convert to unified TradeRecord format and persist via the shared
+	// sync engine (sort ASC, dedup, symbol normalization, order/fill/
+	// position records). Gate returns one-way-mode fills; the position
+	// side is inferred per trade (see toTradeRecord).
+	records := make([]types.TradeRecord, 0, len(trades))
 	for _, trade := range trades {
-		// Normalize symbol (Gate uses BTC_USDT, normalize to BTCUSDT)
-		symbol := market.Normalize(strings.ReplaceAll(trade.Symbol, "_", ""))
-
-		// Determine position side from order action
-		positionSide := "LONG"
-		if strings.Contains(trade.OrderAction, types.SideShort) {
-			positionSide = "SHORT"
-		}
-
-		execTimeMs := trade.ExecTime.UTC().UnixMilli()
-
-		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
-		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
-		if err == nil && existing != nil {
-			// Order exists, but still try to update position for close trades
-			// This handles the case where order was created but position update failed
-			if strings.HasPrefix(trade.OrderAction, "close_") && trade.FillPrice > 0 {
-				if err := posBuilder.ProcessTrade(
-					traderID, exchangeID, exchangeType,
-					symbol, positionSide, trade.OrderAction,
-					trade.FillQty, trade.FillPrice, trade.Fee, trade.ProfitLoss,
-					execTimeMs, trade.TradeID,
-				); err != nil {
-					logger.Infof("  ⚠️ Retry position update for existing trade %s failed: %v", trade.TradeID, err)
-				}
-			}
-			continue
-		}
-
-		// Normalize side for storage
-		side := strings.ToUpper(trade.Side)
-
-		// Create order record
-		orderRecord := &store.TraderOrder{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			ExchangeOrderID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			PositionSide:    "BOTH", // Gate uses one-way position mode
-			Type:            trade.OrderType,
-			OrderAction:     trade.OrderAction,
-			Quantity:        trade.FillQty,
-			Price:           trade.FillPrice,
-			Status:          "FILLED",
-			FilledQuantity:  trade.FillQty,
-			AvgFillPrice:    trade.FillPrice,
-			Commission:      trade.Fee,
-			FilledAt:        execTimeMs,
-			CreatedAt:       execTimeMs,
-			UpdatedAt:       execTimeMs,
-		}
-
-		// Insert order record
-		if err := orderStore.CreateOrder(orderRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync trade %s: %v", trade.TradeID, err)
-			continue
-		}
-
-		// Create fill record - use UTC time in milliseconds
-		fillRecord := &store.TraderFill{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			OrderID:         orderRecord.ID,
-			ExchangeOrderID: trade.OrderID,
-			ExchangeTradeID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            side,
-			Price:           trade.FillPrice,
-			Quantity:        trade.FillQty,
-			QuoteQuantity:   trade.FillPrice * trade.FillQty,
-			Commission:      trade.Fee,
-			CommissionAsset: trade.FeeAsset,
-			RealizedPnL:     trade.ProfitLoss,
-			IsMaker:         false,
-			CreatedAt:       execTimeMs,
-		}
-
-		if err := orderStore.CreateFill(fillRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync fill for trade %s: %v", trade.TradeID, err)
-		}
-
-		// Create/update position record using PositionBuilder
-		// Debug: Log the price being passed to ensure it's not 0
-		if trade.FillPrice <= 0 {
-			logger.Infof("  ⚠️ WARNING: trade %s has FillPrice=%.10f (invalid), skipping position update", trade.TradeID, trade.FillPrice)
-		} else {
-			if err := posBuilder.ProcessTrade(
-				traderID, exchangeID, exchangeType,
-				symbol, positionSide, trade.OrderAction,
-				trade.FillQty, trade.FillPrice, trade.Fee, trade.ProfitLoss,
-				execTimeMs, trade.TradeID,
-			); err != nil {
-				logger.Infof("  ⚠️ Failed to sync position for trade %s: %v", trade.TradeID, err)
-			} else {
-				logger.Infof("  📍 Position updated for trade: %s (action: %s, qty: %.6f, price: %.10f)", trade.TradeID, trade.OrderAction, trade.FillQty, trade.FillPrice)
-			}
-		}
-
-		syncedCount++
-		logger.Infof("  ✅ Synced trade: %s %s %s qty=%.6f price=%.6f pnl=%.2f fee=%.6f action=%s",
-			trade.TradeID, symbol, side, trade.FillQty, trade.FillPrice, trade.ProfitLoss, trade.Fee, trade.OrderAction)
+		records = append(records, trade.toTradeRecord())
 	}
 
-	logger.Infof("✅ Gate order sync completed: %d new trades synced", syncedCount)
+	syncedCount, skippedCount := syncloop.PersistTrades(st, records, syncloop.PersistOptions{
+		TraderID:               traderID,
+		ExchangeID:             exchangeID,
+		ExchangeType:           exchangeType,
+		PositionSideFallback:   "LONG",
+		SideNormalize:          true,
+		DefaultCommissionAsset: "USDT",
+	})
+
+	logger.Infof("✅ Gate order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil
 }
 

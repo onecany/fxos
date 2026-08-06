@@ -31,6 +31,8 @@ type TradeRecord struct {
 	Side         string    // "BUY" or "SELL"
 	PositionSide string    // "LONG", "SHORT", or "BOTH" (for one-way mode)
 	OrderAction  string    // "open_long", "open_short", "close_long", "close_short" (from exchange Dir field)
+	OrderType    string    // "MARKET" or "LIMIT" (exchange-reported; empty = MARKET)
+	IsMaker      bool      // Fill maker flag (exchange-reported where available)
 	Price        float64   // Execution price
 	Quantity     float64   // Executed quantity
 	RealizedPnL  float64   // Realized PnL (non-zero for closing trades)

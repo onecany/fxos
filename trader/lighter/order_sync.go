@@ -3,11 +3,9 @@ package lighter
 import (
 	"fmt"
 	"fxos/logger"
-	"fxos/market"
 	"fxos/store"
 	"fxos/trader/syncloop"
-	"fxos/trader/types"
-	"sort"
+	tradertypes "fxos/trader/types"
 	"strings"
 	"time"
 )
@@ -34,115 +32,31 @@ func (t *LighterTraderV2) SyncOrdersFromLighter(traderID string, exchangeID stri
 
 	logger.Infof("📥 Received %d trades from Lighter", len(trades))
 
-	// Sort trades by time ASC (oldest first) for proper position building
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].Time.UnixMilli() < trades[j].Time.UnixMilli()
+	// Persist via the shared sync engine (sort ASC, dedup, symbol
+	// normalization, order/fill/position records). Lighter's GetTrades
+	// already returns types.TradeRecord with OrderAction and PositionSide
+	// filled; the action fallback below preserves the old empty-action
+	// inference (open_long/open_short from the trade side).
+	syncedCount, skippedCount := syncloop.PersistTrades(st, trades, syncloop.PersistOptions{
+		TraderID:               traderID,
+		ExchangeID:             exchangeID,
+		ExchangeType:           exchangeType,
+		PositionSideFallback:   "LONG",
+		SideNormalize:          true,
+		DefaultCommissionAsset: "USDT",
+		DetermineOrderAction: func(trade tradertypes.TradeRecord) string {
+			if trade.OrderAction != "" {
+				return trade.OrderAction
+			}
+			// Fallback if OrderAction is empty (shouldn't happen with updated GetTrades)
+			if strings.ToUpper(trade.Side) == "BUY" {
+				return tradertypes.ActionOpenLong
+			}
+			return tradertypes.ActionOpenShort
+		},
 	})
 
-	// Process trades one by one (no transaction to avoid deadlock)
-	orderStore := st.Order()
-	positionStore := st.Position()
-	posBuilder := store.NewPositionBuilder(positionStore)
-
-	syncedCount := 0
-	for _, trade := range trades {
-		// Check if trade already exists (use exchangeID which is UUID, not exchange type)
-		existing, err := orderStore.GetOrderByExchangeID(exchangeID, trade.TradeID)
-		if err == nil && existing != nil {
-			continue // Trade already exists, skip
-		}
-
-		// Normalize symbol (add USDT suffix)
-		symbol := market.Normalize(trade.Symbol)
-
-		// Use OrderAction from TradeRecord (determined by position change in GetTrades)
-		// This is more accurate than guessing based on database state
-		positionSide := trade.PositionSide
-		orderAction := trade.OrderAction
-		side := trade.Side
-
-		// Fallback if OrderAction is empty (shouldn't happen with updated GetTrades)
-		if orderAction == "" {
-			if strings.ToUpper(side) == "BUY" {
-				positionSide = "LONG"
-				orderAction = types.ActionOpenLong
-			} else {
-				positionSide = "SHORT"
-				orderAction = types.ActionOpenShort
-			}
-		}
-
-		// Create order record - use Unix milliseconds UTC
-		tradeTimeMs := trade.Time.UTC().UnixMilli()
-		orderRecord := &store.TraderOrder{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			ExchangeOrderID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            strings.ToUpper(side),
-			PositionSide:    positionSide,
-			Type:            "MARKET",
-			OrderAction:     orderAction,
-			Quantity:        trade.Quantity,
-			Price:           trade.Price,
-			Status:          "FILLED",
-			FilledQuantity:  trade.Quantity,
-			AvgFillPrice:    trade.Price,
-			Commission:      trade.Fee,
-			FilledAt:        tradeTimeMs,
-			CreatedAt:       tradeTimeMs,
-			UpdatedAt:       tradeTimeMs,
-		}
-
-		// Insert order record
-		if err := orderStore.CreateOrder(orderRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync trade %s: %v", trade.TradeID, err)
-			continue
-		}
-
-		// Create fill record - use Unix milliseconds UTC
-		fillRecord := &store.TraderFill{
-			TraderID:        traderID,
-			ExchangeID:      exchangeID,   // UUID
-			ExchangeType:    exchangeType, // Exchange type
-			OrderID:         orderRecord.ID,
-			ExchangeOrderID: trade.TradeID,
-			ExchangeTradeID: trade.TradeID,
-			Symbol:          symbol,
-			Side:            strings.ToUpper(side),
-			Price:           trade.Price,
-			Quantity:        trade.Quantity,
-			QuoteQuantity:   trade.Price * trade.Quantity,
-			Commission:      trade.Fee,
-			CommissionAsset: "USDT",
-			RealizedPnL:     trade.RealizedPnL,
-			IsMaker:         false,
-			CreatedAt:       tradeTimeMs,
-		}
-
-		if err := orderStore.CreateFill(fillRecord); err != nil {
-			logger.Infof("  ⚠️ Failed to sync fill for trade %s: %v", trade.TradeID, err)
-		}
-
-		// Create/update position record using PositionBuilder
-		if err := posBuilder.ProcessTrade(
-			traderID, exchangeID, exchangeType,
-			symbol, positionSide, orderAction,
-			trade.Quantity, trade.Price, trade.Fee, trade.RealizedPnL,
-			tradeTimeMs, trade.TradeID,
-		); err != nil {
-			logger.Infof("  ⚠️ Failed to sync position for trade %s: %v", trade.TradeID, err)
-		} else {
-			logger.Infof("  📍 Position updated for trade: %s (action: %s, qty: %.6f)", trade.TradeID, orderAction, trade.Quantity)
-		}
-
-		syncedCount++
-		logger.Infof("  ✅ Synced trade: %s %s %s qty=%.6f price=%.6f pnl=%.2f fee=%.6f action=%s",
-			trade.TradeID, symbol, side, trade.Quantity, trade.Price, trade.RealizedPnL, trade.Fee, orderAction)
-	}
-
-	logger.Infof("✅ Order sync completed: %d new trades synced", syncedCount)
+	logger.Infof("✅ Order sync completed: %d new trades synced, %d skipped (already exist)", syncedCount, skippedCount)
 	return nil
 }
 

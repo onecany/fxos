@@ -44,7 +44,6 @@ func (t *HyperliquidTrader) SyncOrdersFromHyperliquid(traderID string, exchangeI
 		ExchangeType:           exchangeType,
 		PositionSideFallback:   "LONG",
 		DefaultCommissionAsset: "USDT",
-		IsMaker:                false,
 	})
 
 	logger.Infof("✅ Order sync completed: %d new trades synced", syncedCount)

@@ -244,6 +244,7 @@ func (t *AsterTrader) GetTrades(startTime time.Time, limit int) ([]types.TradeRe
 			Symbol:       at.Symbol,
 			Side:         at.Side,
 			PositionSide: at.PositionSide,
+			OrderType:    "LIMIT", // Aster fills come from limit orders
 			Price:        price,
 			Quantity:     qty,
 			RealizedPnL:  pnl,

@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	"fxos/config"
 	"fxos/logger"
 	"fxos/mcp"
@@ -63,6 +64,28 @@ func runBot(token string, cfg *config.Config, st *store.Store, apiDocs APIDocsPr
 		return false
 	}
 	logger.Infof("Telegram bot @%s started", bot.Self.UserName)
+
+	// Register the AI billing-error alert hook. When the LLM provider rejects
+	// calls with a billing-class error (402 Insufficient Balance), notify the
+	// bound chat — retrying such errors is pointless and the operator must
+	// top up the account. Throttled per provider+status so a persistent
+	// billing outage alerts once per hour instead of spamming every cycle.
+	prevCallback := mcp.APIErrorCallback
+	alertThrottle := newBillingAlertThrottle(time.Hour)
+	mcp.APIErrorCallback = func(provider, model string, statusCode int, message string) {
+		if !alertThrottle.allow(provider, statusCode) {
+			return
+		}
+		chatID, err := st.TelegramConfig().GetBoundChatID()
+		if err != nil || chatID == 0 {
+			logger.Errorf("Billing alert (provider=%s status=%d) but no bound Telegram chat to notify: %v", provider, statusCode, err)
+			return
+		}
+		text := fmt.Sprintf("🚨 *AI API Billing Alert*\n\nProvider `%s` (model `%s`) rejected the request with HTTP %d — the account balance is insufficient.\n\nTop up the API account or switch to a funded key, otherwise trading decisions keep failing.\n\n%s",
+			provider, model, statusCode, message)
+		sendMarkdownMsg(bot, chatID, text)
+	}
+	defer func() { mcp.APIErrorCallback = prevCallback }()
 
 	// Allowed chat ID: read from DB binding (0 = unbound, first /start will bind).
 	allowedChatID := int64(0)
@@ -269,6 +292,34 @@ func runBot(token string, cfg *config.Config, st *store.Store, apiDocs APIDocsPr
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+// billingAlertThrottle rate-limits billing alerts per provider+status pair so
+// a persistent outage (e.g. 402 Insufficient Balance every cycle) does not
+// spam the bound chat. A given provider+status alerts at most once per window.
+type billingAlertThrottle struct {
+	mu     sync.Mutex
+	window time.Duration
+	last   map[string]time.Time
+}
+
+func newBillingAlertThrottle(window time.Duration) *billingAlertThrottle {
+	return &billingAlertThrottle{
+		window: window,
+		last:   make(map[string]time.Time),
+	}
+}
+
+func (t *billingAlertThrottle) allow(provider string, statusCode int) bool {
+	key := fmt.Sprintf("%s|%d", provider, statusCode)
+	now := time.Now()
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if last, ok := t.last[key]; ok && now.Sub(last) < t.window {
+		return false
+	}
+	t.last[key] = now
+	return true
+}
 
 func sendMsg(bot *tgbotapi.BotAPI, chatID int64, text string) {
 	msg := tgbotapi.NewMessage(chatID, text)

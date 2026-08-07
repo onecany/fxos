@@ -3,6 +3,7 @@ package mcp
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -501,4 +502,149 @@ func findSubstring(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// ── Billing-class (402) error handling ───────────────────────────────────────
+
+func TestClient_CallWithMessages_BillingError402(t *testing.T) {
+	mockHTTP := NewMockHTTPClient()
+	mockHTTP.SetErrorResponse(http.StatusPaymentRequired,
+		`{"error":{"message":"Insufficient Balance","type":"unknown_error","param":null,"code":"invalid_request_error"}}`)
+	mockLogger := NewMockLogger()
+
+	// Reset global callback, capture invocations
+	prev := APIErrorCallback
+	called := 0
+	var cbProvider, cbModel, cbMessage string
+	var cbStatus int
+	APIErrorCallback = func(provider, model string, statusCode int, message string) {
+		called++
+		cbProvider, cbModel, cbStatus, cbMessage = provider, model, statusCode, message
+	}
+	defer func() { APIErrorCallback = prev }()
+
+	client := NewClient(
+		WithHTTPClient(mockHTTP.ToHTTPClient()),
+		WithLogger(mockLogger),
+		WithAPIKey("test-key"),
+		WithBaseURL("https://api.test.com"),
+	)
+
+	_, err := client.CallWithMessages("system", "user")
+
+	// 1. Must return an error (the call failed)
+	if err == nil {
+		t.Fatal("expected error for 402 response")
+	}
+
+	// 2. Error must be identifiable as a billing-class error via errors.As
+	var billingErr *BillingClassError
+	if !errors.As(err, &billingErr) {
+		t.Errorf("expected *BillingClassError, got %T: %v", err, err)
+	}
+	if billingErr == nil {
+		t.Fatal("billingErr is nil")
+	}
+	if billingErr.StatusCode != http.StatusPaymentRequired {
+		t.Errorf("expected status 402, got %d", billingErr.StatusCode)
+	}
+	if billingErr.Provider != ProviderDeepSeek {
+		t.Errorf("expected provider deepseek, got %q", billingErr.Provider)
+	}
+	if billingErr.Model != DefaultDeepSeekModel {
+		t.Errorf("expected model deepseek-chat, got %q", billingErr.Model)
+	}
+	if !strings.Contains(billingErr.Message, "Insufficient Balance") {
+		t.Errorf("expected Insufficient Balance in message, got %q", billingErr.Message)
+	}
+
+	// 3. APIErrorCallback must fire exactly once
+	if called != 1 {
+		t.Errorf("expected APIErrorCallback called 1 time, got %d", called)
+	}
+	if cbStatus != http.StatusPaymentRequired {
+		t.Errorf("expected callback status 402, got %d", cbStatus)
+	}
+	if cbProvider != ProviderDeepSeek || cbModel != DefaultDeepSeekModel {
+		t.Errorf("expected provider/model deepseek/deepseek-chat, got %s/%s", cbProvider, cbModel)
+	}
+	if !strings.Contains(cbMessage, "Insufficient Balance") {
+		t.Errorf("expected Insufficient Balance in callback message, got %q", cbMessage)
+	}
+
+	// 4. No retry attempts for billing errors (single HTTP request)
+	requests := mockHTTP.GetRequests()
+	if len(requests) != 1 {
+		t.Errorf("expected exactly 1 HTTP request (no retries), got %d", len(requests))
+	}
+
+	// 5. ERROR-level log must be emitted
+	hasErrorLog := false
+	for _, entry := range mockLogger.GetLogs() {
+		if entry.Level == "ERROR" && strings.Contains(entry.Message, "billing error") {
+			hasErrorLog = true
+			break
+		}
+	}
+	if !hasErrorLog {
+		t.Error("expected ERROR-level log containing 'billing error'")
+	}
+}
+
+func TestClient_IsRetryableError_BillingError(t *testing.T) {
+	mockLogger := NewMockLogger()
+	client := NewClient(
+		WithLogger(mockLogger),
+		WithAPIKey("test-key"),
+	).(*Client)
+
+	billingErr := &BillingClassError{
+		Provider:   ProviderDeepSeek,
+		Model:      DefaultDeepSeekModel,
+		StatusCode: http.StatusPaymentRequired,
+		Message:    `{"error":{"message":"Insufficient Balance"}}`,
+	}
+
+	if client.IsRetryableError(billingErr) {
+		t.Error("billing error must never be retryable")
+	}
+
+	// Non-billing errors keep their existing behavior
+	if !client.IsRetryableError(fmt.Errorf("some network timeout happened")) {
+		t.Error("network timeout should still be retryable")
+	}
+}
+
+func TestClient_CallWithMessages_NonBillingHTTPErrorNoCallback(t *testing.T) {
+	mockHTTP := NewMockHTTPClient()
+	mockHTTP.SetErrorResponse(500, "Internal Server Error")
+	mockLogger := NewMockLogger()
+
+	prev := APIErrorCallback
+	called := 0
+	APIErrorCallback = func(provider, model string, statusCode int, message string) {
+		called++
+	}
+	defer func() { APIErrorCallback = prev }()
+
+	client := NewClient(
+		WithHTTPClient(mockHTTP.ToHTTPClient()),
+		WithLogger(mockLogger),
+		WithAPIKey("test-key"),
+		WithBaseURL("https://api.test.com"),
+	)
+
+	_, err := client.CallWithMessages("system", "user")
+	if err == nil {
+		t.Fatal("expected error for 500 response")
+	}
+	if called != 0 {
+		t.Errorf("expected APIErrorCallback NOT called for 500, got %d calls", called)
+	}
+
+	// 500 stays a plain error (not a billing error)
+	var billingErr *BillingClassError
+	if errors.As(err, &billingErr) {
+		t.Errorf("expected plain error for 500, got *BillingClassError: %v", err)
+	}
 }

@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"fxos/httpclient"
 	"io"
 	"net/http"
-	"fxos/httpclient"
 	"strings"
 	"time"
 )
@@ -44,7 +45,51 @@ var (
 
 	// TokenUsageCallback is called after each AI request with token usage info
 	TokenUsageCallback func(usage TokenUsage)
+
+	// APIErrorCallback is called when the AI provider returns a billing-class
+	// HTTP error (402 Payment Required, e.g. "Insufficient Balance"). Retrying
+	// such errors is pointless — the account needs top-up or a new key — so
+	// they are surfaced once per call through this hook instead of being
+	// silently retried. Consumers (e.g. Telegram alerting) register here.
+	// Optional: nil means no callback.
+	APIErrorCallback func(provider, model string, statusCode int, message string)
 )
+
+// BillingClassError reports a non-retryable provider billing failure
+// (currently 402 Payment Required). Consumers can use errors.As to detect
+// "top up the account" conditions distinctly from transient API failures.
+type BillingClassError struct {
+	Provider   string
+	Model      string
+	StatusCode int
+	Message    string
+}
+
+func (e *BillingClassError) Error() string {
+	return fmt.Sprintf("AI API billing error (status %d) provider=%s model=%s: %s",
+		e.StatusCode, e.Provider, e.Model, e.Message)
+}
+
+// handleNonOKResponse converts a non-200 provider response into an error.
+// Billing-class statuses (402) log at ERROR level and fire APIErrorCallback
+// instead of being treated as a transient failure.
+func (client *Client) handleNonOKResponse(statusCode int, body []byte) error {
+	msg := strings.TrimSpace(string(body))
+	if statusCode == http.StatusPaymentRequired {
+		err := &BillingClassError{
+			Provider:   client.Provider,
+			Model:      client.Model,
+			StatusCode: statusCode,
+			Message:    msg,
+		}
+		client.Log.Errorf("❌ %v", err)
+		if APIErrorCallback != nil {
+			APIErrorCallback(client.Provider, client.Model, statusCode, msg)
+		}
+		return err
+	}
+	return fmt.Errorf("API returned error (status %d): %s", statusCode, string(body))
+}
 
 // TokenUsage represents token usage from AI API response
 type TokenUsage struct {
@@ -436,7 +481,7 @@ func (client *Client) Call(systemPrompt, userPrompt string) (string, error) {
 
 	// Step 7: Check HTTP status code (fixed logic)
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API returned error (status %d): %s", resp.StatusCode, string(body))
+		return "", client.handleNonOKResponse(resp.StatusCode, body)
 	}
 
 	// Step 8: Parse response (via hooks for dynamic dispatch)
@@ -458,6 +503,12 @@ func (c *Client) BaseClient() *Client { return c }
 
 // IsRetryableError determines if error is retryable (network errors, timeouts, etc.)
 func (client *Client) IsRetryableError(err error) bool {
+	// Billing-class failures (402 Insufficient Balance) are never retryable:
+	// retrying wastes time and only re-hits the same billing rejection.
+	var billingErr *BillingClassError
+	if errors.As(err, &billingErr) {
+		return false
+	}
 	errStr := err.Error()
 	// Network errors, timeouts, EOF, etc. can be retried
 	for _, retryable := range client.Cfg.RetryableErrors {
@@ -580,7 +631,7 @@ func (client *Client) callWithRequestFull(req *Request) (*LLMResponse, error) {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned error (status %d): %s", resp.StatusCode, string(body))
+		return nil, client.handleNonOKResponse(resp.StatusCode, body)
 	}
 
 	return client.Hooks.ParseMCPResponseFull(body)
@@ -619,7 +670,7 @@ func (client *Client) callWithRequest(req *Request) (string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("API returned error (status %d): %s", resp.StatusCode, string(body))
+		return "", client.handleNonOKResponse(resp.StatusCode, body)
 	}
 
 	result, err := client.Hooks.ParseMCPResponse(body)
@@ -792,7 +843,7 @@ func (client *Client) CallWithRequestStream(req *Request, onChunk func(string)) 
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
+		return "", client.handleNonOKResponse(resp.StatusCode, body)
 	}
 
 	text, usage, err := ParseSSEStream(resp.Body, onChunk, func() {
